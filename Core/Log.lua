@@ -1,4 +1,4 @@
--- Leveled ring-buffer logger. The tail is kept in QuestboardLog (SavedVariables)
+-- Leveled ring-buffer logger. The tail is kept in TaskboardLog (SavedVariables)
 -- so logs survive /reload and can be pasted into bug reports.
 local _, ns = ...
 
@@ -10,7 +10,7 @@ Log.NAMES = { "DEBUG", "INFO", "WARN", "ERROR" }
 Log.COLORS = { "ff8a8a8a", "ffd0d0d0", "ffffc04d", "ffff5555" }
 Log.MAX = 300
 
-local entries = {}      -- live buffer; becomes QuestboardLog.entries once loaded
+local entries = {}      -- live buffer; becomes TaskboardLog.entries once loaded
 local seenErrors = {}   -- message -> count, so chat shows each error once
 Log.errorCount, Log.lastError = 0, nil
 Log.printLevel = Log.LEVELS.WARN
@@ -39,7 +39,7 @@ end
 
 local function toChat(level, category, message)
     if not DEFAULT_CHAT_FRAME then return end
-    DEFAULT_CHAT_FRAME:AddMessage(string.format("|cff4fc3f7Questboard|r |c%s[%s]|r %s: %s",
+    DEFAULT_CHAT_FRAME:AddMessage(string.format("|cff4fc3f7Taskboard|r |c%s[%s]|r %s: %s",
         Log.COLORS[level], Log.NAMES[level], category, message))
 end
 
@@ -123,8 +123,11 @@ function Log:Count()
 end
 
 function Log:OnInit()
-    QuestboardLog = type(QuestboardLog) == "table" and QuestboardLog or {}
-    local saved = type(QuestboardLog.entries) == "table" and QuestboardLog.entries or {}
+    if TaskboardLog == nil and type(rawget(_G, "QuestboardLog")) == "table" then
+        TaskboardLog = ns.Util.DeepCopy(rawget(_G, "QuestboardLog"))
+    end
+    TaskboardLog = type(TaskboardLog) == "table" and TaskboardLog or {}
+    local saved = type(TaskboardLog.entries) == "table" and TaskboardLog.entries or {}
     -- Keep valid saved entries, then append anything logged before load.
     local merged = {}
     for _, e in ipairs(saved) do
@@ -135,7 +138,8 @@ function Log:OnInit()
     for _, e in ipairs(entries) do merged[#merged + 1] = e end
     while #merged > self.MAX do table.remove(merged, 1) end
     entries = merged
-    QuestboardLog.entries = entries
-    QuestboardLog.sessions = (tonumber(QuestboardLog.sessions) or 0) + 1
-    self:Info("log", "Session %d started, Questboard %s", QuestboardLog.sessions, ns.version)
+    TaskboardLog.entries = entries
+    TaskboardLog.sessions = (tonumber(TaskboardLog.sessions) or 0) + 1
+    self:Info("log", "Session %d started, Taskboard %s", TaskboardLog.sessions, ns.version)
 end
+

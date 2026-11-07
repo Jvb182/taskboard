@@ -17,7 +17,7 @@ local function untilReset(kind)
     local t = date("*t", now)
     local midnight = now + (24 - t.hour) * 3600 - t.min * 60 - t.sec
     if kind == "daily" then return midnight - now end
-    return midnight - now + ((9 - t.wday) % 7) * 86400 -- next Monday-ish
+    return midnight - now + ((8 - t.wday) % 7) * 86400 -- next Monday
 end
 
 function Recurring:NextReset(kind, now)
@@ -25,19 +25,24 @@ function Recurring:NextReset(kind, now)
 end
 
 -- Resets repeating cards of `kind`. Done cards grow their streak; unfinished ones lose it.
-function Recurring:Reset(kind)
+function Recurring:Reset(kind, missed)
     local count = 0
-    for _, entry in ipairs(DB:AllCards(true)) do
+    for _, entry in ipairs(DB:AllCards(true, true)) do
         local card, board = entry.card, entry.board
-        if card.recur == kind and not DB:IsReadOnly(board) then
+        if card.recur == kind and not card.archived and not DB:IsReadOnly(board) then
             local role = DB:CardRole(board, card)
-            if role == "done" then card.streak = (card.streak or 0) + 1 else card.streak = 0 end
-            for _, s in ipairs(card.subtasks) do s.done = false end
-            card.auto = {}
+            if role == "done" and (missed or 1) == 1 then card.streak = (card.streak or 0) + 1 else card.streak = 0 end
+            for _, s in ipairs(card.subtasks) do s.done, s.progress = false, nil end
+            card.auto = { hold = true }
+            card.recurCycle = Util.Now()
             card.completedAt = nil
             card.progress = nil
+            card._summary, card._regressed = nil, nil
+            ns.Goals.ResetRecurring(card, ns.Engine:Owns(card, board))
             if role ~= "todo" then
                 DB:MoveCard(board, card.id, DB:ColumnByRole(board, "todo").id, nil, kind .. " reset")
+            else
+                ns:Fire("BOARD_CHANGED", board)
             end
             count = count + 1
         end
@@ -60,7 +65,8 @@ function Recurring:Check(now)
         if not r[key] then
             r[key] = self:NextReset(kind, now)
         elseif now >= r[key] then
-            self:Reset(kind)
+            local period = kind == "daily" and 86400 or 604800
+            self:Reset(kind, math.floor((now - r[key]) / period) + 1)
             r[key] = self:NextReset(kind, now)
             -- Guard against an API that returns 0 right at reset time.
             if r[key] <= now then r[key] = now + (kind == "daily" and 86400 or 604800) end
@@ -72,3 +78,4 @@ function Recurring:OnLogin()
     self:Check()
     self.ticker = ns.Ticker(60, "recurring check", function() Recurring:Check() end)
 end
+

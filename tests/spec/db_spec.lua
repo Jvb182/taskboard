@@ -6,7 +6,7 @@ describe("DB", function()
         local boards = ns.DB:VisibleBoards()
         T.eq(#boards, 1)
         local board = boards[1]
-        T.eq(board.name, "My Quests")
+        T.eq(board.name, "My Tasks")
         T.eq(#board.columns, 3)
         T.eq(board.columns[1].role, "todo")
         T.eq(board.columns[3].role, "done")
@@ -125,3 +125,4 @@ describe("DB", function()
         T.eq(#ns2.DB:VisibleBoards(), 1)
     end)
 end)
+

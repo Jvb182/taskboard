@@ -5,7 +5,7 @@ local API = Mock.API
 
 local function readToc()
     local files = {}
-    for line in io.lines(QB_ADDON_ROOT .. "Questboard.toc") do
+    for line in io.lines(QB_ADDON_ROOT .. "Taskboard.toc") do
         line = line:gsub("\r", "")
         if line ~= "" and not line:match("^##") then files[#files + 1] = line:gsub("\\", "/") end
     end
@@ -30,9 +30,9 @@ end
 
 describe("static", function()
     it("toc targets the Forever interface and lists existing files", function()
-        local toc = read("Questboard.toc")
+        local toc = read("Taskboard.toc")
         T.contains(toc, "## Interface: 16001")
-        T.contains(toc, "## SavedVariables: QuestboardDB, QuestboardLog")
+        T.contains(toc, "## SavedVariables: TaskboardDB, TaskboardLog")
         T.ok(#files >= 20, "toc lists the addon files")
         for _, file in ipairs(files) do
             T.ok(io.open(QB_ADDON_ROOT .. file, "r"), "toc file exists: " .. file)
@@ -68,7 +68,7 @@ describe("static", function()
             end
             -- Event tables like Goals.EVENTS / Reminders.NPC_EVENTS: KEY = ...
             for event in code(src):gmatch("\n%s+([%u][%u_]+[%u])%s*=%s*[{\"]") do
-                if event:find("_") and not API.events[event] and not event:match("^QUESTBOARD") and not event:match("^BINDING_")
+                if event:find("_") and not API.events[event] and not event:match("^TASKBOARD") and not event:match("^BINDING_")
                     and not event:match("^SLASH_") then
                     unknown[#unknown + 1] = file .. ": " .. event
                 end
@@ -107,7 +107,7 @@ describe("static", function()
 
     it("Bindings.xml calls functions the addon defines", function()
         local xml = read("Bindings.xml")
-        for fn in xml:gmatch("Questboard:(%w+)%(%)") do
+        for fn in xml:gmatch("Taskboard:(%w+)%(%)") do
             T.contains(sources["Core/Commands.lua"], "function ns:" .. fn .. "(", "binding target " .. fn)
         end
         for name in xml:gmatch('name="(QUESTBOARD_%u+)"') do
@@ -126,3 +126,4 @@ describe("static", function()
         end
     end)
 end)
+

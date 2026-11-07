@@ -4,7 +4,7 @@ local Util = ns.Util
 
 local Diag = ns:NewModule("Diagnostics")
 
--- Every client API Questboard relies on. Missing ones disable a feature, they never crash.
+-- Every client API Taskboard relies on. Missing ones disable a feature, they never crash.
 Diag.CAPABILITIES = {
     { "C_Item.GetItemCount", "item tracking" },
     { "C_Item.GetItemInfoInstant", "item name lookup" },
@@ -81,7 +81,7 @@ function Diag:Report()
     local function add(fmt, ...) lines[#lines + 1] = select("#", ...) > 0 and string.format(fmt, ...) or fmt end
     local version, build, _, interface = "?", "?", nil, "?"
     if GetBuildInfo then version, build, _, interface = GetBuildInfo() end
-    add("Questboard %s diagnostics, %s", ns.version, date("%Y-%m-%d %H:%M:%S"))
+    add("Taskboard %s diagnostics, %s", ns.version, date("%Y-%m-%d %H:%M:%S"))
     add("Client %s (build %s), interface %s", tostring(version), tostring(build), tostring(interface))
     add("Character %s, level %s, zone %s", ns.CharKey(), tostring(UnitLevel and UnitLevel("player")),
         tostring(GetRealZoneText and GetRealZoneText()))
@@ -153,7 +153,7 @@ function Diag:SelfTest()
     local passed, failed, lines = 0, 0, {}
     local function check(name, fn)
         local ok, err = pcall(fn)
-        if ok and err ~= false then
+        if ok and err == true then
             passed = passed + 1
             lines[#lines + 1] = "PASS " .. name
         else
@@ -176,7 +176,7 @@ function Diag:SelfTest()
         return back and back.a == t.a and back.list[3].deep == "ok" and back.n == 1.5
     end)
     check("serializer: rejects garbage", function() return ns.Serialize.Unpack("T S9999:x") == nil end)
-    check("api: GetItemCount returns a number", function() return type(ns.Items:Count(2447, false)) == "number" end)
+    check("api: GetItemCount returns a number", function() return type(C_Item.GetItemCount(2447, false)) == "number" end)
     check("api: GetMoney", function() return type(GetMoney()) == "number" end)
     check("api: UnitLevel", function() return type(UnitLevel("player")) == "number" end)
     check("api: zone text", function() return type(GetRealZoneText()) == "string" end)
@@ -207,3 +207,4 @@ function Diag:SelfTest()
     ns.Log:Info("selftest", "Self-test: %d passed, %d failed", passed, failed)
     return passed, failed, lines
 end
+

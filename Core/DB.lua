@@ -297,6 +297,27 @@ function DB:OnInit()
         ns.Log:Info("migration", "Copied Questboard boards and settings into Taskboard. Legacy data was left intact.")
     end
     ns.db = self:Load(TaskboardDB)
+    -- Saved default labels outlive source-code renames. Update only exact
+    -- legacy defaults once; keep custom titles, notes and shared boards intact.
+    if not ns.db.taskboardBrandingUpdated then
+        local oldNotes = "Add cards with /qb add, or type in the box at the top of the board.\n\n" ..
+            "Try: Get 20 Peacebloom #herbs !high\nShift-click an item link into the box to track it live."
+        for _, board in pairs(ns.db.boards) do
+            if board.scope ~= "shared" then
+                if board.name == "My Quests" then board.name = "My Tasks" end
+                for _, card in pairs(board.cards) do
+                    if card.title == "Welcome to Questboard! Right-click me" then
+                        card.title = "Welcome to Taskboard! Right-click me"
+                        if card.notes == oldNotes then card.notes = oldNotes:gsub("/qb", "/tb") end
+                        for _, subtask in ipairs(card.subtasks) do
+                            if subtask.text == "Open the board with /qb" then subtask.text = "Open the board with /tb" end
+                        end
+                    end
+                end
+            end
+        end
+        ns.db.taskboardBrandingUpdated = true
+    end
     TaskboardDB = ns.db
     ns.Log:SetDebug(ns.db.settings.debug)
     ns.Log:Info("db", "Loaded %d board(s)", Util.Count(ns.db.boards))

@@ -132,6 +132,42 @@ describe("Attached zone reminders", function()
 end)
 
 describe("Taskboard migration", function()
+    it("updates the original welcome instructions", function()
+        local _, ns = T.client(nil, { db = { boards = { b = { id = "b", name = "My Quests", cards = {
+            c = { id = "c", title = "Welcome to Questboard! Right-click me", notes =
+                "Add cards with /qb add, or type in the box at the top of the board.\n\n" ..
+                "Try: Get 20 Peacebloom #herbs !high\nShift-click an item link into the box to track it live." },
+        } } } } })
+        T.contains(ns.db.boards.b.cards.c.notes, "/tb add")
+        T.no(string.find(ns.db.boards.b.cards.c.notes, "/qb", 1, true))
+        T.noErrors(ns)
+    end)
+
+    it("renames saved default labels once without rewriting custom or shared content", function()
+        local saved = { db = { boards = {
+            old = { id = "old", name = "My Quests", cards = {
+                welcome = { id = "welcome", title = "Welcome to Questboard! Right-click me", notes = "My custom notes", subtasks = {
+                    { text = "Open the board with /qb", done = true }, { text = "My custom task" },
+                } },
+            } },
+            custom = { id = "custom", name = "My Quests for friends", cards = {} },
+            shared = { id = "shared", name = "My Quests", scope = "shared", cards = {} },
+        } } }
+        local m, ns = T.client(nil, saved)
+        local b = ns.db.boards.old
+        T.eq(b.name, "My Tasks")
+        T.eq(b.cards.welcome.title, "Welcome to Taskboard! Right-click me")
+        T.eq(b.cards.welcome.notes, "My custom notes")
+        T.eq(b.cards.welcome.subtasks[1].text, "Open the board with /tb")
+        T.eq(b.cards.welcome.subtasks[1].done, true)
+        T.eq(ns.db.boards.custom.name, "My Quests for friends")
+        T.eq(ns.db.boards.shared.name, "My Quests")
+        b.name = "My Quests"
+        local _, again = T.client(nil, m.Logout())
+        T.eq(again.db.boards.old.name, "My Quests")
+        T.noErrors(ns); T.noErrors(again)
+    end)
+
     it("copies legacy boards/settings/logs without modifying the old save", function()
         local old = { schema = 1, boards = { old = { id = "old", name = "Existing", cards = { c = { id = "c", title = "Keep me" } } } },
             settings = { sounds = false } }

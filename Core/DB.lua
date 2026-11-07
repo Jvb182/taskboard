@@ -307,9 +307,9 @@ function DB:OnLogin()
     if Util.Count(ns.db.boards) == 0 then
         local board = self:CreateBoard("My Tasks", "account")
         self:AddCard(board, { title = "Welcome to Taskboard! Right-click me", notes =
-            "Add cards with /qb add, or type in the box at the top of the board.\n\n" ..
+            "Add cards with /tb add, or type in the box at the top of the board.\n\n" ..
             "Try: Get 20 Peacebloom #herbs !high\nShift-click an item link into the box to track it live.",
-            subtasks = { { text = "Open the board with /qb" }, { text = "Add a card that tracks an item" }, { text = "Drag a card to In Progress" } } })
+            subtasks = { { text = "Open the board with /tb" }, { text = "Add a card that tracks an item" }, { text = "Drag a card to In Progress" } } })
         ns.Log:Info("db", "Created the default board for %s", me)
     end
     if not ns.db.ui.activeBoard or not ns.db.boards[ns.db.ui.activeBoard] or not self:IsVisible(ns.db.boards[ns.db.ui.activeBoard]) then

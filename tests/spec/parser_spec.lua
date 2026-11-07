@@ -3,6 +3,33 @@ local m, ns = T.client()
 local P = ns.Parser
 
 describe("Parser goals", function()
+    it("reads quantities around named-color item links without leaking markup", function()
+        for _, color in ipairs({ "IQ1", "ITEM_QUALITY1" }) do
+            local link = "|cn" .. color .. ":|Hitem:765:::::::::|h[Silverleaf]|h|r"
+            for _, text in ipairs({ "get 17 " .. link, "17x " .. link, link .. " x17" }) do
+                T.eq(P.ParseGoal(text).target, 17)
+                T.eq(P.ParseGoal(text).itemID, 765)
+            end
+            T.eq(ns.Util.Sanitize("get 17 " .. link), "get 17 [Silverleaf]")
+        end
+    end)
+
+    it("keeps a linked 17-item task incomplete at 15 and completes at 17", function()
+        local client, addon = T.client()
+        client.Loot(765, 15)
+        local card = addon.Commands:Add("get 17 |cnIQ1:|Hitem:765:::::::::|h[Silverleaf]|h|r")
+        client.Advance(1)
+        local board = addon.DB:GetActiveBoard()
+        T.eq(card.title, "get 17 [Silverleaf]")
+        T.eq(card.progress.cur, 15)
+        T.eq(card.progress.target, 17)
+        T.no(addon.DB:CardRole(board, card) == "done")
+        client.Loot(765, 2)
+        client.Advance(1)
+        T.eq(addon.DB:CardRole(board, card), "done")
+        T.noErrors(addon)
+    end)
+
     local cases = {
         -- text, type, field checks
         { "Get 20 Peacebloom", "item", { itemID = 2447, target = 20, name = "Peacebloom" } },
@@ -126,3 +153,4 @@ describe("Parser full lines", function()
         T.contains(P.Describe({ type = "item", name = "X", target = 2 }), "waiting for first loot")
     end)
 end)
+

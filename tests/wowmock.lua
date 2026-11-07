@@ -204,6 +204,11 @@ function Mock.new(opts)
     end
     impl.SetParent = function(self, parent) self._parent = parent end
     impl.GetParent = function(self) return self._parent end
+    impl.SetFrameLevel = function(self, level) self._level = level end
+    impl.GetFrameLevel = function(self)
+        if self._level then return self._level end
+        return self._parent and (self._parent:GetFrameLevel() + 1) or 0
+    end
     impl.GetName = function(self) return self._name end
     impl.GetObjectType = function(self) return self._type end
     impl.SetScript = function(self, name, fn) self._scripts[name] = fn end
@@ -223,11 +228,17 @@ function Mock.new(opts)
     impl.SetText = function(self, text)
         local old = self._text
         self._text = text ~= nil and tostring(text) or ""
+        if self._type == "EditBox" then self._cursor = #self._text end
         if self._type == "EditBox" and self._scripts.OnTextChanged and old ~= self._text then self._scripts.OnTextChanged(self, false) end
         if self.Text and self._type ~= "EditBox" and self._type ~= "FontString" then self.Text:SetText(text) end
     end
     impl.SetFormattedText = function(self, fmt, ...) self:SetText(string.format(fmt, ...)) end
     impl.GetText = function(self) return self._text or "" end
+    impl.GetCursorPosition = function(self) return self._cursor or #(self._text or "") end
+    impl.SetCursorPosition = function(self, value)
+        self._cursor = math.max(0, math.min(#(self._text or ""), value))
+        if self._scripts.OnCursorChanged then self._scripts.OnCursorChanged(self) end
+    end
     impl.GetStringWidth = function(self) return #(self._text or "") * 6 end
     impl.GetStringHeight = function() return 12 end
     impl.SetFontObject = function(self, font) checkFont(font) self._font = font end
@@ -586,6 +597,7 @@ function Mock.new(opts)
         end,
     }
     env.C_Map = {
+        GetAreaInfo = function(id) return (m.state.areas or {})[id] end,
         GetBestMapForUnit = function() return m.state.mapID end,
         GetPlayerMapPosition = function(mapID)
             if not m.state.pos then return nil end

@@ -1,11 +1,11 @@
--- Slash commands: /qb, /questboard, /todo
+-- Slash commands: /qb, /taskboard, /todo
 local _, ns = ...
 local Util, DB = ns.Util, ns.DB
 
 local Commands = ns:NewModule("Commands")
 
 local HELP = {
-    "|cff4fc3f7Questboard|r commands:",
+    "|cff4fc3f7Taskboard|r commands:",
     "  /qb  - open or close the board",
     "  /qb add <text>  (or /todo <text>) - add a card, e.g. Get 20 Peacebloom #herbs !high",
     "      goals: 20 Peacebloom, [item link] x5, save 100g, reach level 40, Herbalism 150,",
@@ -70,7 +70,8 @@ function Commands:Done(arg)
         end
     end
     if not target then ns.Print("No open card matches '%s'. Try /qb list.", tostring(arg)) return end
-    DB:MoveCard(target.board, target.card.id, DB:ColumnByRole(target.board, "done").id, 1)
+    local ok, err = DB:MoveCard(target.board, target.card.id, DB:ColumnByRole(target.board, "done").id, 1)
+    if not ok then ns.Print("Cannot complete card: %s", err or "card unavailable") return end
     ns.Print("Done: %s", target.card.title)
 end
 
@@ -163,15 +164,15 @@ function Commands:Handle(msg)
 end
 
 function Commands:OnInit()
-    SLASH_QUESTBOARD1, SLASH_QUESTBOARD2 = "/qb", "/questboard"
-    SlashCmdList.QUESTBOARD = function(msg) ns.Safe("slash /qb", Commands.Handle, Commands, msg) end
-    SLASH_QUESTBOARDTODO1 = "/todo"
-    SlashCmdList.QUESTBOARDTODO = function(msg)
+    SLASH_TASKBOARD1, SLASH_TASKBOARD2, SLASH_TASKBOARD3 = "/tb", "/taskboard", "/qb"
+    SlashCmdList.TASKBOARD = function(msg) ns.Safe("slash /qb", Commands.Handle, Commands, msg) end
+    SLASH_TASKBOARDTODO1 = "/todo"
+    SlashCmdList.TASKBOARDTODO = function(msg)
         ns.Safe("slash /todo", function()
             if Util.Trim(msg) == "" then ns:Fire("TOGGLE_BOARD") else Commands:Handle("add " .. msg) end
         end)
     end
-    BINDING_HEADER_QUESTBOARD = "Questboard"
+    BINDING_HEADER_QUESTBOARD = "Taskboard"
     BINDING_NAME_QUESTBOARD_TOGGLE = "Open or close the board"
     BINDING_NAME_QUESTBOARD_TRACKER = "Show or hide the tracker"
     BINDING_NAME_QUESTBOARD_QUICKADD = "Quick add a card"
@@ -181,3 +182,4 @@ end
 function ns:ToggleBoard() ns:Fire("TOGGLE_BOARD") end
 function ns:ToggleTracker() Commands:Handle("tracker") end
 function ns:QuickAdd() ns:Fire("QUICK_ADD") end
+

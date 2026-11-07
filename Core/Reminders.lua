@@ -99,6 +99,7 @@ function Reminders:OnLogin()
     end
     ns:RegisterEvent("ZONE_CHANGED_NEW_AREA", zoneChanged)
     ns:RegisterEvent("ZONE_CHANGED", zoneChanged)
+    ns:RegisterEvent("ZONE_CHANGED_INDOORS", zoneChanged)
     ns.After(5, "login zone reminder", zoneChanged)
     for event, npc in pairs(self.NPC_EVENTS) do
         ns:RegisterEvent(event, function()
@@ -111,3 +112,4 @@ end
 function Reminders:ResetCooldowns()
     lastShown = {}
 end
+

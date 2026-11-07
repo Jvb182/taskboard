@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 .DS_Store
 Thumbs.db
+dist/
+review_checks.lua
+review_runner.py
+

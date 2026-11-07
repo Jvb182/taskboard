@@ -18,6 +18,8 @@ DB.defaults = {
         reminders = true, smartReminders = true, includeBank = true, trackerShown = true,
         trackerLocked = false, trackerHideInCombat = false, trackerMax = 8, onlyMine = false,
         syncAccept = "ask", debug = false, minimap = { angle = 200, hide = false },
+        theme = "midnight", accent = "sky", panelOpacity = 0.96,
+        soundEvents = { move = "click", complete = "quest", subtask = "click", reminder = "chime" },
     },
     boards = {},
     stats = { history = {}, total = 0, streak = { days = 0, lastDay = "" } },
@@ -60,6 +62,8 @@ function DB.NormalizeGoal(g)
         out.target = num(g.target, 1, 100000) or 1
         out.bank = g.bank ~= false
         out.verified = g.verified == true or nil
+        out.baseline = num(g.baseline, 0, 1000000000)
+        if type(g.baselineBank) == "boolean" then out.baselineBank = g.baselineBank end
         if not out.itemID and out.name == "" then return nil end
     elseif g.type == "money" then
         out.target = num(g.target, 1, 1e12)
@@ -89,13 +93,13 @@ end
 function DB.NormalizeCard(c, columnIDs)
     if type(c) ~= "table" then return nil end
     local L = DB.LIMITS
-    local title = Util.Trim(tostring(c.title or ""))
+    local title = Util.Sanitize(c.title or "", L.title)
     if title == "" then return nil end
     if #title > L.title then title = string.sub(title, 1, L.title) end
     local out = {
         id = type(c.id) == "string" and #c.id <= 40 and c.id or Util.NewID("c"),
         title = title,
-        notes = type(c.notes) == "string" and string.sub(c.notes, 1, L.notes) or "",
+        notes = type(c.notes) == "string" and Util.PlainNotes(c.notes, L.notes) or "",
         priority = num(c.priority, 0, 3) or 0,
         column = c.column,
         created = num(c.created, 0, 4e9) or Util.Now(),
@@ -104,6 +108,8 @@ function DB.NormalizeCard(c, columnIDs)
         char = type(c.char) == "string" and string.sub(c.char, 1, 64) or nil,
         goal = DB.NormalizeGoal(c.goal),
         recur = (c.recur == "daily" or c.recur == "weekly") and c.recur or nil,
+        recurItems = c.recurItems == "stock" and "stock" or "gain",
+        recurCycle = num(c.recurCycle, 0, 4e9),
         streak = num(c.streak, 0, 100000) or 0,
         archived = c.archived == true or nil,
         track = c.track == true or nil,
@@ -121,10 +127,10 @@ function DB.NormalizeCard(c, columnIDs)
     if type(c.subtasks) == "table" then
         for _, s in ipairs(c.subtasks) do
             if type(s) == "table" and #out.subtasks < L.subtasks then
-                local text = Util.Trim(tostring(s.text or ""))
+                local text = Util.Sanitize(s.text or "", L.title)
                 if text ~= "" then
                     out.subtasks[#out.subtasks + 1] = {
-                        id = type(s.id) == "string" and s.id or Util.NewID("s"),
+                        id = type(s.id) == "string" and #s.id <= 40 and s.id or Util.NewID("s"),
                         text = string.sub(text, 1, L.title), done = s.done == true, goal = DB.NormalizeGoal(s.goal),
                     }
                 end
@@ -165,7 +171,7 @@ function DB.NormalizeBoard(b)
     local ids, roles = {}, {}
     if type(b.columns) == "table" then
         for _, col in ipairs(b.columns) do
-            if type(col) == "table" and type(col.id) == "string" and not ids[col.id] and #out.columns < L.columns then
+            if type(col) == "table" and type(col.id) == "string" and #col.id > 0 and #col.id <= 24 and not ids[col.id] and #out.columns < L.columns then
                 local role = (col.role == "todo" or col.role == "doing" or col.role == "done") and not roles[col.role] and col.role or nil
                 if role then roles[role] = true end
                 out.columns[#out.columns + 1] = { id = string.sub(col.id, 1, 24), name = Util.Sanitize(col.name or col.id, L.columnName), role = role }
@@ -176,6 +182,11 @@ function DB.NormalizeBoard(b)
     -- Every board needs the three roles; add any that are missing.
     for _, def in ipairs(defaultColumns()) do
         if not roles[def.role] then
+            if #out.columns >= L.columns then
+                for i = #out.columns, 1, -1 do
+                    if not out.columns[i].role then ids[out.columns[i].id] = nil; table.remove(out.columns, i); break end
+                end
+            end
             local id = ids[def.id] and (def.id .. "_" .. Util.NewID()) or def.id
             def.id = id
             ids[id] = true
@@ -281,8 +292,12 @@ function DB:Repair(db)
 end
 
 function DB:OnInit()
-    ns.db = self:Load(QuestboardDB)
-    QuestboardDB = ns.db
+    if TaskboardDB == nil and type(rawget(_G, "QuestboardDB")) == "table" then
+        TaskboardDB = Util.DeepCopy(rawget(_G, "QuestboardDB"))
+        ns.Log:Info("migration", "Copied Questboard boards and settings into Taskboard. Legacy data was left intact.")
+    end
+    ns.db = self:Load(TaskboardDB)
+    TaskboardDB = ns.db
     ns.Log:SetDebug(ns.db.settings.debug)
     ns.Log:Info("db", "Loaded %d board(s)", Util.Count(ns.db.boards))
 end
@@ -290,8 +305,8 @@ end
 function DB:OnLogin()
     local me = ns.CharKey()
     if Util.Count(ns.db.boards) == 0 then
-        local board = self:CreateBoard("My Quests", "account")
-        self:AddCard(board, { title = "Welcome to Questboard! Right-click me", notes =
+        local board = self:CreateBoard("My Tasks", "account")
+        self:AddCard(board, { title = "Welcome to Taskboard! Right-click me", notes =
             "Add cards with /qb add, or type in the box at the top of the board.\n\n" ..
             "Try: Get 20 Peacebloom #herbs !high\nShift-click an item link into the box to track it live.",
             subtasks = { { text = "Open the board with /qb" }, { text = "Add a card that tracks an item" }, { text = "Drag a card to In Progress" } } })
@@ -300,6 +315,17 @@ function DB:OnLogin()
     if not ns.db.ui.activeBoard or not ns.db.boards[ns.db.ui.activeBoard] or not self:IsVisible(ns.db.boards[ns.db.ui.activeBoard]) then
         ns.db.ui.activeBoard = self:FirstVisibleBoard()
     end
+end
+
+function DB:OnLogout()
+    -- SavedVariables serialize the actual tables, not our wire serializer.
+    local function clean(t)
+        for k, v in pairs(t) do
+            if type(k) == "string" and string.sub(k, 1, 1) == "_" then t[k] = nil
+            elseif type(v) == "table" then clean(v) end
+        end
+    end
+    clean(ns.db)
 end
 
 -------------------------------------------------------------------------------
@@ -348,6 +374,7 @@ function DB:DeleteBoard(board)
 end
 
 function DB:RenameBoard(board, name)
+    if not self:CanEdit(board) then return false, "this board is read-only" end
     name = Util.Sanitize(name, DB.LIMITS.boardName)
     if name == "" then return false end
     board.name = name
@@ -369,8 +396,12 @@ function DB:SetActiveBoard(board)
 end
 
 function DB:IsReadOnly(board)
-    return board.scope == "shared" and board.shared and board.shared.from ~= nil and board.shared.from ~= ""
+    return board and board.scope == "shared" and board.shared and board.shared.from ~= nil and board.shared.from ~= ""
         and board.shared.from ~= ns.CharKey()
+end
+
+function DB:CanEdit(board)
+    return board and ns.db.boards[board.id] == board and not self:IsReadOnly(board)
 end
 
 function DB:ColumnByRole(board, role)
@@ -386,6 +417,7 @@ function DB:Column(board, id)
 end
 
 function DB:AddColumn(board, name)
+    if not self:CanEdit(board) then return nil, "this board is read-only" end
     if #board.columns >= DB.LIMITS.columns then return nil, "too many columns" end
     name = Util.Sanitize(name, DB.LIMITS.columnName)
     if name == "" then return nil, "empty name" end
@@ -399,6 +431,7 @@ function DB:AddColumn(board, name)
 end
 
 function DB:RenameColumn(board, id, name)
+    if not self:CanEdit(board) then return false, "this board is read-only" end
     local col = self:Column(board, id)
     name = Util.Sanitize(name, DB.LIMITS.columnName)
     if not col or name == "" then return false end
@@ -408,6 +441,7 @@ function DB:RenameColumn(board, id, name)
 end
 
 function DB:RemoveColumn(board, id)
+    if not self:CanEdit(board) then return false, "this board is read-only" end
     local col, index = self:Column(board, id)
     if not col then return false, "no such column" end
     if col.role then return false, "the To Do, In Progress and Done columns can be renamed but not removed" end
@@ -422,6 +456,7 @@ end
 -- Cards
 -------------------------------------------------------------------------------
 function DB:AddCard(board, spec, columnID, index)
+    if not self:CanEdit(board) then return nil, "this board is read-only" end
     if Util.Count(board.cards) >= DB.LIMITS.cards then return nil, "this board is full" end
     spec = Util.DeepCopy(spec)
     spec.id = nil
@@ -449,6 +484,7 @@ function DB:FindCard(cardID)
 end
 
 function DB:MoveCard(board, cardID, columnID, index, reason)
+    if not self:CanEdit(board) then return false, "this board is read-only" end
     local card = board.cards[cardID]
     local col = self:Column(board, columnID)
     if not card or not col then return false end
@@ -479,10 +515,14 @@ function DB:MoveCard(board, cardID, columnID, index, reason)
 end
 
 function DB:UpdateCard(board, card, changes)
-    for k, v in pairs(changes) do card[k] = v end
+    if not self:CanEdit(board) or board.cards[card.id] ~= card then return false, "this card is read-only or no longer exists" end
+    local candidate = Util.DeepCopy(card)
+    local previousManual = {}
+    for _, sub in ipairs(card.subtasks) do if not sub.goal then previousManual[sub.id] = sub.done end end
+    for k, v in pairs(changes) do candidate[k] = v end
     local ids = {}
     for _, col in ipairs(board.columns) do ids[col.id] = true end
-    local clean = DB.NormalizeCard(card, ids)
+    local clean = DB.NormalizeCard(candidate, ids)
     if not clean then return false end
     clean.id, clean.column = card.id, card.column
     clean.updated = Util.Now()
@@ -491,12 +531,20 @@ function DB:UpdateCard(board, card, changes)
         if string.sub(k, 1, 1) ~= "_" then card[k] = nil end
     end
     for k, v in pairs(clean) do card[k] = v end
+    if changes.recur ~= nil or changes.recurItems ~= nil then
+        card.recurCycle = Util.Now()
+        ns.Goals.ResetRecurring(card, ns.Engine:Owns(card, board))
+    end
     ns:Fire("CARD_UPDATED", card, board)
+    for _, sub in ipairs(card.subtasks) do
+        if not sub.goal and sub.done and previousManual[sub.id] == false then ns:Fire("SUBTASK_COMPLETED", card, board, sub) end
+    end
     ns:Fire("BOARD_CHANGED", board)
     return true
 end
 
 function DB:DeleteCard(board, cardID)
+    if not self:CanEdit(board) then return false, "this board is read-only" end
     local card = board.cards[cardID]
     if not card then return false end
     local list = board.order[card.column]
@@ -524,10 +572,10 @@ function DB:CardsIn(board, columnID, filter)
     return out
 end
 
-function DB:AllCards(includeArchived)
+function DB:AllCards(includeArchived, includeHidden)
     local out = {}
     for _, board in pairs(ns.db.boards) do
-        if self:IsVisible(board) then
+        if includeHidden or self:IsVisible(board) then
             for _, col in ipairs(board.columns) do
                 for _, id in ipairs(board.order[col.id]) do
                     local card = board.cards[id]
@@ -538,3 +586,4 @@ function DB:AllCards(includeArchived)
     end
     return out
 end
+

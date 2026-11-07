@@ -8,7 +8,7 @@ Board.CARD_H = 44
 Board.BAR_H = 14
 Board.filter = { text = "", tag = nil }
 
-local frame, columnsHost, footer, addBox, searchBox, boardButton, mineCheck, tagButton
+local frame, columnsHost, columnsViewport, horizontalScroll, footer, addBox, searchBox, boardButton, mineCheck, tagButton
 local columnFrames = {}
 local cardPool, usedCards = {}, {}
 local dirty = true
@@ -294,14 +294,29 @@ end
 -------------------------------------------------------------------------------
 function Board:Layout()
     if not frame or not frame:IsShown() then dirty = true return end
+    if drag then dirty = true return end -- never recycle the frame holding an active drag
     dirty = false
     local board = activeBoard()
     releaseCards()
-    if not board then return end
+    if not board then
+        for _, col in ipairs(columnFrames) do col:Hide() end
+        boardButton:SetLabel("New board")
+        footer:SetText("Create a board from the board menu.")
+        horizontalScroll:Hide()
+        return
+    end
     boardButton:SetLabel(board.name .. (DB:IsReadOnly(board) and " (shared)" or ""))
     local n = #board.columns
-    local hostW = columnsHost:GetWidth()
     local gap = 8
+    local viewportW = math.max(1, frame:GetWidth() - 24)
+    local hostW = math.max(viewportW, n * 140 + gap * (n - 1))
+    columnsHost:SetSize(hostW, math.max(10, frame:GetHeight() - 116))
+    local scrollRange = math.max(0, hostW - viewportW)
+    horizontalScroll:SetMinMaxValues(0, scrollRange)
+    horizontalScroll:SetValue(math.min(horizontalScroll:GetValue() or 0, scrollRange))
+    horizontalScroll:SetShown(scrollRange > 0)
+    horizontalScroll:GetThumbTexture():SetVertexColor(unpack(Theme.colors.accent))
+    columnsViewport:SetHorizontalScroll(horizontalScroll:GetValue() or 0)
     local colW = math.max(140, math.floor((hostW - gap * (n - 1)) / n))
     for i, column in ipairs(board.columns) do
         local col = columnFrames[i] or createColumn()
@@ -460,7 +475,7 @@ end
 local prompt
 function Board:Prompt(title, value, onAccept)
     if not prompt then
-        prompt = CreateFrame("Frame", "QuestboardPrompt", UIParent, "BackdropTemplate")
+        prompt = CreateFrame("Frame", "TaskboardPrompt", UIParent, "BackdropTemplate")
         prompt:SetSize(300, 90)
         prompt:SetPoint("CENTER", 0, 120)
         prompt:SetFrameStrata("DIALOG")
@@ -474,7 +489,7 @@ function Board:Prompt(title, value, onAccept)
         prompt.cancel = W.Button(prompt, "Cancel", 80, 20, function() prompt:Hide() end)
         prompt.cancel:SetPoint("RIGHT", prompt.ok, "LEFT", -6, 0)
         prompt.box:SetScript("OnEscapePressed", function() prompt:Hide() end)
-        table.insert(UISpecialFrames, "QuestboardPrompt")
+        table.insert(UISpecialFrames, "TaskboardPrompt")
     end
     prompt.title:SetText(title)
     prompt.box:SetText(value or "")
@@ -569,7 +584,7 @@ end
 
 function Board:Create()
     if frame then return frame end
-    frame = CreateFrame("Frame", "QuestboardFrame", UIParent, "BackdropTemplate")
+    frame = CreateFrame("Frame", "TaskboardFrame", UIParent, "BackdropTemplate")
     self.frame = frame
     local pos = ns.db.ui.board or {}
     frame:SetSize(pos.w or 820, pos.h or 500)
@@ -583,7 +598,7 @@ function Board:Create()
     frame:EnableMouse(true)
     frame:Hide()
     Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder)
-    table.insert(UISpecialFrames, "QuestboardFrame")
+    table.insert(UISpecialFrames, "TaskboardFrame")
 
     local titleBar = CreateFrame("Frame", nil, frame)
     titleBar:SetPoint("TOPLEFT", 0, 0)
@@ -598,7 +613,7 @@ function Board:Create()
 
     local title = W.Text(frame, "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 12, -8)
-    title:SetText("|cff4fc3f7Quest|rboard")
+    Theme.Brand(title)
 
     boardButton = W.Button(frame, "Board", 150, 20, function() Board:BoardMenu() end, "Switch, create, share or export boards")
     boardButton:SetPoint("LEFT", title, "RIGHT", 12, 0)
@@ -644,9 +659,27 @@ function Board:Create()
     end, { "Only this character", "Hide cards that belong to your other characters." })
     mineCheck:SetPoint("LEFT", tagButton, "RIGHT", 4, 0)
 
-    columnsHost = CreateFrame("Frame", nil, frame)
-    columnsHost:SetPoint("TOPLEFT", 12, -68)
-    columnsHost:SetPoint("BOTTOMRIGHT", -12, 30)
+    columnsViewport = CreateFrame("ScrollFrame", nil, frame)
+    columnsViewport:SetPoint("TOPLEFT", 12, -68)
+    columnsViewport:SetPoint("BOTTOMRIGHT", -12, 48)
+    columnsHost = CreateFrame("Frame", nil, columnsViewport)
+    columnsHost:SetSize(796, 384)
+    columnsViewport:SetScrollChild(columnsHost)
+    horizontalScroll = CreateFrame("Slider", nil, frame, "BackdropTemplate")
+    horizontalScroll:SetPoint("BOTTOMLEFT", 12, 31)
+    horizontalScroll:SetPoint("BOTTOMRIGHT", -12, 31)
+    horizontalScroll:SetHeight(12)
+    horizontalScroll:SetOrientation("HORIZONTAL")
+    horizontalScroll:SetMinMaxValues(0, 0)
+    horizontalScroll:SetValue(0)
+    horizontalScroll:SetThumbTexture(Theme.WHITE)
+    horizontalScroll:GetThumbTexture():SetSize(40, 10)
+    horizontalScroll:GetThumbTexture():SetVertexColor(unpack(Theme.colors.accent))
+    Theme.Panel(horizontalScroll, Theme.colors.input, Theme.colors.panelBorder)
+    horizontalScroll:SetScript("OnValueChanged", ns.Wrap("horizontal board scroll", function(_, value)
+        columnsViewport:SetHorizontalScroll(value)
+    end))
+    W.Tooltip(horizontalScroll, "Scroll sideways to reach more columns")
 
     footer = W.Text(frame, "GameFontDisableSmall")
     footer:SetPoint("BOTTOMLEFT", 14, 10)
@@ -698,5 +731,7 @@ end
 
 -- Test and debugging access.
 function Board:Internals()
-    return { frame = frame, columns = columnFrames, cards = usedCards, addBox = addBox, searchBox = searchBox }
+    return { frame = frame, columns = columnFrames, cards = usedCards, addBox = addBox, searchBox = searchBox,
+             horizontalScroll = horizontalScroll, viewport = columnsViewport }
 end
+

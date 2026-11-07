@@ -235,7 +235,12 @@ function Mock.new(opts)
     impl.SetHighlightFontObject = function(self, font) checkFont(font) end
     impl.SetChecked = function(self, v) self._checked = v and true or false end
     impl.GetChecked = function(self) return self._checked or false end
-    impl.SetValue = function(self, v) self._value = v end
+    impl.SetValue = function(self, v)
+        local value = math.max(self._min or 0, math.min(self._max or 1, v))
+        local changed = value ~= self._value
+        self._value = value
+        if changed and self._scripts.OnValueChanged then self._scripts.OnValueChanged(self, value) end
+    end
     impl.GetValue = function(self) return self._value or 0 end
     impl.SetMinMaxValues = function(self, lo, hi) self._min, self._max = lo, hi end
     impl.GetMinMaxValues = function(self) return self._min or 0, self._max or 1 end
@@ -293,6 +298,12 @@ function Mock.new(opts)
     end
     impl.SetNormalTexture = function(self) end
     impl.SetPushedTexture = function(self) end
+    impl.SetThumbTexture = function(self, tex)
+        self._thumb = type(tex) == "table" and tex or Widget.new("Texture", nil, self)
+    end
+    impl.GetThumbTexture = function(self) return self._thumb end
+    impl.SetHorizontalScroll = function(self, value) self._horizontalScroll = value end
+    impl.GetHorizontalScroll = function(self) return self._horizontalScroll or 0 end
     impl.SetTexture = function(self, tex) self._texture = tex end
     impl.GetTexture = function(self) return self._texture end
     impl.SetColorTexture = function(self, r, g, b, a) self._color = { r, g, b, a } end
@@ -694,11 +705,11 @@ function Mock.new(opts)
     function m.LoadAddon(root, saved)
         root = root or (QB_ADDON_ROOT or "./")
         if saved then
-            env.QuestboardDB = saved.db
-            env.QuestboardLog = saved.log
+            env.TaskboardDB = saved.db
+            env.TaskboardLog = saved.log
         end
         m.globalWrites = {}
-        local toc = assert(io.open(root .. "Questboard.toc", "r"))
+        local toc = assert(io.open(root .. "Taskboard.toc", "r"))
         local files = {}
         for line in toc:lines() do
             line = line:gsub("\r", "")
@@ -709,7 +720,7 @@ function Mock.new(opts)
         for _, file in ipairs(files) do
             local chunk = assert(loadfile(root .. file))
             setfenv(chunk, env)
-            chunk("Questboard", m.ns)
+            chunk("Taskboard", m.ns)
         end
         m.files = files
         return m.ns
@@ -717,7 +728,7 @@ function Mock.new(opts)
 
     function m.Login(saved)
         local ns = m.LoadAddon(nil, saved)
-        m.Fire("ADDON_LOADED", "Questboard")
+        m.Fire("ADDON_LOADED", "Taskboard")
         m.Fire("PLAYER_LOGIN")
         m.Fire("PLAYER_ENTERING_WORLD", true, false)
         return ns
@@ -733,11 +744,11 @@ function Mock.new(opts)
             local out = {}
             seen[v] = out
             for k, x in pairs(v) do
-                if type(x) ~= "function" and not (type(k) == "string" and string.sub(k, 1, 1) == "_") then out[copy(k, seen)] = copy(x, seen) end
+                if type(x) ~= "function" then out[copy(k, seen)] = copy(x, seen) end
             end
             return out
         end
-        return { db = copy(rawget(env, "QuestboardDB")), log = copy(rawget(env, "QuestboardLog")) }
+        return { db = copy(rawget(env, "TaskboardDB")), log = copy(rawget(env, "TaskboardLog")) }
     end
 
     -- Finds visible widgets whose text contains `text`.
@@ -759,3 +770,4 @@ function Mock.new(opts)
 end
 
 return Mock
+

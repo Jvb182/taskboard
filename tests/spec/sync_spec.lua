@@ -174,7 +174,7 @@ describe("Sharing between two players", function()
         local fake = { k = "board", v = 99, board = { id = mine.id, name = "Gotcha", cards = {} } }
         for _, text in ipairs(nsB.Sync.Encode(fake)) do mB.Fire("CHAT_MSG_ADDON", "QBRD1", text, "PARTY", "Eve-Forever") end
         T.eq(#mB.popups, 0)
-        T.eq(nsB.db.boards[mine.id].name, "My Quests")
+        T.eq(nsB.db.boards[mine.id].name, "My Tasks")
     end)
 
     it("a failing log listener can't recurse forever", function()
@@ -192,3 +192,4 @@ describe("Sharing between two players", function()
         T.contains(why, "not in a party")
     end)
 end)
+

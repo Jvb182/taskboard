@@ -54,12 +54,12 @@ end
 
 function Tracker:Create()
     if frame then return end
-    frame = CreateFrame("Frame", "QuestboardTracker", UIParent, "BackdropTemplate")
+    frame = CreateFrame("Frame", "TaskboardTracker", UIParent, "BackdropTemplate")
     frame:SetWidth(240)
     frame:SetFrameStrata("MEDIUM")
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
-    Theme.Panel(frame, { 0.04, 0.05, 0.07, 0.72 }, { 0.20, 0.23, 0.30, 0.8 })
+    Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder)
     local pos = ns.db.ui.tracker or {}
     frame:SetPoint(pos.point or "TOPRIGHT", UIParent, pos.relPoint or "TOPRIGHT", pos.x or -60, pos.y or -260)
 
@@ -78,7 +78,7 @@ function Tracker:Create()
     header:SetScript("OnClick", ns.Wrap("tracker header", function(_, button)
         if button == "RightButton" then
             W.Menu(nil, {
-                { text = "Questboard tracker", title = true },
+                { text = "Taskboard tracker", title = true },
                 { text = "Open board", func = function() ns.Board:Show() end },
                 { text = "Collapse", checked = ns.db.ui.trackerCollapsed == true, func = function()
                     ns.db.ui.trackerCollapsed = not ns.db.ui.trackerCollapsed
@@ -94,7 +94,7 @@ function Tracker:Create()
             Tracker:Refresh()
         end
     end))
-    W.Tooltip(header, { "Questboard tracker", "Click to collapse, drag to move, right-click for options." })
+    W.Tooltip(header, { "Taskboard tracker", "Click to collapse, drag to move, right-click for options." })
 end
 
 function Tracker:Refresh()
@@ -107,7 +107,7 @@ function Tracker:Refresh()
     self:Create()
     local entries = self:Entries()
     if #entries == 0 then frame:Hide() return end
-    header.text:SetText(string.format("|cff4fc3f7Questboard|r  %d in progress", #entries))
+    Theme.Brand(header.text, string.format("  %d in progress", #entries))
     local collapsed = ns.db.ui.trackerCollapsed
     local shown = collapsed and 0 or math.min(#entries, s.trackerMax or 8)
     for i = 1, shown do
@@ -153,3 +153,4 @@ end
 function Tracker:Internals()
     return { frame = frame, rows = rows }
 end
+

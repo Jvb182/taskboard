@@ -14,7 +14,7 @@ end
 
 function MinimapButton:Create()
     if button or not Minimap then return end
-    button = CreateFrame("Button", "QuestboardMinimapButton", Minimap)
+    button = CreateFrame("Button", "TaskboardMinimapButton", Minimap)
     button:SetSize(31, 31)
     button:SetFrameStrata("MEDIUM")
     button:SetFrameLevel(8)
@@ -51,7 +51,7 @@ function MinimapButton:Create()
         for _, entry in ipairs(ns.DB:AllCards(false)) do
             if ns.DB:CardRole(entry.board, entry.card) ~= "done" then open = open + 1 end
         end
-        return { "Questboard", open .. " open card(s)", "|cff959ba8Left-click: board   Right-click: tracker   Drag: move|r" }
+        return { "Taskboard", open .. " open card(s)", "|cff959ba8Left-click: board   Right-click: tracker   Drag: move|r" }
     end)
     place()
 end
@@ -69,3 +69,4 @@ function MinimapButton:OnLogin()
     self:Refresh()
     ns:On("SETTINGS_CHANGED", function(key) if key == "minimapShown" then MinimapButton:Refresh() end end)
 end
+

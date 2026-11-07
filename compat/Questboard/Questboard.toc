@@ -1,0 +1,6 @@
+## Interface: 16001
+## Title: Taskboard - legacy data loader
+## Notes: Loads old Questboard saved data for Taskboard migration. Contains no UI or tracking code. Keep enabled for the first migration login.
+## Author: John
+## Version: 1.1.0
+## SavedVariables: QuestboardDB, QuestboardLog

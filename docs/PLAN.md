@@ -1,4 +1,4 @@
-# Questboard: design plan
+# Taskboard: design plan
 
 An in-game Kanban board for WoW: Forever (interface `16001`, client 1.60.1) with cards that track themselves.
 
@@ -12,7 +12,7 @@ An in-game Kanban board for WoW: Forever (interface `16001`, client 1.60.1) with
 6. Daily and weekly repeating cards, streaks and stats.
 7. Party and guild board sharing, with per-member progress.
 8. Logs and diagnostics that make bug reports easy: `/qb log`, `/qb diag` and `/qb selftest`.
-9. An offline test suite that runs without the game. It checks Questboard's logic and also every API, event, widget method and template it uses against the Forever client's generated API docs.
+9. An offline test suite that runs without the game. It checks Taskboard's logic and also every API, event, widget method and template it uses against the Forever client's generated API docs.
 
 ## Non-goals
 
@@ -22,7 +22,7 @@ An in-game Kanban board for WoW: Forever (interface `16001`, client 1.60.1) with
 ## Architecture
 
 ```
-Questboard.toc
+Taskboard.toc
 Bindings.xml               key bindings (toggle board, toggle tracker, quick add)
 Core/
   Init.lua                 namespace, version, event bus (safe dispatch), module registry
@@ -60,7 +60,7 @@ Core modules are pure Lua over injected or wrapped APIs, so they can be unit tes
 
 ## Data model (SavedVariables)
 
-`QuestboardDB` (account-wide):
+`TaskboardDB` (account-wide):
 
 ```lua
 {
@@ -101,7 +101,7 @@ A **Goal** looks like this:
 { type = "quest", questID, name }
 ```
 
-`QuestboardLog` (account) holds the most recent 300 log lines, so logs survive `/reload` and crashes.
+`TaskboardLog` (account) holds the most recent 300 log lines, so logs survive `/reload` and crashes.
 
 ## Live tracking (the main feature)
 
@@ -162,7 +162,7 @@ A **Goal** looks like this:
 - `/qb log [n] [level]`, `/qb log show` (window), `/qb debug on|off`.
 - `/qb diag` shows:
   - version and client build
-  - a capability table of every API Questboard uses, present or missing
+  - a capability table of every API Taskboard uses, present or missing
   - DB counts
   - event counters
   - engine timing (last and average ms per pass)
@@ -183,3 +183,4 @@ A **Goal** looks like this:
   - Every widget method called on a mock frame exists for that widget type. Unknown methods raise errors.
   - Every SOUNDKIT used exists.
 - **Static checks:** a `luac`-style syntax check of every file, and no accidental globals (a test enforces that only whitelisted globals are written).
+

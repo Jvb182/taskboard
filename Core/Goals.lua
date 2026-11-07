@@ -36,7 +36,7 @@ end
 -------------------------------------------------------------------------------
 -- item
 -------------------------------------------------------------------------------
-local function evalItem(goal)
+local function evalItem(goal, card)
     if not goal.itemID then
         -- Pending: bind as soon as a matching item shows up in the bags.
         local id, name = ns.Items:FindInBags(goal.name)
@@ -50,6 +50,12 @@ local function evalItem(goal)
     local bank = goal.bank ~= false and ns.db.settings.includeBank
     local count = ns.Items:Count(goal.itemID, bank)
     local name = goal.name or ns.Items:Name(goal.itemID) or ("Item " .. goal.itemID)
+    if card and card.recur and card.recurItems ~= "stock" then
+        if goal.baseline == nil or (goal.baselineBank ~= nil and goal.baselineBank ~= bank) then goal.baseline = count end
+        goal.baselineBank = bank
+        count = math.max(0, count - goal.baseline)
+        name = name .. " (extra this " .. (card.recur == "daily" and "day" or "week") .. ")"
+    end
     return result(count, goal.target, count >= goal.target, string.format("%s %d/%d", name, math.min(count, 999999), goal.target))
 end
 
@@ -202,10 +208,29 @@ Goals.TYPES = {
     item = evalItem, money = evalMoney, level = evalLevel, skill = evalSkill, rep = evalRep, quest = evalQuest,
 }
 
-function Goals.Evaluate(goal)
+function Goals.Evaluate(goal, card)
     local fn = goal and Goals.TYPES[goal.type]
     if not fn then return nil end
-    return fn(goal)
+    return fn(goal, card)
+end
+
+-- Baselines are character inventory, never the sender's inventory. Hidden alts
+-- initialize theirs on next login because their live bag counts are unavailable.
+function Goals.ResetRecurring(card, owned)
+    for _, entry in ipairs(Goals.CardGoals(card)) do
+        local goal = entry.goal
+        if goal.type == "item" then
+            goal.baseline, goal.baselineBank = nil, nil
+            if owned and card.recur and card.recurItems ~= "stock" then
+                if not goal.itemID then
+                    local id, name = ns.Items:FindInBags(goal.name)
+                    if id then goal.itemID, goal.name, goal.verified = id, name, true end
+                end
+                goal.baseline = goal.itemID and ns.Items:Count(goal.itemID, goal.bank ~= false and ns.db.settings.includeBank) or 0
+                goal.baselineBank = goal.bank ~= false and ns.db.settings.includeBank
+            end
+        end
+    end
 end
 
 function Goals.Icon(goal)
@@ -233,3 +258,4 @@ function Goals.HasGoals(card)
     end
     return false
 end
+

@@ -12,15 +12,20 @@ local pool, active = {}, {}
 local recentCompletions, batchPending = {}, false
 
 local SOUNDS = {
-    complete = "IG_QUEST_LIST_COMPLETE",
-    subtask = "IG_MAINMENU_OPTION_CHECKBOX_ON",
-    reminder = "IG_CHAT_EMOTE_BUTTON",
-    started = "IG_MAINMENU_OPTION_CHECKBOX_ON",
+    quest = "IG_QUEST_LIST_COMPLETE",
+    click = "IG_MAINMENU_OPTION_CHECKBOX_ON",
+    chime = "IG_CHAT_EMOTE_BUTTON",
 }
+Toast.SOUND_CHOICES = { { "off", "Off" }, { "click", "Soft click" }, { "chime", "Chime" }, { "quest", "Quest complete" } }
+local lastSound = {}
 
-function Toast:PlaySound(kind)
+function Toast:PlaySound(kind, preview)
     if not ns.db.settings.sounds then return end
-    local id = SOUNDKIT and SOUNDKIT[SOUNDS[kind] or ""]
+    local selection = ns.db.settings.soundEvents[kind]
+    local id = SOUNDKIT and SOUNDKIT[SOUNDS[selection] or ""]
+    local now = GetTime()
+    if not preview and lastSound[kind] and now - lastSound[kind] < 0.15 then return end
+    lastSound[kind] = now
     if id and PlaySound then pcall(PlaySound, id) end
 end
 
@@ -47,7 +52,7 @@ local function create()
     t:SetSize(340, 58)
     t:SetFrameStrata("DIALOG")
     t:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    Theme.Panel(t, { 0.05, 0.06, 0.08, 0.94 }, Theme.colors.accent)
+    Theme.Panel(t, Theme.colors.window, Theme.colors.accent)
     t.icon = t:CreateTexture(nil, "ARTWORK")
     t.icon:SetSize(38, 38)
     t.icon:SetPoint("LEFT", 10, 0)
@@ -68,6 +73,7 @@ end
 
 -- Shows a toast. opts = { title, body, icon, color, card, board, sound }
 function Toast:Show(opts)
+    if opts.sound then self:PlaySound(opts.sound) end
     if not ns.db.settings.toasts then return end
     if #active >= self.MAX then release(active[1]) end
     local t = table.remove(pool) or create()
@@ -92,7 +98,6 @@ function Toast:Show(opts)
     t:Show()
     layout()
     self.stats.shown = self.stats.shown + 1
-    if opts.sound then self:PlaySound(opts.sound) end
     return t
 end
 
@@ -104,7 +109,7 @@ local function flushCompletions()
     if #list == 0 then return end
     if #list == 1 then
         local c = list[1]
-        Toast:Show({ title = "Quest board: complete!", body = c.card.title, icon = ns.Goals.Icon(c.card.goal),
+        Toast:Show({ title = "Task complete!", body = c.card.title, icon = ns.Goals.Icon(c.card.goal),
                      color = Theme.colors.good, card = c.card, board = c.board, sound = "complete" })
     else
         local names = {}
@@ -116,7 +121,9 @@ local function flushCompletions()
 end
 
 function Toast:OnLogin()
-    ns:On("CARD_COMPLETED", function(card, board)
+    ns:On("CARD_MOVED", function(card, board, from, to, reason)
+        if reason == "daily reset" or reason == "weekly reset" then return end
+        if ns.DB:Column(board, to).role ~= "done" then Toast:PlaySound("move") return end
         recentCompletions[#recentCompletions + 1] = { card = card, board = board }
         if not batchPending then
             batchPending = true
@@ -140,11 +147,11 @@ function Toast:OnLogin()
     end)
     ns:On("SHARE_OFFER", function(offerID, offer)
         if ns.db.settings.syncAccept == "never" then return end
-        StaticPopup_Show("QUESTBOARD_SHARE_OFFER", string.match(offer.sender, "^[^%-]+") or offer.sender,
+        StaticPopup_Show("TASKBOARD_SHARE_OFFER", string.match(offer.sender, "^[^%-]+") or offer.sender,
             offer.board.name .. " (" .. Util.Count(offer.board.cards) .. " cards)", offerID)
     end)
-    StaticPopupDialogs["QUESTBOARD_SHARE_OFFER"] = {
-        text = "%s wants to share a Questboard with you:\n\n%s",
+    StaticPopupDialogs["TASKBOARD_SHARE_OFFER"] = {
+        text = "%s wants to share a Taskboard with you:\n\n%s",
         button1 = ACCEPT or "Accept", button2 = DECLINE or "Decline",
         OnAccept = function(_, offerID)
             if ns.Sync:AcceptOffer(offerID) then ns.Print("Shared board added. Your progress is shared with the group.") end
@@ -157,3 +164,4 @@ end
 function Toast:Active()
     return active
 end
+

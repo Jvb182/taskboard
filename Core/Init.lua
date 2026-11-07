@@ -1,4 +1,4 @@
--- Questboard: namespace, safe dispatch, events, timers and module lifecycle.
+-- Taskboard: namespace, safe dispatch, events, timers and module lifecycle.
 local ADDON, ns = ...
 
 ns.name = ADDON
@@ -7,9 +7,9 @@ if C_AddOns and C_AddOns.GetAddOnMetadata then
     ns.version = C_AddOns.GetAddOnMetadata(ADDON, "Version") or "dev"
 end
 
--- The only global Questboard creates (besides SavedVariables, slash and binding
--- names). Handy for /dump Questboard.Engine.stats while debugging.
-Questboard = ns
+-- The only global Taskboard creates (besides SavedVariables, slash and binding
+-- names). Handy for /dump Taskboard.Engine.stats while debugging.
+Taskboard = ns
 
 ns.modules, ns.moduleOrder = {}, {}
 ns.counters = { events = {}, errors = 0, timers = 0 }
@@ -31,7 +31,7 @@ function ns.Safe(where, fn, ...)
         if ns.Log then
             ns.Log:Exception(where, e.message, e.stack)
         elseif DEFAULT_CHAT_FRAME then
-            DEFAULT_CHAT_FRAME:AddMessage("|cffff5555Questboard error in " .. tostring(where) .. ":|r " .. e.message)
+            DEFAULT_CHAT_FRAME:AddMessage("|cffff5555Taskboard error in " .. tostring(where) .. ":|r " .. e.message)
         end
         return false
     end
@@ -158,5 +158,6 @@ end
 
 function ns.Print(fmt, ...)
     local text = select("#", ...) > 0 and string.format(fmt, ...) or fmt
-    DEFAULT_CHAT_FRAME:AddMessage("|cff4fc3f7Questboard|r: " .. text)
+    DEFAULT_CHAT_FRAME:AddMessage("|cff4fc3f7Taskboard|r: " .. text)
 end
+

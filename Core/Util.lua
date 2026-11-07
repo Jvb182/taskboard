@@ -164,6 +164,12 @@ function Util.Sanitize(text, maxLen)
     return text
 end
 
+-- Notes keep line breaks, but never interpret player-supplied rendering escapes.
+function Util.PlainNotes(text, maxLen)
+    text = Util.StripLinks(text):gsub("|", "/"):gsub("\r\n", "\n"):gsub("[%z\1-\8\11-\31\127]", " ")
+    return string.sub(text, 1, maxLen or #text)
+end
+
 function Util.Color(hex, text)
     return "|cff" .. hex .. tostring(text) .. "|r"
 end
@@ -183,3 +189,4 @@ function Util.Adler32(s)
     end
     return b * 65536 + a
 end
+

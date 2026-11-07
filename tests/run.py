@@ -1,4 +1,4 @@
-"""Runs the Questboard test suite in Lua 5.1 (the version WoW uses) via lupa.
+"""Runs the Taskboard test suite in Lua 5.1 (the version WoW uses) via lupa.
 
     pip install lupa
     python tests/run.py            # all specs
@@ -28,3 +28,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

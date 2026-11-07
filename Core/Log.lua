@@ -69,7 +69,7 @@ function Log:Error(category, fmt, ...)
     self.lastError = { t = now(), where = category, message = message }
     if not seenErrors[message] then
         seenErrors[message] = 1
-        toChat(4, category, message .. " |cff8a8a8a(/qb log show for details)|r")
+        toChat(4, category, message .. " |cff8a8a8a(/tb log show for details)|r")
     else
         seenErrors[message] = seenErrors[message] + 1
     end

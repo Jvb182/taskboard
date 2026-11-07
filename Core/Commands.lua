@@ -1,4 +1,4 @@
--- Slash commands: /qb, /taskboard, /todo
+-- Slash commands: /tb, /taskboard, /todo
 local _, ns = ...
 local Util, DB = ns.Util, ns.DB
 
@@ -6,26 +6,26 @@ local Commands = ns:NewModule("Commands")
 
 local HELP = {
     "|cff4fc3f7Taskboard|r commands:",
-    "  /qb  - open or close the board",
-    "  /qb add <text>  (or /todo <text>) - add a card, e.g. Get 20 Peacebloom #herbs !high",
+    "  /tb  - open or close the board",
+    "  /tb add <text>  (or /todo <text>) - add a card, e.g. Get 20 Peacebloom #herbs !high",
     "      goals: 20 Peacebloom, [item link] x5, save 100g, reach level 40, Herbalism 150,",
     "      Honored with Stormwind, [quest link]   extras: #tag !high @Ironforge @bank *daily >doing ; subtask",
-    "  /qb list - list your open cards",
-    "  /qb done <number or text> - mark a card done",
-    "  /qb tracker - show or hide the on-screen tracker",
-    "  /qb board <name> - switch to (or create) a board",
-    "  /qb share party|raid|guild - share the current board",
-    "  /qb export / import - copy a board as text",
-    "  /qb log [n] | log show | log clear  - recent log lines",
-    "  /qb debug on|off - verbose logging",
-    "  /qb diag - diagnostics report     /qb selftest - in-game checks",
-    "  /qb options - settings",
+    "  /tb list - list your open cards",
+    "  /tb done <number or text> - mark a card done",
+    "  /tb tracker - show or hide the on-screen tracker",
+    "  /tb board <name> - switch to (or create) a board",
+    "  /tb share party|raid|guild - share the current board",
+    "  /tb export / import - copy a board as text",
+    "  /tb log [n] | log show | log clear  - recent log lines",
+    "  /tb debug on|off - verbose logging",
+    "  /tb diag - diagnostics report     /tb selftest - in-game checks",
+    "  /tb options - settings",
 }
 
 -- Adds a card from quick-add text to the active board. Returns card or nil, err.
 function Commands:Add(text)
     text = Util.Trim(text)
-    if text == "" then return nil, "type something after /qb add" end
+    if text == "" then return nil, "type something after /tb add" end
     local board = DB:GetActiveBoard()
     if not board then return nil, "no board" end
     if DB:IsReadOnly(board) then return nil, "this board is shared with you and is read-only" end
@@ -50,7 +50,7 @@ end
 
 function Commands:List()
     local list = openCards()
-    if #list == 0 then ns.Print("No open cards. Add one with /qb add <text>.") return end
+    if #list == 0 then ns.Print("No open cards. Add one with /tb add <text>.") return end
     for i, entry in ipairs(list) do
         local card = entry.card
         local col = DB:Column(entry.board, card.column)
@@ -69,7 +69,7 @@ function Commands:Done(arg)
             if want ~= "" and string.find(Util.Lower(entry.card.title), want, 1, true) then target = entry break end
         end
     end
-    if not target then ns.Print("No open card matches '%s'. Try /qb list.", tostring(arg)) return end
+    if not target then ns.Print("No open card matches '%s'. Try /tb list.", tostring(arg)) return end
     local ok, err = DB:MoveCard(target.board, target.card.id, DB:ColumnByRole(target.board, "done").id, 1)
     if not ok then ns.Print("Cannot complete card: %s", err or "card unavailable") return end
     ns.Print("Done: %s", target.card.title)
@@ -100,7 +100,7 @@ function Commands:Handle(msg)
     msg = Util.Trim(msg)
     local cmd, rest = string.match(msg, "^(%S+)%s*(.-)$")
     cmd = Util.Lower(cmd or "")
-    ns.Log:Debug("commands", "/qb %s", msg)
+    ns.Log:Debug("commands", "/tb %s", msg)
 
     if cmd == "" then
         ns:Fire("TOGGLE_BOARD")
@@ -157,15 +157,15 @@ function Commands:Handle(msg)
     elseif cmd == "help" or cmd == "?" then
         for _, line in ipairs(HELP) do DEFAULT_CHAT_FRAME:AddMessage(line) end
     else
-        -- Anything else is treated as a new card: "/qb Get 20 Peacebloom".
+        -- Anything else is treated as a new card: "/tb Get 20 Peacebloom".
         local _, err = self:Add(msg)
         if err then ns.Print("|cffff5555%s|r", err) end
     end
 end
 
 function Commands:OnInit()
-    SLASH_TASKBOARD1, SLASH_TASKBOARD2, SLASH_TASKBOARD3 = "/tb", "/taskboard", "/qb"
-    SlashCmdList.TASKBOARD = function(msg) ns.Safe("slash /qb", Commands.Handle, Commands, msg) end
+    SLASH_TASKBOARD1, SLASH_TASKBOARD2 = "/tb", "/taskboard"
+    SlashCmdList.TASKBOARD = function(msg) ns.Safe("slash /tb", Commands.Handle, Commands, msg) end
     SLASH_TASKBOARDTODO1 = "/todo"
     SlashCmdList.TASKBOARDTODO = function(msg)
         ns.Safe("slash /todo", function()

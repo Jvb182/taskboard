@@ -9,6 +9,7 @@ function W.Text(parent, font, justify)
     local fs = parent:CreateFontString(nil, "OVERLAY", font or "GameFontHighlightSmall")
     fs:SetJustifyH(justify or "LEFT")
     fs:SetWordWrap(false)
+    Theme.Text(fs, font)
     return fs
 end
 
@@ -87,7 +88,7 @@ local function hookLinks()
         hooksecurefunc("ChatEdit_InsertLink", insert)
         hooked = true
     else
-        ns.Log:Warn("ui", "No link insertion hook available; shift-click into Questboard won't work")
+        ns.Log:Warn("ui", "No link insertion hook available; shift-click into Taskboard won't work")
     end
 end
 
@@ -97,6 +98,7 @@ function W.EditBox(parent, width, height, placeholder, acceptLinks)
     Theme.Panel(e, Theme.colors.input, Theme.colors.inputBorder)
     e:SetAutoFocus(false)
     e:SetFontObject("ChatFontNormal")
+    Theme.Text(e, "ChatFontNormal")
     e:SetTextInsets(6, 6, 2, 2)
     e:SetMaxLetters(255)
     e.placeholder = W.Text(e, "GameFontDisableSmall")
@@ -182,7 +184,7 @@ function W.Menu(owner, items)
         blocker:SetFrameStrata("FULLSCREEN")
         blocker:RegisterForClicks("AnyUp")
         blocker:SetScript("OnClick", hideMenu)
-        menu = CreateFrame("Frame", "QuestboardMenu", UIParent, "BackdropTemplate")
+        menu = CreateFrame("Frame", "TaskboardMenu", UIParent, "BackdropTemplate")
         menu:SetFrameStrata("FULLSCREEN_DIALOG")
         menu:SetClampedToScreen(true)
         Theme.Panel(menu, Theme.colors.window, Theme.colors.windowBorder)
@@ -229,12 +231,13 @@ function W.Menu(owner, items)
 end
 
 -- Yes/No confirmation using a StaticPopup.
-StaticPopupDialogs["QUESTBOARD_CONFIRM"] = {
+StaticPopupDialogs["TASKBOARD_CONFIRM"] = {
     text = "%s", button1 = YES or "Yes", button2 = NO or "No",
     OnAccept = function(_, data) if data and data.func then ns.Safe("confirm", data.func) end end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }
 
 function W.Confirm(text, func)
-    StaticPopup_Show("QUESTBOARD_CONFIRM", text, nil, { func = func })
+    StaticPopup_Show("TASKBOARD_CONFIRM", text, nil, { func = func })
 end
+

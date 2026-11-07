@@ -5,6 +5,30 @@ local Theme, W = ns.Theme, ns.Widgets
 local Options = ns:NewModule("Options")
 local frame
 local checks = {}
+local pages, themeButtons, accentButtons, soundButtons = {}, {}, {}, {}
+local opacity, opacityText
+local selectedPage = "general"
+local tabs = {}
+
+function Options:Page(name)
+    selectedPage = name
+    for key, page in pairs(pages) do page:SetShown(key == name) end
+    for key, tab in pairs(tabs) do tab:SetActive(key == name) end
+end
+
+function Options:SetAppearance(key, value)
+    if key ~= "theme" and key ~= "accent" and key ~= "panelOpacity" then return end
+    ns.db.settings[key] = value
+    ns:Fire("SETTINGS_CHANGED", key, value)
+    self:Refresh()
+end
+
+function Options:SetSound(kind, choice)
+    if ns.db.settings.soundEvents[kind] == nil then return end
+    for _, item in ipairs(ns.Toast.SOUND_CHOICES) do
+        if item[1] == choice then ns.db.settings.soundEvents[kind] = choice; self:Refresh(); return end
+    end
+end
 
 Options.ITEMS = {
     { "autoStart", "Move cards to In Progress when progress starts" },
@@ -43,8 +67,8 @@ end
 
 function Options:Create()
     if frame then return end
-    frame = CreateFrame("Frame", "QuestboardOptions", UIParent, "BackdropTemplate")
-    frame:SetSize(420, 70 + #self.ITEMS * 26)
+    frame = CreateFrame("Frame", "TaskboardOptions", UIParent, "BackdropTemplate")
+    frame:SetSize(540, 480)
     frame:SetPoint("CENTER", 0, 40)
     frame:SetFrameStrata("DIALOG")
     frame:SetToplevel(true)
@@ -56,26 +80,98 @@ function Options:Create()
     frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     frame:Hide()
     Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder)
-    table.insert(UISpecialFrames, "QuestboardOptions")
+    table.insert(UISpecialFrames, "TaskboardOptions")
     local title = W.Text(frame, "GameFontNormal")
     title:SetPoint("TOPLEFT", 12, -10)
-    title:SetText("Questboard options  |cff959ba8" .. ns.version .. "|r")
+    title:SetText("Taskboard options  |cff959ba8" .. ns.version .. "|r")
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", 2, 2)
+    for i, page in ipairs({ { "general", "General" }, { "style", "Appearance" }, { "sounds", "Sounds" } }) do
+        local key = page[1]
+        tabs[key] = W.Button(frame, page[2], 110, 22, function() Options:Page(key) end)
+        tabs[key]:SetPoint("TOPLEFT", 12 + (i - 1) * 116, -32)
+        pages[key] = CreateFrame("Frame", nil, frame)
+        pages[key]:SetPoint("TOPLEFT", 12, -68)
+        pages[key]:SetPoint("BOTTOMRIGHT", -12, 44)
+    end
     for i, item in ipairs(self.ITEMS) do
-        local c = W.Check(frame, item[2], function(checked) set(item[1], checked) end)
-        c:SetPoint("TOPLEFT", 12, -30 - (i - 1) * 26)
+        local c = W.Check(pages.general, item[2], function(checked) set(item[1], checked) end)
+        c:SetPoint("TOPLEFT", 0, -(i - 1) * 26)
         checks[item[1]] = c
+    end
+
+    local function label(parent, text, y)
+        local fs = W.Text(parent, "GameFontNormal")
+        fs:SetPoint("TOPLEFT", 0, y); fs:SetText(text)
+        return fs
+    end
+    label(pages.style, "Theme", 0)
+    for i, preset in ipairs(Theme.PRESETS) do
+        local b = W.Button(pages.style, preset.name, 96, 26, function() Options:SetAppearance("theme", preset.id) end)
+        b:SetPoint("TOPLEFT", (i - 1) * 102, -24); themeButtons[preset.id] = b
+    end
+    label(pages.style, "Accent color", -76)
+    for i, accent in ipairs(Theme.ACCENTS) do
+        local b = W.Button(pages.style, accent.name, 96, 26, function() Options:SetAppearance("accent", accent.id) end)
+        b:SetPoint("TOPLEFT", (i - 1) * 102, -100); accentButtons[accent.id] = b
+        local swatch = b:CreateTexture(nil, "ARTWORK")
+        swatch:SetPoint("BOTTOMLEFT", 3, 2); swatch:SetPoint("BOTTOMRIGHT", -3, 2); swatch:SetHeight(2)
+        swatch:SetColorTexture(accent.color[1], accent.color[2], accent.color[3], 1)
+    end
+    opacityText = label(pages.style, "Panel opacity", -152)
+    opacity = CreateFrame("Slider", nil, pages.style, "BackdropTemplate")
+    opacity:SetPoint("TOPLEFT", 0, -180); opacity:SetSize(420, 18)
+    opacity:SetOrientation("HORIZONTAL"); opacity:SetMinMaxValues(0.35, 1); opacity:SetValue(0.96)
+    opacity:SetThumbTexture(Theme.WHITE); opacity:GetThumbTexture():SetSize(16, 20)
+    Theme.Panel(opacity, Theme.colors.input, Theme.colors.panelBorder)
+    opacity:SetScript("OnValueChanged", ns.Wrap("panel opacity", function(_, value)
+        if math.abs(value - ns.db.settings.panelOpacity) > 0.001 then Options:SetAppearance("panelOpacity", value) end
+    end))
+    local help = label(pages.style, "Changes apply live to the board, tracker and popups.\nText and progress bars stay opaque for readability.\nStatus and priority colors keep their meaning across themes.", -216)
+    help:SetWordWrap(true); help:SetWidth(500)
+    local reset = W.Button(pages.style, "Reset appearance", 150, 24, function()
+        ns.db.settings.theme, ns.db.settings.accent, ns.db.settings.panelOpacity = "midnight", "sky", 0.96
+        Theme:Apply(); Options:Refresh()
+    end)
+    reset:SetPoint("TOPLEFT", 0, -292)
+
+    local soundHelp = label(pages.sounds, "Choose a sound for each event, or turn that event off.\nSounds work even when visual popups are disabled.\nVolume follows the game's sound settings.", 0)
+    soundHelp:SetWordWrap(true); soundHelp:SetWidth(500)
+    for i, item in ipairs({ { "move", "Status changed" }, { "complete", "Task completed" }, { "subtask", "Subtask completed" }, { "reminder", "Zone / NPC reminder" } }) do
+        local kind = item[1]
+        label(pages.sounds, item[2], -80 - (i - 1) * 48)
+        local b = W.Button(pages.sounds, "", 140, 24, function()
+            local choices = {}
+            for _, choice in ipairs(ns.Toast.SOUND_CHOICES) do
+                choices[#choices + 1] = { text = choice[2], checked = ns.db.settings.soundEvents[kind] == choice[1],
+                    func = function() Options:SetSound(kind, choice[1]) end }
+            end
+            W.Menu(nil, choices)
+        end)
+        b:SetPoint("TOPLEFT", 220, -74 - (i - 1) * 48); soundButtons[kind] = b
+        local preview = W.Button(pages.sounds, "Preview", 90, 24, function() ns.Toast:PlaySound(kind, true) end,
+            "Preview respects Play sounds in General and the game's volume settings")
+        preview:SetPoint("LEFT", b, "RIGHT", 10, 0)
     end
     local selftest = W.Button(frame, "Run self-test", 110, 22, function() ns.Commands:Handle("selftest") end)
     selftest:SetPoint("BOTTOMLEFT", 12, 10)
     local diag = W.Button(frame, "Diagnostics", 100, 22, function() ns.Commands:Handle("diag") end)
     diag:SetPoint("LEFT", selftest, "RIGHT", 6, 0)
     frame:SetScript("OnShow", function() Options:Refresh() end)
+    self:Page(selectedPage)
 end
 
 function Options:Refresh()
     for key, c in pairs(checks) do c:SetChecked(get(key)) end
+    local s = ns.db.settings
+    for id, b in pairs(themeButtons) do b:SetActive(id == s.theme) end
+    for id, b in pairs(accentButtons) do b:SetActive(id == s.accent) end
+    if opacity then opacity:SetValue(s.panelOpacity); opacityText:SetText(string.format("Panel opacity: %d%%", s.panelOpacity * 100)) end
+    for kind, b in pairs(soundButtons) do
+        local name = "Off"
+        for _, choice in ipairs(ns.Toast.SOUND_CHOICES) do if choice[1] == s.soundEvents[kind] then name = choice[2] end end
+        b:SetLabel(name)
+    end
 end
 
 function Options:Show()
@@ -91,10 +187,10 @@ function Options:OnLogin()
         local panel = CreateFrame("Frame")
         local text = W.Text(panel, "GameFontHighlight")
         text:SetPoint("TOPLEFT", 16, -16)
-        text:SetText("Questboard: a to-do board with live goal tracking. Type /qb to open it.")
-        local open = W.Button(panel, "Open Questboard options", 180, 24, function() Options:Show() end)
+        text:SetText("Taskboard: a to-do board with live goal tracking. Type /qb to open it.")
+        local open = W.Button(panel, "Open Taskboard options", 180, 24, function() Options:Show() end)
         open:SetPoint("TOPLEFT", 16, -44)
-        local ok, category = pcall(Settings.RegisterCanvasLayoutCategory, panel, "Questboard")
+        local ok, category = pcall(Settings.RegisterCanvasLayoutCategory, panel, "Taskboard")
         if ok and category then
             pcall(Settings.RegisterAddOnCategory, category)
         else
@@ -104,5 +200,7 @@ function Options:OnLogin()
 end
 
 function Options:Internals()
-    return { frame = frame, checks = checks }
+    return { frame = frame, checks = checks, pages = pages, opacity = opacity, themeButtons = themeButtons,
+             accentButtons = accentButtons, soundButtons = soundButtons }
 end
+

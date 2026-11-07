@@ -3,8 +3,8 @@
 local T, Mock = ...
 
 local ALLOWED_WRITES = {
-    Questboard = true, QuestboardDB = true, QuestboardLog = true,
-    SLASH_QUESTBOARD1 = true, SLASH_QUESTBOARD2 = true, SLASH_QUESTBOARDTODO1 = true,
+    Taskboard = true, TaskboardDB = true, TaskboardLog = true,
+    SLASH_TASKBOARD1 = true, SLASH_TASKBOARD2 = true, SLASH_TASKBOARD3 = true, SLASH_TASKBOARDTODO1 = true,
     BINDING_HEADER_QUESTBOARD = true, BINDING_NAME_QUESTBOARD_TOGGLE = true,
     BINDING_NAME_QUESTBOARD_TRACKER = true, BINDING_NAME_QUESTBOARD_QUICKADD = true,
 }
@@ -63,7 +63,7 @@ local function session(m, ns)
     m.Slash("/qb share party")
     m.Advance(10)
     m.AdvanceTime(86400)
-    m.env.QuestboardMinimapButton:Click("LeftButton")
+    m.env.TaskboardMinimapButton:Click("LeftButton")
     m.Logout()
 end
 
@@ -80,7 +80,7 @@ describe("API conformance (full session)", function()
         -- Our own SavedVariables are nil on a first run; reading them is expected.
         local extra = {}
         for k in pairs(m.unknownGlobals) do
-            if k ~= "QuestboardDB" and k ~= "QuestboardLog" then extra[k] = true end
+            if k ~= "TaskboardDB" and k ~= "TaskboardLog" then extra[k] = true end
         end
         T.eq(keys(extra), "", "unknown globals read")
     end)
@@ -103,6 +103,11 @@ describe("API conformance (full session)", function()
     end)
 
     it("sent only valid addon messages", function()
-        T.ok(#m.sent > 0 or true)
+        T.ok(#m.sent > 0, "the scripted session sent addon messages")
+        for _, msg in ipairs(m.sent) do
+            T.ok(#msg.text <= 255)
+            T.eq(msg.prefix, ns.Sync.PREFIX)
+        end
     end)
 end)
+

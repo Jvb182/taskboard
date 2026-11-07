@@ -1,7 +1,7 @@
 """Builds tests/fixtures/forever_api.lua from Blizzard's generated API docs.
 
 The fixture lets the offline tests check that every C_ API, global API, event,
-widget method, XML template and SOUNDKIT constant Questboard uses really exists
+widget method, XML template and SOUNDKIT constant Taskboard uses really exists
 in the WoW: Forever client, without launching the game.
 
 Usage:
@@ -64,7 +64,7 @@ def main(src):
         with open(path, encoding="utf-8") as f:
             sounds.update(re.findall(r"^\s*([A-Z0-9_]+)\s*=\s*\d+", f.read(), re.M))
 
-    # Lua-defined global helpers Questboard may call (defined in FrameXML, not C).
+    # Lua-defined global helpers Taskboard may call (defined in FrameXML, not C).
     lua_globals = set()
     for path in glob.glob(os.path.join(addons, "**", "*.lua"), recursive=True):
         with open(path, encoding="utf-8", errors="ignore") as f:
@@ -104,3 +104,4 @@ def main(src):
 
 if __name__ == "__main__":
     main(sys.argv[1])
+

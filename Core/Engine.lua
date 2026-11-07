@@ -56,13 +56,13 @@ function Engine:EvaluateCard(card, board, quiet)
     local entries = Goals.CardGoals(card)
     local total, sum, allDone, any, changed = 0, 0, true, false, false
     for _, entry in ipairs(entries) do
-        local res = Goals.Evaluate(entry.goal)
+        local res = Goals.Evaluate(entry.goal, card)
         if res then
             local previous = entry.goal._last
             if not quiet then announce(entry.goal, res, previous) end
             entry.goal._last = res.cur
             local old = entry.owner.progress
-            if not old or old.text ~= res.text or old.done ~= res.done then changed = true end
+            if not old or old.text ~= res.text or old.done ~= res.done or old.frac ~= res.frac then changed = true end
             entry.owner.progress = { cur = res.cur, target = res.target, frac = res.frac, done = res.done,
                                      text = res.text, t = Util.Now(), char = ns.CharKey() }
             if entry.owner ~= card then
@@ -177,7 +177,10 @@ function Engine:OnLogin()
     -- Verify item IDs that came from the built-in table, and unbind wrong ones.
     ns.After(3, "item verification", function() Engine:VerifyKnownItems() end)
 
-    ns:On("CARD_ADDED", function(card, board) Engine:Refresh(card, board) end)
+    ns:On("CARD_ADDED", function(card, board)
+        Goals.ResetRecurring(card, Engine:Owns(card, board))
+        Engine:Refresh(card, board)
+    end)
     ns:On("CARD_UPDATED", function(card, board) Engine:Refresh(card, board) end)
 end
 
@@ -199,3 +202,4 @@ function Engine:VerifyKnownItems()
         end
     end
 end
+

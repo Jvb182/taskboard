@@ -16,7 +16,7 @@ end
 
 function LogWindow:Create()
     if frame then return end
-    frame = CreateFrame("Frame", "QuestboardLogWindow", UIParent, "BackdropTemplate")
+    frame = CreateFrame("Frame", "TaskboardLogWindow", UIParent, "BackdropTemplate")
     frame:SetSize(680, 420)
     frame:SetPoint("CENTER", 0, 0)
     frame:SetFrameStrata("DIALOG")
@@ -29,7 +29,7 @@ function LogWindow:Create()
     frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     frame:Hide()
     Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder)
-    table.insert(UISpecialFrames, "QuestboardLogWindow")
+    table.insert(UISpecialFrames, "TaskboardLogWindow")
 
     titleText = W.Text(frame, "GameFontNormal")
     titleText:SetPoint("TOPLEFT", 12, -10)
@@ -47,6 +47,7 @@ function LogWindow:Create()
     box:SetMultiLine(true)
     box:SetAutoFocus(false)
     box:SetFontObject("ChatFontNormal")
+    Theme.Text(box, "ChatFontNormal")
     box:SetWidth(620)
     box:SetMaxLetters(0)
     scroll:SetScrollChild(box)
@@ -101,7 +102,7 @@ end
 function LogWindow:ShowLog()
     self:Create()
     setMode("log")
-    titleText:SetText("Questboard log")
+    titleText:SetText("Taskboard log")
     buttons.level:SetLabel(minLevel == 1 and "All levels" or (ns.Log.NAMES[minLevel] .. "+"))
     local lines = {}
     for _, e in ipairs(ns.Log:GetEntries(minLevel)) do lines[#lines + 1] = ns.Log:FormatEntry(e) end
@@ -115,7 +116,7 @@ end
 function LogWindow:ShowDiag(lines)
     self:Create()
     setMode("diag")
-    titleText:SetText("Questboard diagnostics (paste this into bug reports)")
+    titleText:SetText("Taskboard diagnostics (paste this into bug reports)")
     lines = lines or ns.Diagnostics:Report()
     local recent = {}
     for _, e in ipairs(ns.Log:GetEntries(3, 20)) do recent[#recent + 1] = ns.Log:FormatEntry(e) end
@@ -149,6 +150,7 @@ function LogWindow:ShowImport()
 end
 
 function LogWindow:DoImport()
+    if Util.Count(ns.db.boards) >= DB.LIMITS.boards then ns.Print("Import failed: too many boards.") return end
     local data, err = ns.Serialize.Import(box:GetText())
     if not data then ns.Print("|cffff5555Import failed: %s|r", tostring(err)) return end
     local board = DB.NormalizeBoard(data)
@@ -156,7 +158,13 @@ function LogWindow:DoImport()
     -- Always import as a new board you own.
     board.id = Util.NewID("b")
     board.scope, board.owner, board.shared = "account", nil, nil
-    for _, card in pairs(board.cards) do card.char = card.char or ns.CharKey() end
+    for _, card in pairs(board.cards) do
+        card.char, card.progress, card.auto = ns.CharKey(), nil, {}
+        for _, entry in ipairs(ns.Goals.CardGoals(card)) do
+            entry.goal.baseline, entry.goal.baselineBank = nil, nil
+            entry.owner.progress = nil
+        end
+    end
     ns.db.boards[board.id] = board
     DB:SetActiveBoard(board)
     ns.Log:Info("db", "Imported board '%s' with %d card(s)", board.name, Util.Count(board.cards))
@@ -175,3 +183,4 @@ end
 function LogWindow:Internals()
     return { frame = frame, box = box, mode = mode }
 end
+

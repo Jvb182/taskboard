@@ -1,11 +1,12 @@
 <Bindings>
     <Binding name="QUESTBOARD_TOGGLE" header="QUESTBOARD" category="ADDONS">
-        Questboard:ToggleBoard()
+        Taskboard:ToggleBoard()
     </Binding>
     <Binding name="QUESTBOARD_TRACKER" category="ADDONS">
-        Questboard:ToggleTracker()
+        Taskboard:ToggleTracker()
     </Binding>
     <Binding name="QUESTBOARD_QUICKADD" category="ADDONS">
-        Questboard:QuickAdd()
+        Taskboard:QuickAdd()
     </Binding>
 </Bindings>
+

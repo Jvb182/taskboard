@@ -82,10 +82,15 @@ end
 
 local SPECS = {
     "static_spec", "util_spec", "serialize_spec", "db_spec", "parser_spec", "items_spec", "engine_spec",
-    "goals_spec", "reminders_spec", "recurring_spec", "sync_spec", "ui_spec", "persistence_spec", "conformance_spec",
+    "goals_spec", "reminders_spec", "recurring_spec", "sync_spec", "ui_spec", "persistence_spec", "conformance_spec", "regression_spec", "personalization_spec",
 }
 
 local only = QB_ONLY
+if only then
+    local found = false
+    for _, spec in ipairs(SPECS) do if spec == only then found = true end end
+    assert(found, "Unknown spec: " .. tostring(only))
+end
 for _, spec in ipairs(SPECS) do
     if not only or only == spec then
         local chunk = assert(loadfile(QB_TEST_ROOT .. "spec/" .. spec .. ".lua"))
@@ -103,3 +108,4 @@ for _, f in ipairs(T.failures) do
 end
 QB_RESULT = { passed = T.passed, failed = T.failed }
 return T.failed
+

@@ -1,8 +1,8 @@
 -- Colors, fonts and backdrop helpers.
 local _, ns = ...
 
-local Theme = {}
-ns.Theme = Theme
+local Theme = ns:NewModule("Theme")
+local panels, texts, brands = {}, {}, {}
 
 Theme.WHITE = "Interface\\Buttons\\WHITE8x8"
 Theme.BAR = "Interface\\TargetingFrame\\UI-StatusBar"
@@ -47,6 +47,77 @@ Theme.PRIORITY = {
 
 Theme.HEX = { accent = "4fc3f7", muted = "959ba8", good = "5cd673", warn = "ffb84d", bad = "ff5a5a", gold = "ffd100" }
 
+Theme.PRESETS = {
+    { id = "midnight", name = "Midnight", tint = { 0, 0, 0 } },
+    { id = "parchment", name = "Warm leather", tint = { 0.065, 0.033, -0.025 } },
+    { id = "forest", name = "Forest", tint = { -0.015, 0.035, -0.005 } },
+    { id = "violet", name = "Arcane", tint = { 0.035, -0.005, 0.055 } },
+    { id = "contrast", name = "High contrast", tint = { -0.04, -0.04, -0.04 } },
+}
+Theme.ACCENTS = {
+    { id = "sky", name = "Sky", color = { 0.31, 0.76, 0.97 } },
+    { id = "gold", name = "Gold", color = { 1, 0.79, 0.30 } },
+    { id = "mint", name = "Mint", color = { 0.34, 0.88, 0.64 } },
+    { id = "rose", name = "Rose", color = { 1, 0.47, 0.65 } },
+    { id = "lilac", name = "Lilac", color = { 0.73, 0.59, 1 } },
+}
+local defaults = ns.Util.DeepCopy(Theme.colors)
+local backgrounds = { window = true, panel = true, card = true, cardHover = true, cardDone = true,
+    input = true, button = true, buttonHover = true, buttonActive = true }
+
+function Theme.Text(region, font)
+    local key = string.find(font or "", "Disable", 1, true) and "muted" or
+        (string.find(font or "", "Normal", 1, true) and font ~= "ChatFontNormal" and "accent" or "text")
+    texts[region] = key
+    region:SetTextColor(unpack(Theme.colors[key]))
+end
+
+function Theme.Brand(region, suffix)
+    brands[region] = suffix or ""
+    region:SetText("|cff" .. Theme.HEX.accent .. "Task|rboard" .. (suffix or ""))
+end
+
+function Theme:Apply()
+    local s = ns.db.settings
+    local preset, accent = self.PRESETS[1], self.ACCENTS[1]
+    for _, p in ipairs(self.PRESETS) do if p.id == s.theme then preset = p end end
+    for _, a in ipairs(self.ACCENTS) do if a.id == s.accent then accent = a end end
+    s.theme, s.accent = preset.id, accent.id
+    local opacity = tonumber(s.panelOpacity)
+    if not opacity or opacity ~= opacity then opacity = 0.96 end
+    s.panelOpacity = ns.Util.Clamp(opacity, 0.35, 1)
+    for key, color in pairs(self.colors) do
+        local base = defaults[key]
+        for i = 1, 4 do color[i] = base[i] end
+        if backgrounds[key] then
+            for i = 1, 3 do color[i] = ns.Util.Clamp(base[i] + preset.tint[i], 0.01, 0.4) end
+            color[4] = s.panelOpacity
+        end
+    end
+    for i = 1, 3 do
+        self.colors.accent[i], self.colors.dropLine[i] = accent.color[i], accent.color[i]
+        self.colors.buttonActive[i] = accent.color[i] * 0.4
+    end
+    if preset.id == "contrast" then
+        for i = 1, 3 do self.colors.text[i] = 1; self.colors.muted[i] = 0.8; self.colors.panelBorder[i] = 0.55 end
+    end
+    self.HEX.accent = string.format("%02x%02x%02x", accent.color[1] * 255, accent.color[2] * 255, accent.color[3] * 255)
+    for f, colors in pairs(panels) do
+        f:SetBackdropColor(unpack(colors[1]))
+        f:SetBackdropBorderColor(unpack(colors[2]))
+    end
+    for region, key in pairs(texts) do region:SetTextColor(unpack(self.colors[key])) end
+    for region, suffix in pairs(brands) do self.Brand(region, suffix) end
+    ns:Fire("BOARD_REFRESH")
+end
+
+function Theme:OnLogin()
+    self:Apply()
+    ns:On("SETTINGS_CHANGED", function(key)
+        if key == "theme" or key == "accent" or key == "panelOpacity" then Theme:Apply() end
+    end)
+end
+
 function Theme.Panel(frame, bg, border)
     if not frame.SetBackdrop then
         Mixin(frame, BackdropTemplateMixin)
@@ -54,6 +125,7 @@ function Theme.Panel(frame, bg, border)
     frame:SetBackdrop(Theme.BACKDROP)
     frame:SetBackdropColor(unpack(bg or Theme.colors.panel))
     frame:SetBackdropBorderColor(unpack(border or Theme.colors.panelBorder))
+    panels[frame] = { bg or Theme.colors.panel, border or Theme.colors.panelBorder }
 end
 
 function Theme.ProgressColor(frac, done)
@@ -66,3 +138,4 @@ end
 function Theme.RoleColor(role)
     return Theme.ROLE[role or "custom"] or Theme.ROLE.custom
 end
+

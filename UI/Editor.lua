@@ -58,7 +58,7 @@ end
 -------------------------------------------------------------------------------
 function Editor:Create()
     if frame then return end
-    frame = CreateFrame("Frame", "QuestboardEditor", UIParent, "BackdropTemplate")
+    frame = CreateFrame("Frame", "TaskboardEditor", UIParent, "BackdropTemplate")
     frame:SetSize(WIDTH, 560)
     frame:SetFrameStrata("HIGH")
     frame:SetToplevel(true)
@@ -70,7 +70,7 @@ function Editor:Create()
     frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     frame:Hide()
     Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder)
-    table.insert(UISpecialFrames, "QuestboardEditor")
+    table.insert(UISpecialFrames, "TaskboardEditor")
 
     ui.heading = W.Text(frame, "GameFontNormal")
     ui.heading:SetPoint("TOPLEFT", 12, -10)
@@ -175,6 +175,7 @@ function Editor:Create()
     ui.notes:SetMultiLine(true)
     ui.notes:SetAutoFocus(false)
     ui.notes:SetFontObject("ChatFontNormal")
+    Theme.Text(ui.notes, "ChatFontNormal")
     ui.notes:SetPoint("TOPLEFT", 6, -4)
     ui.notes:SetPoint("BOTTOMRIGHT", -6, 4)
     ui.notes:SetMaxLetters(DB.LIMITS.notes)
@@ -222,6 +223,13 @@ function Editor:Create()
     end
     ui.streak = W.Text(L, "GameFontDisableSmall")
     ui.streak:SetPoint("TOPLEFT", 228, ly - 4)
+    ly = ly - 28
+
+    ui.recurItems = W.Check(L, "Items: collect extra each period (net gain)", function(checked)
+        apply({ recurItems = checked and "gain" or "stock" })
+    end, { "Repeating item goals", "Checked: count inventory above the amount at the start of the period.",
+           "Unchecked: check your current stock; after reset, completion waits until the goal becomes incomplete first." })
+    ui.recurItems:SetPoint("TOPLEFT", -4, ly)
     ly = ly - 28
 
     lsection("Map pin", ly); ly = ly - 14
@@ -309,6 +317,13 @@ end
 function Editor:Refresh()
     local card, board = current.card, current.board
     if not frame or not frame:IsShown() or not card then return end
+    if ns.db.boards[board.id] ~= board then
+        local replacement = ns.db.boards[board.id]
+        if replacement and replacement.cards[card.id] then
+            self:Open(replacement.cards[card.id], replacement)
+        else frame:Hide() end
+        return
+    end
     if not board.cards[card.id] then frame:Hide() return end
     local ro = readOnly()
     ui.heading:SetText(ro and "View card (shared, read-only)" or "Edit card")
@@ -383,6 +398,8 @@ function Editor:Refresh()
     for _, b in ipairs(ui.npc) do b:SetActive(b.value == npc) end
     for _, b in ipairs(ui.recur) do b:SetActive(b.value == (card.recur or "none")) end
     ui.streak:SetText(card.recur and ("Streak " .. (card.streak or 0)) or "")
+    ui.recurItems:SetShown(card.recur ~= nil)
+    ui.recurItems:SetChecked(card.recurItems ~= "stock")
 
     if card.pin then
         local info = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(card.pin.mapID)
@@ -452,6 +469,12 @@ end
 -------------------------------------------------------------------------------
 function Editor:Open(card, board)
     self:Create()
+    if current.card ~= card then
+        -- Blur while the old card is still current: commits cannot leak to the new one.
+        for _, box in ipairs({ ui.title, ui.tags, ui.goal, ui.subAdd, ui.zone, ui.notes }) do box:ClearFocus() end
+        ui.goal:SetText("")
+        ui.subAdd:SetText("")
+    end
     current.card, current.board = card, board
     frame:ClearAllPoints()
     local boardFrame = ns.Board.frame
@@ -471,7 +494,7 @@ function Editor:Current()
 end
 
 function Editor:OnLogin()
-    for _, message in ipairs({ "PROGRESS_CHANGED", "BOARD_CHANGED", "BOARD_REFRESH" }) do
+    for _, message in ipairs({ "PROGRESS_CHANGED", "BOARD_CHANGED", "BOARD_REFRESH", "BOARDS_CHANGED" }) do
         ns:On(message, function() Editor:Refresh() end)
     end
 end
@@ -479,3 +502,4 @@ end
 function Editor:Internals()
     return { frame = frame, ui = ui }
 end
+

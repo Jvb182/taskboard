@@ -20,7 +20,7 @@ describe("SavedVariables", function()
                 if type(v) == "table" then scan(v, path .. "." .. tostring(k)) end
             end
         end
-        scan(saved.db, "QuestboardDB")
+        scan(saved.db, "TaskboardDB")
 
         local m2, ns2 = T.client(nil, saved)
         local board2 = ns2.db.boards[board.id]
@@ -36,12 +36,12 @@ describe("SavedVariables", function()
         T.eq(ns2.DB:CardRole(board2, a2), "doing")
         T.eq(board2.order.todo[1], b.id, "order kept")
         T.eq(ns2.db.settings.sounds, false)
-        T.eq(rawget(m2.env, "QuestboardLog").sessions, 2)
+        T.eq(rawget(m2.env, "TaskboardLog").sessions, 2)
         T.ok(#ns2.Log:GetEntries() > 3, "log tail kept across sessions")
         -- Live tracking resumes after login (bags are per-session in the mock; refill them).
         m2.Loot(2447, 20)
         m2.Advance(3)
-        T.eq(a2.progress.text, "Peacebloom 20/20")
+        T.eq(a2.progress.text, "Peacebloom (extra this day) 20/20")
         T.noErrors(ns2)
     end)
 
@@ -65,3 +65,4 @@ describe("SavedVariables", function()
         T.contains(saved.log.entries[#saved.log.entries].m, "line 500")
     end)
 end)
+

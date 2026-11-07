@@ -2,6 +2,10 @@
 
 Formerly Questboard. Open with `/tb` or `/taskboard`; existing key bindings are retained.
 
+Quick Add has an **Examples** button in the board's title bar, with one example per line in a scrollable panel. Examples no longer appear when hovering over the input.
+
+Type `@` followed by a letter in Quick Add to suggest locations: `@g` narrows to `@go` for Goldshire. Suggestions come from the client's localized area names, indexed in small batches on first use (area IDs 1–30000), including zones and subzones. Click a result or use Up/Down and Tab/Enter; Enter accepts the location first, then a second Enter adds the task. Scroll for more matches. Multiword locations are quoted automatically. Escape dismisses suggestions, and unlisted locations can still be typed manually. `@Goldshire` adds an arrival reminder for an unfinished task; it does not complete the task on arrival.
+
 A Kanban to-do board for **World of Warcraft: Forever** (interface `16001`) whose cards track themselves.
 
 Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you loot. It moves to **In Progress** when you start and to **Done** with a sound and a popup when you finish.

@@ -167,6 +167,136 @@ function W.Scroll(parent)
     return scroll, content
 end
 
+-- Localized zone and subzone names from the client's AreaTable, built in small
+-- batches on first use. No dependency on another addon or external name list.
+local places, placeKeys, scanning = {}, {}, false
+local function rememberPlace(name)
+    if type(name) ~= "string" or name == "" then return end
+    local key = ns.Util.Lower(name)
+    if not placeKeys[key] then placeKeys[key] = true; places[#places + 1] = name end
+end
+function W.LocationToken(text, cursor)
+    local before = text:sub(1, cursor)
+    local start, query = before:match('()@"([^"]*)$')
+    local quoted = start ~= nil
+    if not start then start, query = before:match('()@([^%s@";]*)$') end
+    if not start or query == "" then return end
+    if start > 1 and not text:sub(start - 1, start - 1):match('[%s;]') then return end
+    local tail = text:sub(cursor + 1)
+    local rest
+    if quoted then rest = tail:find('"', 1, true) else rest = tail:find('[%s;]') end
+    local finish = rest and (cursor + rest - (quoted and 0 or 1)) or #text
+    return start, finish, query
+end
+
+function W.LocationSuggestions(box)
+    local panel = CreateFrame("Frame", nil, box, "BackdropTemplate")
+    panel:SetPoint("TOPLEFT", box, "BOTTOMLEFT", 0, -2)
+    panel:SetSize(300, 200)
+    panel:SetFrameStrata("DIALOG")
+    panel:SetClampedToScreen(true)
+    panel:EnableMouse(true)
+    panel:EnableMouseWheel(true)
+    Theme.Panel(panel, Theme.colors.window, Theme.colors.windowBorder)
+    panel:Hide()
+    local rows, matches, selected, offset = {}, {}, 1, 0
+    local start, finish, changing
+    local refresh
+    local hint = W.Text(panel, "GameFontDisableSmall")
+    hint:SetPoint("BOTTOMLEFT", 8, 6)
+    local function draw()
+        for i = 1, 8 do
+            local name = matches[offset + i]
+            rows[i]:SetShown(name ~= nil)
+            rows[i]:SetLabel(name or "")
+            rows[i]:SetActive(offset + i == selected)
+        end
+        hint:SetText(#matches == 0 and (scanning and "Loading locations..." or "No matches; you can type a location.")
+            or "Up/Down, Tab or Enter to choose; scroll for more")
+        panel:SetHeight(math.min(8, #matches) * 22 + 30)
+    end
+    local function choose(index)
+        local name = matches[index]
+        if not name or not start then return end
+        local text = box:GetText()
+        local token = '@"' .. name .. '"'
+        local prefix = text:sub(1, start - 1) .. token
+        local suffix = text:sub(finish + 1)
+        if suffix == "" then prefix = prefix .. " " end
+        changing = true
+        box:SetText(prefix .. suffix)
+        box:SetCursorPosition(#prefix)
+        changing = false
+        panel:Hide()
+        box:SetFocus()
+    end
+    for i = 1, 8 do
+        local index = i
+        rows[i] = W.Button(panel, "", 284, 22, function() choose(offset + index) end)
+        rows[i]:SetPoint("TOPLEFT", 8, -4 - (i - 1) * 22)
+    end
+    refresh = function()
+        if changing then return end
+        if not box:HasFocus() or not box:IsVisible() then panel:Hide(); return end
+        local query
+        start, finish, query = W.LocationToken(box:GetText(), box:GetCursorPosition())
+        if not query then panel:Hide(); return end
+        rememberPlace(GetRealZoneText and GetRealZoneText())
+        rememberPlace(GetSubZoneText and GetSubZoneText())
+        if not W.locationsIndexed and not scanning then
+            scanning = true
+            local id = 1
+            local function batch()
+                if C_Map and C_Map.GetAreaInfo then
+                    for n = id, math.min(id + 299, 30000) do rememberPlace(C_Map.GetAreaInfo(n)) end
+                end
+                id = id + 300
+                if id <= 30000 and C_Map and C_Map.GetAreaInfo then ns.After(0.01, "location index", batch)
+                else scanning = false; W.locationsIndexed = true end
+                refresh()
+            end
+            ns.After(0, "location index", batch)
+        end
+        matches = {}
+        query = ns.Util.Lower(query)
+        for _, name in ipairs(places) do
+            if ns.Util.Lower(name):sub(1, #query) == query then matches[#matches + 1] = name end
+        end
+        table.sort(matches)
+        selected, offset = 1, 0
+        draw(); panel:Show()
+    end
+    box:HookScript("OnTextChanged", refresh)
+    box:HookScript("OnCursorChanged", refresh)
+    box:HookScript("OnEditFocusGained", refresh)
+    box:HookScript("OnHide", function() panel:Hide() end)
+    -- Delay focus-loss hiding so a click on a suggestion can complete first.
+    box:HookScript("OnEditFocusLost", function() ns.After(0.1, "hide locations", function()
+        if not box:HasFocus() then panel:Hide() end
+    end) end)
+    local enter, escape = box:GetScript("OnEnterPressed"), box:GetScript("OnEscapePressed")
+    box:SetScript("OnEnterPressed", ns.Wrap("choose location", function(self)
+        if panel:IsShown() and matches[selected] then choose(selected) elseif enter then panel:Hide(); enter(self) end
+    end))
+    box:SetScript("OnTabPressed", ns.Wrap("choose location", function() if panel:IsShown() then choose(selected) end end))
+    box:SetScript("OnEscapePressed", function(self)
+        if panel:IsShown() then panel:Hide() elseif escape then escape(self) end
+    end)
+    box:SetScript("OnArrowPressed", ns.Wrap("location navigation", function(_, key)
+        if not panel:IsShown() or #matches == 0 then return end
+        if key == "UP" then selected = math.max(1, selected - 1)
+        elseif key == "DOWN" then selected = math.min(#matches, selected + 1) else return end
+        offset = math.max(0, math.min(offset, selected - 1))
+        if selected > offset + 8 then offset = selected - 8 end
+        draw()
+    end))
+    panel:SetScript("OnMouseWheel", function(_, delta)
+        offset = math.max(0, math.min(math.max(0, #matches - 8), offset - delta))
+        draw()
+    end)
+    return panel
+end
+
 -------------------------------------------------------------------------------
 -- Context menu: one shared frame. items = { {text, func, disabled, checked, title, color} }
 -------------------------------------------------------------------------------

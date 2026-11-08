@@ -16,7 +16,7 @@ DB.defaults = {
     settings = {
         autoStart = true, autoComplete = true, progressMessages = true, toasts = true, sounds = true,
         reminders = true, smartReminders = true, includeBank = true, trackerShown = true,
-        trackerLocked = false, trackerHideInCombat = false, trackerMax = 8, onlyMine = false,
+        trackerLocked = false, trackerHideInCombat = false, trackerAllOpen = false, trackerLocationPulse = true, trackerMax = 8, onlyMine = false,
         syncAccept = "ask", debug = false, minimap = { angle = 200, hide = false },
         theme = "midnight", accent = "sky", panelOpacity = 0.96,
         soundEvents = { move = "click", complete = "quest", subtask = "click", reminder = "chime" },

@@ -21,6 +21,32 @@ local function menuRow(m, text)
 end
 
 describe("Board window", function()
+    it("keeps editor height in sync without disturbing focused edits", function()
+        local m, ns = T.client()
+        ns.Board:Show()
+        local board = ns.DB:GetActiveBoard()
+        local card = ns.Commands:Add("Resize test")
+        ns.Editor:Open(card, board)
+        local ed = ns.Editor:Internals()
+        ed.ui.title:SetFocus()
+        ed.ui.title:SetText("Uncommitted draft")
+        for _, height in ipairs({ 760, 340, 1100 }) do
+            ns.Board.frame:SetHeight(height)
+            ns.Board.frame:GetScript("OnSizeChanged")(ns.Board.frame)
+            T.eq(ed.frame:GetHeight(), height)
+            T.eq(ed.ui.title:GetText(), "Uncommitted draft")
+            T.ok(ed.ui.title:HasFocus())
+        end
+        ns.Board.frame:Hide()
+        ns.Editor:Open(card, board)
+        T.eq(ed.frame:GetHeight(), 1100)
+        local _, fresh = T.client(nil, { db = { ui = { board = { h = 720 } } } })
+        local b = fresh.DB:GetActiveBoard()
+        fresh.Editor:Open(next(b.cards) and select(2, next(b.cards)), b)
+        T.eq(fresh.Editor:Internals().frame:GetHeight(), 720)
+        T.noErrors(ns); T.noErrors(fresh)
+    end)
+
     it("opens full help from the command and switches independent scrollable sections", function()
         local m, ns = T.client()
         local before = ns.Util.Count(ns.DB:GetActiveBoard().cards)
@@ -370,6 +396,100 @@ describe("Card editor", function()
 end)
 
 describe("Tracker, toasts, log, options, minimap", function()
+    it("pulses nearby To Do tasks until leaving and respects visibility settings", function()
+        local m, ns = T.client()
+        local board = ns.DB:GetActiveBoard()
+        ns.db.settings.reminders = false
+        local card = ns.Commands:Add("Buy vials @Goldshire")
+        m.Advance(0.2)
+        local tr = ns.Tracker:Internals()
+        T.eq(ns.DB:CardRole(board, card), "todo")
+        T.eq(tr.rows[1].card, card)
+        T.ok(tr.rows[1].glow:IsShown())
+        local alpha = tr.rows[1].glow:GetAlpha()
+        tr.frame:GetScript("OnUpdate")(tr.frame, 0.3)
+        T.no(alpha == tr.rows[1].glow:GetAlpha())
+        ns.db.settings.trackerAllOpen = true
+        m.state.subzone = "Northshire"
+        m.Fire("ZONE_CHANGED"); m.Advance(0.2)
+        for _, r in ipairs(tr.rows) do T.no(r.glow:IsShown()) end
+        m.state.subzone = "Goldshire"
+        m.Fire("ZONE_CHANGED_INDOORS"); m.Advance(0.2)
+        T.ok(tr.rows[1].glow:IsShown())
+        ns.db.settings.trackerShown = false
+        ns.Tracker:Refresh(); T.no(tr.frame:IsShown())
+        ns.db.settings.trackerShown = true
+        ns.db.settings.trackerLocationPulse = false
+        ns.Tracker:Refresh()
+        for _, r in ipairs(tr.rows) do T.no(r.glow:IsShown()) end
+        ns.db.settings.trackerLocationPulse = true
+        ns.DB:MoveCard(board, card.id, "done")
+        m.Advance(0.2)
+        for _, e in ipairs(ns.Tracker:Entries()) do T.no(e.card == card) end
+        T.noErrors(ns)
+    end)
+
+    it("closes addon windows directly during combat, including focused diagnostics", function()
+        local m, ns = T.client()
+        ns.Options:Show()
+        ns.LogWindow:ShowDiag()
+        m.Fire("PLAYER_REGEN_DISABLED")
+        -- Fail if a close path attempts to use the game's panel manager.
+        m.env.HideUIPanel = function() error("panel manager unavailable in combat") end
+        local options = ns.Options:Internals().frame
+        options.closeButton:GetScript("OnClick")(options.closeButton)
+        T.no(options:IsShown())
+        local log = ns.LogWindow:Internals()
+        log.frame.closeButton:GetScript("OnClick")(log.frame.closeButton)
+        T.no(log.frame:IsShown())
+        ns.LogWindow:ShowDiag()
+        log.box:SetFocus()
+        log.box:GetScript("OnEscapePressed")(log.box)
+        T.no(log.frame:IsShown()); T.no(log.box:HasFocus())
+        ns.LogWindow:ShowLog()
+        log.frame.closeButton:GetScript("OnClick")(log.frame.closeButton)
+        ns.Log:Info("test", "combat log update after closing")
+        m.Advance(0.2)
+        T.no(log.frame:IsShown())
+        ns.Options:Show(); T.ok(options:IsShown())
+        options.closeButton:GetScript("OnClick")(options.closeButton)
+        T.no(options:IsShown())
+        T.noErrors(ns)
+    end)
+
+    it("optionally includes manual reminders and scrolls all open tasks", function()
+        local m, ns = T.client()
+        m.state.subzone = "Northshire"
+        local board = ns.DB:GetActiveBoard()
+        local card = ns.Commands:Add("Buy vials @Goldshire")
+        T.eq(#ns.Tracker:Entries(), 0)
+        ns.Options:Show()
+        local check = ns.Options:Internals().checks.trackerAllOpen
+        check:SetChecked(true)
+        check:GetScript("OnClick")(check)
+        m.Advance(0.2)
+        T.eq(#ns.Tracker:Entries(), 2)
+        T.ok(ns.Tracker:Internals().frame:IsShown())
+        for i = 1, 10 do ns.Commands:Add("Manual task " .. i) end
+        ns.Tracker:Refresh()
+        local tr = ns.Tracker:Internals()
+        local first = tr.rows[1].card
+        tr.frame:GetScript("OnMouseWheel")(tr.frame, -1)
+        T.no(tr.rows[1].card == first)
+        ns.DB:MoveCard(board, card.id, "done")
+        ns.DB:UpdateCard(board, first, { archived = true })
+        local other = ns.Commands:Add("Another character's task")
+        ns.DB:UpdateCard(board, other, { char = "Other-Realm" })
+        for _, e in ipairs(ns.Tracker:Entries()) do
+            T.no(e.card == card or e.card == first or e.card == other)
+        end
+        local _, reloaded = T.client(nil, m.Logout())
+        T.eq(reloaded.db.settings.trackerAllOpen, true)
+        ns.db.settings.trackerAllOpen = false
+        T.eq(#ns.Tracker:Entries(), 0)
+        T.noErrors(ns); T.noErrors(reloaded)
+    end)
+
     it("tracker lists in-progress cards with live bars", function()
         local m, ns = T.client()
         local card = ns.Commands:Add("Get 10 Peacebloom !high")

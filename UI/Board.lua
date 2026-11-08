@@ -699,7 +699,10 @@ function Board:Create()
     grip:SetScript("OnMouseUp", function() frame:StopMovingOrSizing() savePosition() Board:Layout() end)
 
     frame:SetScript("OnShow", function() mineCheck:SetChecked(ns.db.settings.onlyMine) Board:Layout() end)
-    frame:SetScript("OnSizeChanged", function() Board:RequestLayout() end)
+    frame:SetScript("OnSizeChanged", ns.Wrap("resize board", function()
+        Board:RequestLayout()
+        ns:Fire("BOARD_RESIZED")
+    end))
     frame:SetScript("OnHide", function()
         if drag then Board:EndDrag() end
         W.HideMenu()

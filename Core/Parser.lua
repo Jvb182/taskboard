@@ -162,9 +162,12 @@ function Parser.Parse(text)
     -- Pulls card-level tokens (#tag !prio @where *repeat >column) out of a part,
     -- wherever they appear in the line. Returns the remaining text.
     local function extract(part)
+        local quoted, quoteCount = {}, 0
         part = part:gsub('@"([^"]+)"', function(zone)
-            spec.where = { zone = Util.Trim(zone) }
-            return ""
+            quoteCount = quoteCount + 1
+            local token = "\001" .. quoteCount .. "\002"
+            quoted[token] = Util.Trim(zone)
+            return token
         end)
         local kept = {}
         for word in string.gmatch(part, "%S+") do
@@ -174,7 +177,9 @@ function Parser.Parse(text)
             local at = string.match(word, "^@(.+)$")
             local recur = string.match(lw, "^%*(%a+)$")
             local col = string.match(lw, "^>(%a+)$")
-            if tag then
+            if quoted[word] then
+                spec.where = { zone = quoted[word] }
+            elseif tag then
                 local t = Util.Lower(tag)
                 if not Util.IndexOf(spec.tags, t) then spec.tags[#spec.tags + 1] = t end
             elseif prio and Parser.PRIORITY[prio] then
@@ -237,3 +242,4 @@ function Parser.Describe(goal)
     end
     return "?"
 end
+

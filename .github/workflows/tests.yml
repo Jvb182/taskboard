@@ -16,12 +16,15 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install -r tests/requirements.txt
-      - run: python tests/run.py
+      - run: python tests/run.py --report-json dist/qa-results.json
       - run: python tests/tools/package.py
       - run: python tests/tools/package.py --curseforge
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
         with:
           name: Taskboard-${{ matrix.os }}
-          path: dist/Taskboard-*.zip
+          path: |
+            dist/Taskboard-*.zip
+            dist/qa-results.json
           if-no-files-found: error
 

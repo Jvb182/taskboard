@@ -50,7 +50,7 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
 
 - **Reminders:** a card pinned to a zone or an NPC pops up when you arrive there or open that NPC.
   - Mailbox spots are learned when you open them. On later visits, `@mail` tasks remind you within 35 yards and pulse in the tracker while nearby. Taskboard cannot detect an unvisited mailbox's position from the client API.
-  - Opening a mailbox finishes `Check mail @mail` (also `Check mailbox` and `Check my mail`); other `@mail` tasks remain open until you finish them.
+  - With automatic completion enabled, opening a mailbox finishes plain `Check mail @mail` tasks (also `Check mailbox` and `Check my mail`, including trailing punctuation). Tasks with goals or subtasks, and other `@mail` tasks, remain open until you finish them.
   - At the AH: lists the goal items you still need.
   - At the bank: shows goal items sitting in your bank.
 - **Map pins:** pin a card to where you're standing. "Show on map" sets the game's waypoint arrow.
@@ -83,7 +83,7 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
 
 ## Install
 
-For CurseForge, use the single-folder `Taskboard-1.2.0-CurseForge.zip` built with `python tests/tools/package.py --curseforge`. First-time users need only the Taskboard folder. Existing Questboard users should follow the one-time migration instructions below using the two-folder GitHub upgrade ZIP before switching to CurseForge updates. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
+For CurseForge, use the single-folder `Taskboard-1.2.1-CurseForge.zip` built with `python tests/tools/package.py --curseforge`. First-time users need only the Taskboard folder. Existing Questboard users should follow the one-time migration instructions below using the two-folder GitHub upgrade ZIP before switching to CurseForge updates. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
 
 Use the packaged ZIP: extract both included folders into `World of Warcraft/_forever_/Interface/AddOns/`. The main addon is `Taskboard/Taskboard.toc`. The small `Questboard/Questboard.toc` compatibility folder only loads legacy saved data and has no UI or tracking code. Restart the game after installing the newly named add-on.
 

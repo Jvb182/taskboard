@@ -13,7 +13,7 @@ local HELP = {
     "  /tb list - list your open cards",
     "  /tb done <number or text> - mark a card done",
     "  /tb tracker - show or hide the on-screen tracker",
-    "  /tb board <name> - switch to (or create) a board",
+    "  /tb board <name> - switch boards; use Name (Character-Realm) for duplicate names",
     "  /tb share party|raid|guild - share the current board",
     "  /tb export / import - copy a board as text",
     "  /tb log [n] | log show | log clear  - recent log lines",
@@ -77,18 +77,29 @@ end
 
 function Commands:Board(name)
     name = Util.Trim(name)
+    local function label(b)
+        local owner = b.owner or (b.shared and b.shared.from)
+        return owner and (b.name .. " (" .. owner .. ")") or b.name
+    end
     if name == "" then
         for _, b in ipairs(DB:VisibleBoards()) do
-            ns.Print("%s%s (%d cards, %s)", b == DB:GetActiveBoard() and "> " or "  ", b.name, Util.Count(b.cards), b.scope)
+            ns.Print("%s%s [%s] (%d cards)", b == DB:GetActiveBoard() and "> " or "  ", label(b), b.id, Util.Count(b.cards))
         end
         return
     end
+    local matches = {}
     for _, b in ipairs(DB:VisibleBoards()) do
-        if Util.Lower(b.name) == Util.Lower(name) then
-            DB:SetActiveBoard(b)
-            ns.Print("Switched to %s", b.name)
-            return
+        if Util.Lower(b.name) == Util.Lower(name) or Util.Lower(label(b)) == Util.Lower(name) or b.id == name then
+            matches[#matches + 1] = b
         end
+    end
+    if #matches == 1 then
+        DB:SetActiveBoard(matches[1])
+        ns.Print("Switched to %s", label(matches[1]))
+        return
+    elseif #matches > 1 then
+        ns.Print("More than one board matches '%s'. Use the full Name (Character-Realm) or board ID from /tb board.", name)
+        return
     end
     ns.Print("No board named '%s'. Each character has one board; use /tb board to list them.", name)
 end

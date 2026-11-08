@@ -16,9 +16,9 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
   - Rename columns or add your own.
   - Drag and drop cards, or reorder them.
   - Search, filter by tag, and show only this character's cards.
-  - Multiple boards, shared across all your characters or limited to one.
+  - One board per character, accessible from your other characters. Older local boards merge by card owner on upgrade; received shared boards remain separate.
   - A horizontal scrollbar keeps extra columns reachable in narrow windows.
-- **Make it yours:** `/tb options` → **Appearance** offers Midnight, Warm leather, Forest, Arcane and High contrast themes; Sky, Gold, Mint, Rose and Lilac accents; and 35–100% board/tracker opacity. Settings, editor, Help, logs and popup menus (including the Board dropdown) always have opaque backgrounds. Changes apply live and persist across reloads. Text stays opaque; status/priority colors retain consistent meanings.
+- **Make it yours:** `/tb options` → **Appearance** offers Midnight, Warm leather, Forest, Arcane, High contrast, Classic stone and Classic leather themes. The classic skins use original WoW frame artwork. Sky, Gold, Mint, Rose and Lilac accents and 35–100% board/tracker opacity remain available. Settings, editor, Help, logs and popup menus stay opaque. Closing the board also closes its settings window.
 - **Event sounds:** `/tb options` → **Sounds** lets you choose Off, Soft click, Chime or Quest complete separately for status changes, completions, subtasks and zone/NPC reminders. Each has a Preview button. Manual and automatic completions both give feedback; reordering and daily/weekly resets are silent. The master Play sounds switch is under General, and volume follows the game settings. Sounds can remain on when popups are off.
 - **Live goals:** each card or subtask can track any of these:
 
@@ -49,6 +49,8 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
   | `;` | separates subtasks |
 
 - **Reminders:** a card pinned to a zone or an NPC pops up when you arrive there or open that NPC.
+  - Mailbox spots are learned when you open them. On later visits, `@mail` tasks remind you within 35 yards and pulse in the tracker while nearby. Taskboard cannot detect an unvisited mailbox's position from the client API.
+  - Opening a mailbox finishes `Check mail @mail` (also `Check mailbox` and `Check my mail`); other `@mail` tasks remain open until you finish them.
   - At the AH: lists the goal items you still need.
   - At the bank: shows goal items sitting in your bank.
 - **Map pins:** pin a card to where you're standing. "Show on map" sets the game's waypoint arrow.
@@ -66,7 +68,7 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
   - Temporary message throttling is retried with backoff. Terminal failures appear in chat/logs; share again after resolving them.
   - Boards above the 60 KB transport limit must be shared using text export. Pending offers expire after 60 seconds; unsolicited whispers are ignored.
 - **Export and import:** copy a whole board as text.
-  - Imports create a new board owned by you and assign its live goals to the importing character.
+  - Imports add cards to the current character's board and assign their live goals to that character.
 - **Diagnostics:**
 
   | Command | What it does |
@@ -81,7 +83,7 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
 
 ## Install
 
-For CurseForge, use the single-folder `Taskboard-1.1.3-CurseForge.zip` built with `python tests/tools/package.py --curseforge`. First-time users need only the Taskboard folder. Existing Questboard users should follow the one-time migration instructions below using the two-folder GitHub upgrade ZIP before switching to CurseForge updates. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
+For CurseForge, use the single-folder `Taskboard-1.2.0-CurseForge.zip` built with `python tests/tools/package.py --curseforge`. First-time users need only the Taskboard folder. Existing Questboard users should follow the one-time migration instructions below using the two-folder GitHub upgrade ZIP before switching to CurseForge updates. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
 
 Use the packaged ZIP: extract both included folders into `World of Warcraft/_forever_/Interface/AddOns/`. The main addon is `Taskboard/Taskboard.toc`. The small `Questboard/Questboard.toc` compatibility folder only loads legacy saved data and has no UI or tracking code. Restart the game after installing the newly named add-on.
 
@@ -99,7 +101,7 @@ Open the board with `/tb` or the minimap button, or bind a key under Key Binding
 | `/tb add <text>` or `/todo <text>` | add a card |
 | `/tb list`, `/tb done <n or text>` | list open cards, finish one |
 | `/tb tracker` | show or hide the tracker |
-| `/tb board [name]` | list, switch or create boards |
+| `/tb board [name]` | list or switch character boards |
 | `/tb share party\|raid\|guild`, `/tb unshare` | sharing |
 | `/tb export`, `/tb import` | copy boards as text |
 | `/tb options` | settings |

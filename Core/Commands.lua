@@ -90,10 +90,7 @@ function Commands:Board(name)
             return
         end
     end
-    local board, err = DB:CreateBoard(name, "account")
-    if not board then ns.Print("Could not create board: %s", err) return end
-    DB:SetActiveBoard(board)
-    ns.Print("Created and switched to %s", board.name)
+    ns.Print("No board named '%s'. Each character has one board; use /tb board to list them.", name)
 end
 
 function Commands:Handle(msg)

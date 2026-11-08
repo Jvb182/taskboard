@@ -113,33 +113,33 @@ function Options:Create()
     end
     label(pages.style, "Theme", 0)
     for i, preset in ipairs(Theme.PRESETS) do
-        local b = W.Button(pages.style, preset.name, 96, 26, function() Options:SetAppearance("theme", preset.id) end)
-        b:SetPoint("TOPLEFT", (i - 1) * 102, -24); themeButtons[preset.id] = b
+        local b = W.Button(pages.style, preset.name, 120, 26, function() Options:SetAppearance("theme", preset.id) end)
+        b:SetPoint("TOPLEFT", ((i - 1) % 4) * 125, -24 - math.floor((i - 1) / 4) * 34); themeButtons[preset.id] = b
     end
-    label(pages.style, "Accent color", -76)
+    label(pages.style, "Accent color", -108)
     for i, accent in ipairs(Theme.ACCENTS) do
         local b = W.Button(pages.style, accent.name, 96, 26, function() Options:SetAppearance("accent", accent.id) end)
-        b:SetPoint("TOPLEFT", (i - 1) * 102, -100); accentButtons[accent.id] = b
+        b:SetPoint("TOPLEFT", (i - 1) * 102, -132); accentButtons[accent.id] = b
         local swatch = b:CreateTexture(nil, "ARTWORK")
         swatch:SetPoint("BOTTOMLEFT", 3, 2); swatch:SetPoint("BOTTOMRIGHT", -3, 2); swatch:SetHeight(2)
         swatch:SetColorTexture(accent.color[1], accent.color[2], accent.color[3], 1)
     end
-    opacityText = label(pages.style, "Panel opacity", -152)
+    opacityText = label(pages.style, "Panel opacity", -184)
     opacity = CreateFrame("Slider", nil, pages.style, "BackdropTemplate")
-    opacity:SetPoint("TOPLEFT", 0, -180); opacity:SetSize(420, 18)
+    opacity:SetPoint("TOPLEFT", 0, -212); opacity:SetSize(420, 18)
     opacity:SetOrientation("HORIZONTAL"); opacity:SetMinMaxValues(0.35, 1); opacity:SetValue(0.96)
     opacity:SetThumbTexture(Theme.WHITE); opacity:GetThumbTexture():SetSize(16, 20)
     Theme.Panel(opacity, Theme.colors.input, Theme.colors.panelBorder)
     opacity:SetScript("OnValueChanged", ns.Wrap("panel opacity", function(_, value)
         if math.abs(value - ns.db.settings.panelOpacity) > 0.001 then Options:SetAppearance("panelOpacity", value) end
     end))
-    local help = label(pages.style, "Colors apply throughout; opacity affects the board and tracker.\nSettings, editor, Help and menus always stay opaque.\nStatus and priority colors keep their meaning across themes.", -216)
+    local help = label(pages.style, "Classic skins use the original WoW frame and tooltip artwork.\nOpacity affects the board and tracker; settings and menus stay opaque.\nStatus and priority colors keep their meaning across themes.", -244)
     help:SetWordWrap(true); help:SetWidth(500)
     local reset = W.Button(pages.style, "Reset appearance", 150, 24, function()
         ns.db.settings.theme, ns.db.settings.accent, ns.db.settings.panelOpacity = "midnight", "sky", 0.96
         Theme:Apply(); Options:Refresh()
     end)
-    reset:SetPoint("TOPLEFT", 0, -292)
+    reset:SetPoint("TOPLEFT", 0, -324)
 
     local soundHelp = label(pages.sounds, "Choose a sound for each event, or turn that event off.\nSounds work even when visual popups are disabled.\nVolume follows the game's sound settings.", 0)
     soundHelp:SetWordWrap(true); soundHelp:SetWidth(500)
@@ -184,6 +184,10 @@ function Options:Show()
     self:Create()
     frame:Show()
     self:Refresh()
+end
+
+function Options:Hide()
+    if frame then frame:Hide() end
 end
 
 function Options:OnLogin()

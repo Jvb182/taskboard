@@ -5,7 +5,7 @@ local Util = ns.Util
 local DB = ns:NewModule("DB")
 DB.SCHEMA = 1
 
-DB.LIMITS = { boards = 30, columns = 8, cards = 400, title = 200, notes = 2000, tags = 8, tag = 24,
+DB.LIMITS = { boards = 30, columns = 8, cards = 12000, title = 200, notes = 2000, tags = 8, tag = 24,
               subtasks = 25, boardName = 40, columnName = 24 }
 
 DB.PRIORITIES = { [0] = "None", "Low", "Medium", "High" }
@@ -22,6 +22,7 @@ DB.defaults = {
         soundEvents = { move = "click", complete = "quest", subtask = "click", reminder = "chime" },
     },
     boards = {},
+    mailboxes = {}, -- learned mailbox world positions; shared across characters
     stats = { history = {}, total = 0, streak = { days = 0, lastDay = "" } },
     ui = {},
     resets = {},
@@ -326,14 +327,22 @@ end
 function DB:OnLogin()
     local me = ns.CharKey()
     if Util.Count(ns.db.boards) == 0 then
-        local board = self:CreateBoard("My Tasks", "account")
+        local board = self:CreateBoard("My Tasks", "character")
         self:AddCard(board, { title = "Welcome to Taskboard! Right-click me", notes =
             "Add cards with /tb add, or type in the box at the top of the board.\n\n" ..
             "Try: Get 20 Peacebloom #herbs !high\nShift-click an item link into the box to track it live.",
             subtasks = { { text = "Open the board with /tb" }, { text = "Add a card that tracks an item" }, { text = "Drag a card to In Progress" } } })
         ns.Log:Info("db", "Created the default board for %s", me)
     end
-    if not ns.db.ui.activeBoard or not ns.db.boards[ns.db.ui.activeBoard] or not self:IsVisible(ns.db.boards[ns.db.ui.activeBoard]) then
+    if not ns.db.oneBoardPerCharacter then
+        self:ConsolidateBoards()
+        ns.db.oneBoardPerCharacter = true
+    end
+    local own = self:BoardForCharacter(me)
+    if not own then own = self:CreateBoard("My Tasks", "character") end
+    if own then
+        ns.db.ui.activeBoard = own.id
+    elseif not ns.db.ui.activeBoard or not ns.db.boards[ns.db.ui.activeBoard] then
         ns.db.ui.activeBoard = self:FirstVisibleBoard()
     end
 end
@@ -353,7 +362,78 @@ end
 -- Boards
 -------------------------------------------------------------------------------
 function DB:IsVisible(board)
-    return board.scope ~= "character" or board.owner == ns.CharKey()
+    return true -- character boards are available to every character on the account
+end
+
+function DB:BoardForCharacter(owner)
+    for _, board in pairs(ns.db.boards) do
+        if board.scope == "character" and board.owner == owner then return board end
+    end
+end
+
+-- Migrate the old many-board layout without discarding cards. Incoming shared
+-- boards remain separate; local cards are grouped by their assigned character.
+function DB:ConsolidateBoards()
+    local originals = {}
+    for _, board in pairs(ns.db.boards) do originals[#originals + 1] = board end
+    table.sort(originals, function(a, b)
+        if a.created ~= b.created then return a.created < b.created end
+        return a.id < b.id
+    end)
+    local result, targets, emptySources, count = {}, {}, {}, 0
+    local function destination(owner, source)
+        owner = type(owner) == "string" and owner ~= "" and owner or ns.CharKey()
+        if targets[owner] then return targets[owner] end
+        local board = DB.NormalizeBoard({ name = source.name, scope = "character", owner = owner,
+            columns = Util.DeepCopy(source.columns), created = source.created })
+        board.id = source.id
+        if result[board.id] then board.id = Util.NewID("b") end
+        result[board.id], targets[owner] = board, board
+        return board
+    end
+    local function targetColumn(target, sourceColumn)
+        if sourceColumn.role then return DB:ColumnByRole(target, sourceColumn.role).id end
+        for _, col in ipairs(target.columns) do
+            if not col.role and col.name == sourceColumn.name then return col.id end
+        end
+        if #target.columns >= DB.LIMITS.columns then return DB:ColumnByRole(target, "doing").id end
+        local id = sourceColumn.id
+        if target.order[id] then id = Util.NewID("k") end
+        local col = { id = id, name = sourceColumn.name }
+        table.insert(target.columns, #target.columns, col)
+        target.order[id] = {}
+        return id
+    end
+    for _, source in ipairs(originals) do
+        if source.scope == "shared" then
+            result[source.id] = source
+        else
+            if not next(source.cards) then emptySources[#emptySources + 1] = source end
+            for _, col in ipairs(source.columns) do
+                for _, cardID in ipairs(source.order[col.id] or {}) do
+                    local card = source.cards[cardID]
+                    if card then
+                        local owner = card.char or source.owner or ns.CharKey()
+                        local target = destination(owner, source)
+                        local targetID = targetColumn(target, col)
+                        if target.cards[card.id] then card.id = Util.NewID("c") end
+                        card.char, card.column = owner, targetID
+                        target.cards[card.id] = card
+                        table.insert(target.order[targetID], card.id)
+                        count = count + 1
+                    end
+                end
+            end
+        end
+    end
+    for _, source in ipairs(emptySources) do
+        local owner = source.owner or ns.CharKey()
+        if not targets[owner] then destination(owner, source) end
+    end
+    ns.db.boards = result
+    ns.Log:Info("db", "Consolidated %d local board(s) into %d character board(s); kept %d cards",
+        #originals, Util.Count(targets), count)
+    ns:Fire("BOARDS_CHANGED")
 end
 
 function DB:FirstVisibleBoard()
@@ -377,6 +457,11 @@ function DB:VisibleBoards()
 end
 
 function DB:CreateBoard(name, scope)
+    if scope ~= "shared" then
+        local existing = self:BoardForCharacter(ns.CharKey())
+        if existing then return existing end
+        scope = "character"
+    end
     if Util.Count(ns.db.boards) >= DB.LIMITS.boards then
         return nil, "too many boards"
     end

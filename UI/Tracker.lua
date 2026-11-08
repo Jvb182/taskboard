@@ -9,8 +9,9 @@ local ROW_H, ROW_GAP = 36, 6
 local offset = 0
 
 function Tracker:IsNearby(card)
-    return ns.db.settings.trackerLocationPulse and card.where and card.where.zone and
-        ns.Reminders.ZoneMatches(card.where.zone, GetRealZoneText(), GetSubZoneText()) or false
+    if not ns.db.settings.trackerLocationPulse or not card.where then return false end
+    if card.where.npc == "mail" then return ns.Reminders:IsNearMailbox() end
+    return card.where.zone and ns.Reminders.ZoneMatches(card.where.zone, GetRealZoneText(), GetSubZoneText()) or false
 end
 
 -- Cards to show, best first.

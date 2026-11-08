@@ -8,6 +8,11 @@ local inCombat = false
 local ROW_H, ROW_GAP = 36, 6
 local offset = 0
 
+function Tracker:IsNearby(card)
+    return ns.db.settings.trackerLocationPulse and card.where and card.where.zone and
+        ns.Reminders.ZoneMatches(card.where.zone, GetRealZoneText(), GetSubZoneText()) or false
+end
+
 -- Cards to show, best first.
 function Tracker:Entries()
     local list = {}
@@ -15,9 +20,11 @@ function Tracker:Entries()
         local card, board = entry.card, entry.board
         local role = DB:CardRole(board, card)
         local mine = ns.Engine:Owns(card, board)
-        if mine and role ~= "done" and (ns.db.settings.trackerAllOpen or role == "doing" or card.track) then list[#list + 1] = entry end
+        entry.nearby = self:IsNearby(card)
+        if mine and role ~= "done" and (entry.nearby or ns.db.settings.trackerAllOpen or role == "doing" or card.track) then list[#list + 1] = entry end
     end
     table.sort(list, function(a, b)
+        if a.nearby ~= b.nearby then return a.nearby end
         if (a.card.track and 1 or 0) ~= (b.card.track and 1 or 0) then return a.card.track and true or false end
         if a.card.priority ~= b.card.priority then return a.card.priority > b.card.priority end
         local fa = a.card._summary and a.card._summary.frac or 0
@@ -37,6 +44,10 @@ local function row(i)
     if rows[i] then return rows[i] end
     local r = CreateFrame("Button", nil, frame)
     r:SetHeight(ROW_H)
+    r.glow = r:CreateTexture(nil, "BACKGROUND")
+    r.glow:SetAllPoints(r)
+    r.glow:SetTexture(Theme.WHITE)
+    r.glow:Hide()
     r:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     r.title = W.Text(r, "GameFontHighlightSmall")
     r.title:SetPoint("TOPLEFT", 6, -4)
@@ -70,6 +81,14 @@ function Tracker:Create()
     frame:SetFrameStrata("MEDIUM")
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
+    local pulseTime = 0
+    frame:SetScript("OnUpdate", function(_, elapsed)
+        pulseTime = (pulseTime + elapsed) % 2
+        local alpha = 0.08 + 0.14 * (0.5 + 0.5 * math.sin(pulseTime * math.pi))
+        for _, r in ipairs(rows) do
+            if r.nearby and r:IsShown() then r.glow:SetAlpha(alpha) end
+        end
+    end)
     Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder)
     local pos = ns.db.ui.tracker or {}
     frame:SetPoint(pos.point or "TOPRIGHT", UIParent, pos.relPoint or "TOPRIGHT", pos.x or -60, pos.y or -260)
@@ -133,6 +152,10 @@ function Tracker:Refresh()
         local entry = entries[offset + i]
         local card = entry.card
         r.card, r.board = card, entry.board
+        r.nearby = entry.nearby
+        r.glow:SetVertexColor(unpack(Theme.colors.accent))
+        r.glow:SetAlpha(0.15)
+        r.glow:SetShown(r.nearby)
         r:ClearAllPoints()
         r:SetPoint("TOPLEFT", 2, -24 - (i - 1) * (ROW_H + ROW_GAP))
         r:SetPoint("RIGHT", -2, 0)
@@ -161,11 +184,15 @@ function Tracker:OnLogin()
         pending = true
         ns.After(0.1, "tracker refresh", function() pending = false Tracker:Refresh() end)
     end
-    for _, message in ipairs({ "BOARD_CHANGED", "BOARD_REFRESH", "BOARDS_CHANGED", "PROGRESS_CHANGED", "TRACKER_SETTINGS" }) do
+    for _, message in ipairs({ "BOARD_CHANGED", "BOARD_REFRESH", "BOARDS_CHANGED", "PROGRESS_CHANGED", "TRACKER_SETTINGS", "SETTINGS_CHANGED" }) do
         ns:On(message, request)
     end
     ns:RegisterEvent("PLAYER_REGEN_DISABLED", function() inCombat = true Tracker:Refresh() end)
     ns:RegisterEvent("PLAYER_REGEN_ENABLED", function() inCombat = false Tracker:Refresh() end)
+    local function locationChanged() offset = 0; request() end
+    ns:RegisterEvent("ZONE_CHANGED", locationChanged)
+    ns:RegisterEvent("ZONE_CHANGED_NEW_AREA", locationChanged)
+    ns:RegisterEvent("ZONE_CHANGED_INDOORS", locationChanged)
     request()
 end
 

@@ -150,7 +150,9 @@ end
 -- Replaces every hyperlink with its [Name] and removes all other escapes.
 function Util.StripLinks(text)
     text = tostring(text or "")
-    text = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    -- Shift-clicked items can use named quality colors (|cnIQ1:) instead
+    -- of eight-digit RGB colors. Strip both before parsing quantities.
+    text = text:gsub("|cn[%w_]+:", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
     text = text:gsub("|H.-|h(.-)|h", "%1")
     text = text:gsub("|T.-|t", ""):gsub("|A.-|a", ""):gsub("|K.-|k", "")
     return text

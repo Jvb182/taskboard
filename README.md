@@ -1,6 +1,10 @@
 # Taskboard
 
-Formerly Questboard. Open with `/tb` or `/taskboard`; `/qb` remains an alias, and existing key bindings are retained.
+Formerly Questboard. Open with `/tb` or `/taskboard`; existing key bindings are retained.
+
+The board's **Help** button (or `/tb help`) opens a full reference with **Quick Add**, **Tracking & reminders**, and **Settings & sharing** tabs. It covers goal examples, location suggestions, bank counting, recurring item modes, tracker behavior, boards, appearance, sounds, sharing, import/export, commands, and troubleshooting. Each tab scrolls; help never pops up merely from hovering over Quick Add.
+
+Type `@` followed by a letter in Quick Add to suggest locations: `@g` narrows to `@go` for Goldshire. Suggestions come from the client's localized area names, indexed in small batches on first use (area IDs 1–30000), including zones and subzones. Click a result or use Up/Down and Tab/Enter; Enter accepts the location first, then a second Enter adds the task. Scroll for more matches. Multiword locations are quoted automatically. Escape dismisses suggestions, and unlisted locations can still be typed manually. `@Goldshire` adds an arrival reminder for an unfinished task; it does not complete the task on arrival.
 
 A Kanban to-do board for **World of Warcraft: Forever** (interface `16001`) whose cards track themselves.
 
@@ -31,7 +35,7 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
 - **Quick add:** type a line or shift-click an item into the box. For example:
 
   ```
-  /qb add Alchemy prep #herbs !high @bank *daily; 20 Peacebloom; 20 Silverleaf; buy vials
+  /tb add Alchemy prep #herbs !high @bank *daily; 20 Peacebloom; 20 Silverleaf; buy vials
   ```
 
   | Token | Meaning |
@@ -54,7 +58,7 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
   - Baselines survive reloads. An offline character starts a new baseline on their next login; activity while the add-on is disabled cannot be reconstructed. Changing bank-counting options starts a fresh baseline for affected goals.
 - **Tracker:** a compact on-screen list of in-progress cards with progress bars. It can hide in combat.
 - **Stats:** completions today and this week, a day streak, and a total.
-- **Sharing:** `/qb share party|raid|guild`.
+- **Sharing:** `/tb share party|raid|guild`.
   - Members are asked before anything is imported.
   - Each member's progress on the shared goals shows on the owner's cards.
   - Everything received is validated and sanitized.
@@ -66,11 +70,11 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
 
   | Command | What it does |
   |---|---|
-  | `/qb log [n]` | recent log lines in chat |
-  | `/qb log show` | copyable log window |
-  | `/qb debug on` | verbose logging |
-  | `/qb diag` | client build, data counts, engine timings, event counters, API availability, last error with stack |
-  | `/qb selftest` | in-game checks |
+  | `/tb log [n]` | recent log lines in chat |
+  | `/tb log show` | copyable log window |
+  | `/tb debug on` | verbose logging |
+  | `/tb diag` | client build, data counts, engine timings, event counters, API availability, last error with stack |
+  | `/tb selftest` | in-game checks |
 
   Core event dispatch, timers and action handlers capture errors for the diagnostic log. Enable the game's script-error display during testing as well.
 
@@ -82,21 +86,21 @@ Use the packaged ZIP: extract both included folders into `World of Warcraft/_for
 
 For a source checkout, install the runtime folder as `Taskboard` and also copy `compat/Questboard` alongside it if you need legacy migration. Running `python tests/tools/package.py` prepares the correct layout automatically.
 
-Open the board with `/qb` or the minimap button, or bind a key under Key Bindings → AddOns.
+Open the board with `/tb` or the minimap button, or bind a key under Key Bindings → AddOns.
 
 ## Commands
 
 | Command | |
 |---|---|
-| `/qb` | open or close the board |
-| `/qb add <text>` or `/todo <text>` | add a card |
-| `/qb list`, `/qb done <n or text>` | list open cards, finish one |
-| `/qb tracker` | show or hide the tracker |
-| `/qb board [name]` | list, switch or create boards |
-| `/qb share party\|raid\|guild`, `/qb unshare` | sharing |
-| `/qb export`, `/qb import` | copy boards as text |
-| `/qb options` | settings |
-| `/qb log`, `/qb diag`, `/qb selftest`, `/qb debug on\|off` | diagnostics |
+| `/tb` | open or close the board |
+| `/tb add <text>` or `/todo <text>` | add a card |
+| `/tb list`, `/tb done <n or text>` | list open cards, finish one |
+| `/tb tracker` | show or hide the tracker |
+| `/tb board [name]` | list, switch or create boards |
+| `/tb share party\|raid\|guild`, `/tb unshare` | sharing |
+| `/tb export`, `/tb import` | copy boards as text |
+| `/tb options` | settings |
+| `/tb log`, `/tb diag`, `/tb selftest`, `/tb debug on\|off` | diagnostics |
 
 ## Tests
 

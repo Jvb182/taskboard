@@ -1,13 +1,13 @@
 # Taskboard 1.1.0 in-game test checklist
 
-Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), interface 16001. They cannot certify real rendering, client event order or server delivery. Record `/qb diag` and the actual client build with each test report.
+Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), interface 16001. They cannot certify real rendering, client event order or server delivery. Record `/tb diag` and the actual client build with each test report.
 
 ## Install and load
 
 1. Back up an existing Taskboard SavedVariables file while the game is closed.
 2. Extract the ZIP into `World of Warcraft/_forever_/Interface/AddOns/`. Confirm `Taskboard/Taskboard.toc` is one folder below AddOns, not nested twice.
-3. Enable Lua error display with `/console scriptErrors 1`. Log in and run `/qb selftest` and `/qb diag`.
-4. Check `/qb`, the minimap button and all three key bindings. Reload with a populated board and verify cards, order, settings, position and recurring progress survive.
+3. Enable Lua error display with `/console scriptErrors 1`. Log in and run `/tb selftest` and `/tb diag`.
+4. Check `/tb`, the minimap button and all three key bindings. Reload with a populated board and verify cards, order, settings, position and recurring progress survive.
 5. Upgrade from an actual Questboard installation using the packaged legacy loader. Verify old boards/settings/logs appear in Taskboard, legacy bindings still work, and a second login does not overwrite new edits with the old save.
 
 ## Appearance and sound
@@ -36,7 +36,7 @@ Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), i
 ## Two-player sharing and imports
 
 1. Both testers use this version. Share a small board in party, raid and guild separately. Decline once, accept once, and let an offer expire. Disabled offers must not create new boards.
-2. Each player changes their own inventory. Verify member progress is separate. `/qb done` and editor/menu operations must not modify the owner's shared cards.
+2. Each player changes their own inventory. Verify member progress is separate. `/tb done` and editor/menu operations must not modify the owner's shared cards.
 3. Keep the recipient editor open while the owner changes or deletes a card. The view must update or close. Local tracker choices should survive owner updates.
 4. Share a larger board while other add-ons are active. Check completion and diagnostics for retries. Terminal failures must be visible; no permanent partial board should be imported.
 5. Stop sharing while a transfer is queued; unsent chunks must stop. Text export a board too large for addon messages, import it on another character, and verify its goals track that character.
@@ -48,4 +48,4 @@ Test narrow/wide windows, UI scaling, long titles and notes, a full board, eight
 
 ## Bug reports
 
-Include the version, client build, exact steps, expected and observed result, `/qb diag`, and `/qb log show`. Include screenshots for layout problems. Keep the SavedVariables backup until migration and reset behavior have been checked.
+Include the version, client build, exact steps, expected and observed result, `/tb diag`, and `/tb log show`. Include screenshots for layout problems. Keep the SavedVariables backup until migration and reset behavior have been checked.

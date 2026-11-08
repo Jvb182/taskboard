@@ -13,6 +13,9 @@ local columnFrames = {}
 local cardPool, usedCards = {}, {}
 local dirty = true
 local drag
+function Board:ShowExamples()
+    ns.Help:Show("quick")
+end
 
 -------------------------------------------------------------------------------
 -- Helpers
@@ -604,8 +607,9 @@ function Board:Create()
     titleBar:SetPoint("TOPLEFT", 0, 0)
     titleBar:SetPoint("TOPRIGHT", 0, 0)
     titleBar:SetHeight(30)
-    -- Keep the drag strip under the title-bar buttons so they stay clickable.
-    titleBar:SetFrameLevel(frame:GetFrameLevel())
+    -- The drag strip must sit above the mouse-enabled window background;
+    -- header buttons sit one level higher so they remain clickable.
+    titleBar:SetFrameLevel(frame:GetFrameLevel() + 1)
     titleBar:EnableMouse(true)
     titleBar:RegisterForDrag("LeftButton")
     titleBar:SetScript("OnDragStart", function() frame:StartMoving() end)
@@ -624,6 +628,11 @@ function Board:Create()
     options:SetPoint("RIGHT", close, "LEFT", -4, 0)
     local logButton = W.Button(frame, "Log", 40, 18, function() ns:Fire("SHOW_LOG") end, { "Log and diagnostics", "Copy this into bug reports." })
     logButton:SetPoint("RIGHT", options, "LEFT", -6, 0)
+    local examplesButton = W.Button(frame, "Help", 76, 18, function() ns.Help:Show() end)
+    examplesButton:SetPoint("RIGHT", logButton, "LEFT", -6, 0)
+    for _, button in ipairs({ boardButton, close, options, logButton, examplesButton }) do
+        button:SetFrameLevel(titleBar:GetFrameLevel() + 1)
+    end
 
     addBox = W.EditBox(frame, 300, 24, "Add a card: Get 20 Peacebloom #herbs !high   (shift-click items)", true)
     addBox:SetPoint("TOPLEFT", 12, -36)
@@ -635,12 +644,8 @@ function Board:Create()
         local card, err = ns.Commands:Add(text)
         if card then self:SetText("") else ns.Print("|cffff5555%s|r", err) end
     end))
-    W.Tooltip(addBox, {
-        "Quick add",
-        "Goals: 20 Peacebloom, [item] x5, save 100g, reach level 40, Herbalism 150, Honored with Stormwind, [quest]",
-        "Extras: #tag  !low !med !high  @Ironforge  @bank @vendor @mail @ah @trainer  *daily *weekly  >doing",
-        "Subtasks: separate with ;   e.g.  Alchemy prep; 20 Peacebloom; 20 Silverleaf",
-    })
+    -- Attached after the submit handler so Enter first accepts a location.
+    W.LocationSuggestions(addBox)
     local addButton = W.Button(frame, "Add", 50, 24, function() addBox:GetScript("OnEnterPressed")(addBox) end)
     addButton:SetPoint("LEFT", addBox, "RIGHT", 4, 0)
 

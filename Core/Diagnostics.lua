@@ -1,4 +1,4 @@
--- /qb diag (report) and /qb selftest (in-game checks).
+-- /tb diag (report) and /tb selftest (in-game checks).
 local _, ns = ...
 local Util = ns.Util
 

@@ -103,7 +103,8 @@ function Theme:Apply()
     end
     self.HEX.accent = string.format("%02x%02x%02x", accent.color[1] * 255, accent.color[2] * 255, accent.color[3] * 255)
     for f, colors in pairs(panels) do
-        f:SetBackdropColor(unpack(colors[1]))
+        local bg = colors[1]
+        f:SetBackdropColor(bg[1], bg[2], bg[3], colors[3] and 1 or bg[4])
         f:SetBackdropBorderColor(unpack(colors[2]))
     end
     for region, key in pairs(texts) do region:SetTextColor(unpack(self.colors[key])) end
@@ -118,14 +119,15 @@ function Theme:OnLogin()
     end)
 end
 
-function Theme.Panel(frame, bg, border)
+function Theme.Panel(frame, bg, border, opaque)
     if not frame.SetBackdrop then
         Mixin(frame, BackdropTemplateMixin)
     end
     frame:SetBackdrop(Theme.BACKDROP)
-    frame:SetBackdropColor(unpack(bg or Theme.colors.panel))
+    bg = bg or Theme.colors.panel
+    frame:SetBackdropColor(bg[1], bg[2], bg[3], opaque and 1 or bg[4])
     frame:SetBackdropBorderColor(unpack(border or Theme.colors.panelBorder))
-    panels[frame] = { bg or Theme.colors.panel, border or Theme.colors.panelBorder }
+    panels[frame] = { bg, border or Theme.colors.panelBorder, opaque }
 end
 
 function Theme.ProgressColor(frac, done)

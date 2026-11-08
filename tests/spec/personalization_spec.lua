@@ -1,6 +1,23 @@
 local T, Mock = ...
 
 describe("Appearance", function()
+    it("keeps dialogs and board dropdown opaque across opacity and theme changes", function()
+        local m, ns = T.client()
+        ns.Board:Show(); ns.Options:Show(); ns.Help:Show(); ns.LogWindow:ShowLog()
+        local board = ns.DB:GetActiveBoard()
+        local _, card = next(board.cards)
+        ns.Editor:Open(card, board)
+        ns.Board:BoardMenu()
+        for _, preset in ipairs(ns.Theme.PRESETS) do
+            ns.Options:SetAppearance("theme", preset.id)
+            ns.Options:SetAppearance("panelOpacity", 0.35)
+            for _, f in ipairs({ ns.Options:Internals().frame, ns.Help.frame, ns.LogWindow:Internals().frame,
+                ns.Editor:Internals().frame, m.env.TaskboardMenu }) do T.eq(f._bg[4], 1) end
+            T.eq(ns.Board.frame._bg[4], 0.35)
+        end
+        T.noErrors(ns)
+    end)
+
     it("applies every theme and accent to existing and newly created panels", function()
         local m, ns = T.client()
         ns.Board:Show(); ns.Options:Show()

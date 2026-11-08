@@ -67,6 +67,16 @@ function W.IconButton(parent, texture, size, onClick, tooltip)
     return b
 end
 
+-- Our windows are ordinary addon frames, not managed Blizzard UIPanels.
+-- Keep the standard artwork, but do not route closing through HideUIPanel.
+function W.CloseButton(parent)
+    local button = CreateFrame("Button", nil, parent, "UIPanelCloseButton")
+    button:SetPoint("TOPRIGHT", 2, 2)
+    button:SetScript("OnClick", ns.Wrap("close window", function() parent:Hide() end))
+    parent.closeButton = button
+    return button
+end
+
 -- Shift-clicked links go into whichever of these edit boxes has focus.
 W.linkTargets = {}
 local hooked = false

@@ -85,7 +85,7 @@ function Options:Create()
     local title = W.Text(frame, "GameFontNormal")
     title:SetPoint("TOPLEFT", 12, -10)
     title:SetText("Taskboard options  |cff959ba8" .. ns.version .. "|r")
-    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+    local close = W.CloseButton(frame)
     close:SetPoint("TOPRIGHT", 2, 2)
     for i, page in ipairs({ { "general", "General" }, { "style", "Appearance" }, { "sounds", "Sounds" } }) do
         local key = page[1]

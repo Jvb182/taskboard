@@ -622,7 +622,7 @@ function Board:Create()
     boardButton = W.Button(frame, "Board", 150, 20, function() Board:BoardMenu() end, "Switch, create, share or export boards")
     boardButton:SetPoint("LEFT", title, "RIGHT", 12, 0)
 
-    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+    local close = W.CloseButton(frame)
     close:SetPoint("TOPRIGHT", 2, 2)
     local options = W.IconButton(frame, "Interface\\Buttons\\UI-OptionsButton", 16, function() ns:Fire("SHOW_OPTIONS") end, "Options")
     options:SetPoint("RIGHT", close, "LEFT", -4, 0)

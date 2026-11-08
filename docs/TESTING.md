@@ -1,4 +1,4 @@
-# Taskboard 1.1.0 in-game test checklist
+# Taskboard 1.2.1 in-game test checklist
 
 Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), interface 16001. They cannot certify real rendering, client event order or server delivery. Record `/tb diag` and the actual client build with each test report.
 
@@ -12,8 +12,8 @@ Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), i
 
 ## Appearance and sound
 
-1. Open `/tb options`. Try all five themes and accents while the board, tracker and a popup are visible. Confirm changes apply immediately and survive reload.
-2. Drag opacity from 35% to 100%. Check that only backgrounds fade and all text remains readable over a bright outdoor scene and a dark dungeon.
+1. Open `/tb options`. Try all seven themes, including Classic stone and Classic leather, and accents while the board, tracker and a popup are visible. Confirm changes apply immediately and survive reload.
+2. Drag opacity from 35% to 100%. Check that board/tracker backgrounds fade and text remains readable over a bright outdoor scene and a dark dungeon. Settings, editor, Help, logs and the Board dropdown must remain opaque.
 3. Preview every sound choice. Move cards between statuses, manually finish one, automatically complete an item goal, and check manual/automatic subtasks. Each event uses its selected sound; Off and the master switch silence it.
 4. Disable visual popups but leave sound on. Completions/reminders must still sound. Reordering within a column and daily/weekly resets must stay silent. Check sound levels with the game's own audio settings.
 5. Confirm Appearance and Sounds pages fit at your UI scale and all controls are reachable.

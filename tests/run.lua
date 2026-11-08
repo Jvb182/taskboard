@@ -6,7 +6,7 @@ QB_ADDON_ROOT = QB_ADDON_ROOT or "./"
 
 local Mock = dofile(QB_TEST_ROOT .. "wowmock.lua")
 
-local T = { passed = 0, failed = 0, failures = {}, current = {} }
+local T = { passed = 0, failed = 0, failures = {}, current = {}, results = {} }
 
 local function fmt(v)
     if type(v) == "string" then return string.format("%q", v) end
@@ -72,6 +72,7 @@ end
 function it(name, fn)
     local full = table.concat(T.current, " > ") .. " > " .. name
     local ok, err = xpcall(fn, function(e) return debug.traceback(tostring(e), 2) end)
+    T.results[#T.results + 1] = { name = full, spec = T.spec, passed = ok, error = not ok and err or nil }
     if ok then
         T.passed = T.passed + 1
     else
@@ -82,7 +83,7 @@ end
 
 local SPECS = {
     "static_spec", "util_spec", "serialize_spec", "db_spec", "parser_spec", "items_spec", "engine_spec",
-    "goals_spec", "reminders_spec", "recurring_spec", "sync_spec", "ui_spec", "persistence_spec", "conformance_spec", "regression_spec", "personalization_spec",
+    "goals_spec", "reminders_spec", "recurring_spec", "sync_spec", "ui_spec", "persistence_spec", "conformance_spec", "regression_spec", "personalization_spec", "qa_audit_spec",
 }
 
 local only = QB_ONLY
@@ -93,6 +94,7 @@ if only then
 end
 for _, spec in ipairs(SPECS) do
     if not only or only == spec then
+        T.spec = spec
         local chunk = assert(loadfile(QB_TEST_ROOT .. "spec/" .. spec .. ".lua"))
         local ok, err = pcall(chunk, T, Mock)
         if not ok then
@@ -106,6 +108,6 @@ print(string.format("\n%d passed, %d failed", T.passed, T.failed))
 for _, f in ipairs(T.failures) do
     print("\nFAIL " .. f.name .. "\n  " .. tostring(f.err):gsub("\n", "\n  "))
 end
-QB_RESULT = { passed = T.passed, failed = T.failed }
+QB_RESULT = { passed = T.passed, failed = T.failed, tests = T.results }
 return T.failed
 

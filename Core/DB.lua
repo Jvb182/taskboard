@@ -566,7 +566,7 @@ function DB:AddCard(board, spec, columnID, index)
     if Util.Count(board.cards) >= DB.LIMITS.cards then return nil, "this board is full" end
     spec = Util.DeepCopy(spec)
     spec.id = nil
-    spec.char = spec.char or (board.scope ~= "shared" and ns.CharKey() or nil)
+    spec.char = spec.char or (board.scope ~= "shared" and (board.owner or ns.CharKey()) or nil)
     local ids = {}
     for _, col in ipairs(board.columns) do ids[col.id] = true end
     local card = DB.NormalizeCard(spec, ids)

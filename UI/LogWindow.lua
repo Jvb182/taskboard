@@ -155,7 +155,11 @@ function LogWindow:DoImport()
     local board = DB.NormalizeBoard(data)
     if not board then ns.Print("|cffff5555Import failed: not a board|r") return end
     local target = DB:BoardForCharacter(ns.CharKey())
-    if not target then target = DB:CreateBoard("My Tasks", "character") end
+    if not target then
+        local why
+        target, why = DB:CreateBoard("My Tasks", "character")
+        if not target then ns.Print("Import failed: %s.", why or "no personal board available") return end
+    end
     if Util.Count(target.cards) + Util.Count(board.cards) > DB.LIMITS.cards then
         ns.Print("Import failed: this character's board would exceed the card limit.")
         return

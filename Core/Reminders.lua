@@ -12,6 +12,7 @@ Reminders.stats = { shown = 0 }
 
 local lastShown = {} -- cardID .. context -> time
 local mailOpen, nearMailbox = false, false
+local mailVisitSeen = {}
 local show
 
 Reminders.NPC_EVENTS = {
@@ -57,12 +58,15 @@ function Reminders:ForZone(zone, subzone, now)
     return lines
 end
 
-function Reminders:ForNPC(npc, now, context)
+function Reminders:ForNPC(npc, now, context, seen)
     local lines = {}
     for _, entry in ipairs(openCards()) do
         local where = entry.card.where
-        if where and where.npc == npc and ready(entry.card.id .. ":" .. (context or npc), now) then
-            lines[#lines + 1] = { card = entry.card, board = entry.board, text = entry.card.title }
+        if where and where.npc == npc and (not seen or not seen[entry.card.id]) then
+            if seen then seen[entry.card.id] = true end
+            if ready(entry.card.id .. ":" .. (context or npc), now) then
+                lines[#lines + 1] = { card = entry.card, board = entry.board, text = entry.card.title }
+            end
         end
     end
     if ns.db.settings.smartReminders and (npc == "ah" or npc == "bank") then
@@ -135,9 +139,10 @@ function Reminders:LearnMailbox()
 end
 
 function Reminders:CheckNearbyMailbox(now)
-    if mailOpen or not ns.db.settings.reminders then return end
+    if mailOpen then return end
     local continent, x, y = playerWorldPosition()
     if not continent then
+        mailVisitSeen = {}
         if nearMailbox then nearMailbox = false; ns:Fire("TRACKER_SETTINGS") end
         return
     end
@@ -147,13 +152,18 @@ function Reminders:CheckNearbyMailbox(now)
         if d2 and (not best or d2 < best) then best = d2 end
     end
     if not best or best > self.MAIL_LEAVE_RADIUS ^ 2 then
+        mailVisitSeen = {}
         if nearMailbox then nearMailbox = false; ns:Fire("TRACKER_SETTINGS") end
         return
     end
-    if nearMailbox or best > self.MAIL_RADIUS ^ 2 then return end
-    nearMailbox = true
-    ns:Fire("TRACKER_SETTINGS")
-    show("Near a mailbox", self:ForNPC("mail", now, "mail-near"))
+    if not nearMailbox then
+        if best > self.MAIL_RADIUS ^ 2 then return end
+        nearMailbox = true
+        ns:Fire("TRACKER_SETTINGS")
+    end
+    if ns.db.settings.reminders then
+        show("Near a mailbox", self:ForNPC("mail", now, "mail-near", mailVisitSeen))
+    end
 end
 
 function Reminders:IsNearMailbox()
@@ -161,10 +171,11 @@ function Reminders:IsNearMailbox()
 end
 
 function Reminders:CompleteMailChecks()
+    if not ns.db.settings.autoComplete then return end
     for _, entry in ipairs(openCards()) do
         local card = entry.card
-        if card.where and card.where.npc == "mail" then
-            local title = Util.Lower(Util.Trim(card.title)):gsub("[%p%s]+", " ")
+        if card.where and card.where.npc == "mail" and not card.goal and #card.subtasks == 0 then
+            local title = Util.Trim(Util.Lower(card.title):gsub("[%p%s]+", " "))
             if title == "check mail" or title == "check mailbox" or
                 title == "check my mail" or title == "check my mailbox" then
                 local done = DB:ColumnByRole(entry.board, "done")
@@ -198,6 +209,9 @@ function Reminders:OnLogin()
                 mailOpen = true; nearMailbox = true; self:LearnMailbox()
                 ns:Fire("TRACKER_SETTINGS")
                 self:CompleteMailChecks()
+                for _, entry in ipairs(openCards()) do
+                    if entry.card.where and entry.card.where.npc == "mail" then mailVisitSeen[entry.card.id] = true end
+                end
             end
             if not ns.db.settings.reminders then return end
             show("At the " .. DB.NPCS[npc], self:ForNPC(npc, Util.Now()))

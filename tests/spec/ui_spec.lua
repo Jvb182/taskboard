@@ -396,6 +396,39 @@ describe("Card editor", function()
 end)
 
 describe("Tracker, toasts, log, options, minimap", function()
+    it("pulses nearby To Do tasks until leaving and respects visibility settings", function()
+        local m, ns = T.client()
+        local board = ns.DB:GetActiveBoard()
+        ns.db.settings.reminders = false
+        local card = ns.Commands:Add("Buy vials @Goldshire")
+        m.Advance(0.2)
+        local tr = ns.Tracker:Internals()
+        T.eq(ns.DB:CardRole(board, card), "todo")
+        T.eq(tr.rows[1].card, card)
+        T.ok(tr.rows[1].glow:IsShown())
+        local alpha = tr.rows[1].glow:GetAlpha()
+        tr.frame:GetScript("OnUpdate")(tr.frame, 0.3)
+        T.no(alpha == tr.rows[1].glow:GetAlpha())
+        ns.db.settings.trackerAllOpen = true
+        m.state.subzone = "Northshire"
+        m.Fire("ZONE_CHANGED"); m.Advance(0.2)
+        for _, r in ipairs(tr.rows) do T.no(r.glow:IsShown()) end
+        m.state.subzone = "Goldshire"
+        m.Fire("ZONE_CHANGED_INDOORS"); m.Advance(0.2)
+        T.ok(tr.rows[1].glow:IsShown())
+        ns.db.settings.trackerShown = false
+        ns.Tracker:Refresh(); T.no(tr.frame:IsShown())
+        ns.db.settings.trackerShown = true
+        ns.db.settings.trackerLocationPulse = false
+        ns.Tracker:Refresh()
+        for _, r in ipairs(tr.rows) do T.no(r.glow:IsShown()) end
+        ns.db.settings.trackerLocationPulse = true
+        ns.DB:MoveCard(board, card.id, "done")
+        m.Advance(0.2)
+        for _, e in ipairs(ns.Tracker:Entries()) do T.no(e.card == card) end
+        T.noErrors(ns)
+    end)
+
     it("closes addon windows directly during combat, including focused diagnostics", function()
         local m, ns = T.client()
         ns.Options:Show()
@@ -426,6 +459,7 @@ describe("Tracker, toasts, log, options, minimap", function()
 
     it("optionally includes manual reminders and scrolls all open tasks", function()
         local m, ns = T.client()
+        m.state.subzone = "Northshire"
         local board = ns.DB:GetActiveBoard()
         local card = ns.Commands:Add("Buy vials @Goldshire")
         T.eq(#ns.Tracker:Entries(), 0)

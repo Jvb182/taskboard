@@ -61,6 +61,7 @@ Help.SECTIONS = {
         { "h", "On-screen tracker" },
         { "p", "The tracker automatically lists In Progress tasks and tasks marked Show in tracker. Unchecking Show in tracker does not hide an In Progress task. Done and archived tasks are excluded. Click a tracker task to open its editor." },
         { "e", "/tb tracker - hide or show the whole tracker" },
+        { "p", "To include manual To Do tasks such as Buy vials @Goldshire, enable Tracker: include all open tasks in General settings, or right-click the tracker header and choose Show all open tasks. Done, archived and other characters' tasks remain excluded. Scroll the tracker to reach tasks beyond its visible rows; the header shows your position." },
         { "p", "You can hide the tracker and still open the board with /tb or the minimap. Click the tracker header to collapse it; drag it to move. Right-click its header to open the board, lock its position or hide it. Right-click a tracker task for its card menu. General settings can hide it in combat. Preferences persist across reloads." },
         { "h", "Progress feedback and statistics" },
         { "p", "Progress messages show counts as goals advance. Completion/reminder popups and sounds have separate controls. The board footer summarizes completions today and this week, your day streak and total completions." },

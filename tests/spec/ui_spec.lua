@@ -370,6 +370,38 @@ describe("Card editor", function()
 end)
 
 describe("Tracker, toasts, log, options, minimap", function()
+    it("optionally includes manual reminders and scrolls all open tasks", function()
+        local m, ns = T.client()
+        local board = ns.DB:GetActiveBoard()
+        local card = ns.Commands:Add("Buy vials @Goldshire")
+        T.eq(#ns.Tracker:Entries(), 0)
+        ns.Options:Show()
+        local check = ns.Options:Internals().checks.trackerAllOpen
+        check:SetChecked(true)
+        check:GetScript("OnClick")(check)
+        m.Advance(0.2)
+        T.eq(#ns.Tracker:Entries(), 2)
+        T.ok(ns.Tracker:Internals().frame:IsShown())
+        for i = 1, 10 do ns.Commands:Add("Manual task " .. i) end
+        ns.Tracker:Refresh()
+        local tr = ns.Tracker:Internals()
+        local first = tr.rows[1].card
+        tr.frame:GetScript("OnMouseWheel")(tr.frame, -1)
+        T.no(tr.rows[1].card == first)
+        ns.DB:MoveCard(board, card.id, "done")
+        ns.DB:UpdateCard(board, first, { archived = true })
+        local other = ns.Commands:Add("Another character's task")
+        ns.DB:UpdateCard(board, other, { char = "Other-Realm" })
+        for _, e in ipairs(ns.Tracker:Entries()) do
+            T.no(e.card == card or e.card == first or e.card == other)
+        end
+        local _, reloaded = T.client(nil, m.Logout())
+        T.eq(reloaded.db.settings.trackerAllOpen, true)
+        ns.db.settings.trackerAllOpen = false
+        T.eq(#ns.Tracker:Entries(), 0)
+        T.noErrors(ns); T.noErrors(reloaded)
+    end)
+
     it("tracker lists in-progress cards with live bars", function()
         local m, ns = T.client()
         local card = ns.Commands:Add("Get 10 Peacebloom !high")

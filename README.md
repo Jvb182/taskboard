@@ -81,6 +81,8 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
 
 ## Install
 
+For CurseForge, use the single-folder `Taskboard-1.1.3-CurseForge.zip` built with `python tests/tools/package.py --curseforge`. First-time users need only the Taskboard folder. Existing Questboard users should follow the one-time migration instructions below using the two-folder GitHub upgrade ZIP before switching to CurseForge updates. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
+
 Use the packaged ZIP: extract both included folders into `World of Warcraft/_forever_/Interface/AddOns/`. The main addon is `Taskboard/Taskboard.toc`. The small `Questboard/Questboard.toc` compatibility folder only loads legacy saved data and has no UI or tracking code. Restart the game after installing the newly named add-on.
 
 **Upgrading from Questboard:** with the game closed, back up your old SavedVariables, then extract the ZIP and allow it to replace `Questboard/Questboard.toc`. Enable Taskboard and **Taskboard - legacy data loader** for the first login. Taskboard copies existing boards, settings and logs once, then saves to `TaskboardDB`/`TaskboardLog`; the old save is left intact. After a successful logout/reload and verification of your boards, the legacy loader can be disabled. Do not run the original Questboard code alongside Taskboard.

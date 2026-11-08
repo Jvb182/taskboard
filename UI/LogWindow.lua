@@ -33,7 +33,7 @@ function LogWindow:Create()
 
     titleText = W.Text(frame, "GameFontNormal")
     titleText:SetPoint("TOPLEFT", 12, -10)
-    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+    local close = W.CloseButton(frame)
     close:SetPoint("TOPRIGHT", 2, 2)
 
     local bg = CreateFrame("Frame", nil, frame, "BackdropTemplate")
@@ -51,7 +51,7 @@ function LogWindow:Create()
     box:SetWidth(620)
     box:SetMaxLetters(0)
     scroll:SetScrollChild(box)
-    box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    box:SetScript("OnEscapePressed", function(self) self:ClearFocus(); frame:Hide() end)
     -- Read-only modes: typing is undone, but selecting and copying works.
     box:SetScript("OnTextChanged", function(self, userInput)
         if userInput and not frame.editable then self:SetText(frame.text or "") end

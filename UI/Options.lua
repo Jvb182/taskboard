@@ -40,6 +40,8 @@ Options.ITEMS = {
     { "smartReminders", "Smart reminders: missing items at the AH, goal items in the bank" },
     { "includeBank", "Count items in the bank toward goals" },
     { "trackerShown", "Show the on-screen tracker" },
+    { "trackerAllOpen", "Tracker: include all open tasks (including To Do)" },
+    { "trackerLocationPulse", "Tracker: show and pulse location tasks while nearby" },
     { "trackerHideInCombat", "Hide the tracker in combat" },
     { "minimapShown", "Show the minimap button" },
     { "acceptShares", "Allow party, raid and guild members to offer shared boards" },
@@ -61,7 +63,7 @@ local function set(key, value)
     else s[key] = value end
     ns.Log:Info("options", "%s = %s", key, tostring(value))
     ns:Fire("SETTINGS_CHANGED", key, value)
-    if key == "trackerShown" or key == "trackerHideInCombat" then ns:Fire("TRACKER_SETTINGS") end
+    if key == "trackerShown" or key == "trackerHideInCombat" or key == "trackerAllOpen" or key == "trackerLocationPulse" then ns:Fire("TRACKER_SETTINGS") end
     if key == "includeBank" then ns.Engine:MarkAll() end
 end
 
@@ -84,7 +86,7 @@ function Options:Create()
     local title = W.Text(frame, "GameFontNormal")
     title:SetPoint("TOPLEFT", 12, -10)
     title:SetText("Taskboard options  |cff959ba8" .. ns.version .. "|r")
-    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+    local close = W.CloseButton(frame)
     close:SetPoint("TOPRIGHT", 2, 2)
     for i, page in ipairs({ { "general", "General" }, { "style", "Appearance" }, { "sounds", "Sounds" } }) do
         local key = page[1]
@@ -94,8 +96,12 @@ function Options:Create()
         pages[key]:SetPoint("TOPLEFT", 12, -68)
         pages[key]:SetPoint("BOTTOMRIGHT", -12, 44)
     end
+    local generalScroll, generalContent = W.Scroll(pages.general)
+    generalScroll:SetPoint("TOPLEFT", 0, 0)
+    generalScroll:SetPoint("BOTTOMRIGHT", -20, 0)
+    generalContent:SetSize(490, #self.ITEMS * 26)
     for i, item in ipairs(self.ITEMS) do
-        local c = W.Check(pages.general, item[2], function(checked) set(item[1], checked) end)
+        local c = W.Check(generalContent, item[2], function(checked) set(item[1], checked) end)
         c:SetPoint("TOPLEFT", 0, -(i - 1) * 26)
         checks[item[1]] = c
     end

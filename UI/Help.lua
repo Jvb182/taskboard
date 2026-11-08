@@ -59,15 +59,17 @@ Help.SECTIONS = {
         { "p", "NPC reminders trigger when you open the relevant bank, vendor, mailbox, auction house or trainer. Smart reminders additionally list missing goal items at the auction house and goal items stored in your bank. General settings can disable reminders or smart reminders separately." },
         { "p", "The editor's zone field and Here button also attach reminders. Map pins are separate: Pin my location saves coordinates; Show on map sets a waypoint. A pin alone is not an arrival reminder." },
         { "h", "On-screen tracker" },
+        { "p", "Location tasks can pulse gently while you are in their matching zone or subzone. They appear at the top even when still in To Do; the pulse stops when you leave or finish/archive the task. General > Tracker: show and pulse location tasks while nearby controls this independently of arrival popups. Hiding the tracker or hiding it in combat still takes priority." },
         { "p", "The tracker automatically lists In Progress tasks and tasks marked Show in tracker. Unchecking Show in tracker does not hide an In Progress task. Done and archived tasks are excluded. Click a tracker task to open its editor." },
         { "e", "/tb tracker - hide or show the whole tracker" },
+        { "p", "To include manual To Do tasks such as Buy vials @Goldshire, enable Tracker: include all open tasks in General settings, or right-click the tracker header and choose Show all open tasks. Done, archived and other characters' tasks remain excluded. Scroll the tracker to reach tasks beyond its visible rows; the header shows your position." },
         { "p", "You can hide the tracker and still open the board with /tb or the minimap. Click the tracker header to collapse it; drag it to move. Right-click its header to open the board, lock its position or hide it. Right-click a tracker task for its card menu. General settings can hide it in combat. Preferences persist across reloads." },
         { "h", "Progress feedback and statistics" },
         { "p", "Progress messages show counts as goals advance. Completion/reminder popups and sounds have separate controls. The board footer summarizes completions today and this week, your day streak and total completions." },
     } },
     { id = "settings", title = "Settings & sharing", entries = {
         { "h", "Boards, cards and layout" },
-        { "p", "Drag the title or empty top bar to move the main board; use the bottom-right grip to resize it. Its position and size are saved. Scroll sideways when extra columns do not fit." },
+        { "p", "Drag the title or empty top bar to move the main board; use the bottom-right grip to resize it. Its position and size are saved. The card editor follows the board's height as you resize, including when opened from the tracker. Its fields stay scrollable. Scroll the board sideways when extra columns do not fit." },
         { "p", "The Board menu switches boards and creates account-wide or character-only boards. It also renames, exports, imports and deletes boards. Search filters text, Tags filters by tag, and Mine hides cards belonging to other characters." },
         { "e", "/tb board Alchemy - switch to or create a board" },
         { "p", "Drag cards between columns or reorder them. Right-click a card to edit, move, duplicate, archive or delete it. The editor changes title, notes, goals, subtasks, tags, priority, character, reminder, repeat, tracker and map pin settings. Shared cards have editing restrictions." },
@@ -156,7 +158,7 @@ function Help:Show(id)
         local title = W.Text(frame, "GameFontNormalLarge")
         title:SetPoint("TOPLEFT", 16, -14)
         title:SetText("Taskboard Help")
-        local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+        local close = W.CloseButton(frame)
         close:SetPoint("TOPRIGHT", 2, 2)
         for i, section in ipairs(self.SECTIONS) do
             local key = section.id

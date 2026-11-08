@@ -2,7 +2,7 @@
 ## Title: |cff4fc3f7Task|rboard
 ## Notes: Kanban to-do board with live goal tracking: "Get 20 Peacebloom" counts itself as you loot.
 ## Author: John
-## Version: 1.1.1
+## Version: 1.1.2
 ## SavedVariables: TaskboardDB, TaskboardLog
 ## OptionalDeps: Questboard
 ## IconTexture: Interface\Icons\INV_Misc_Note_01

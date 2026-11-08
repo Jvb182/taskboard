@@ -56,7 +56,8 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
   - Repeating item goals default to **extra inventory this period**: net inventory above the amount held when the card/period starts. Spending or selling reduces that net gain; this is not a cumulative loot counter.
   - Uncheck **Items: collect extra each period (net gain)** in the editor to track current stock instead. After reset, a stock goal must become incomplete before it can automatically complete again.
   - Baselines survive reloads. An offline character starts a new baseline on their next login; activity while the add-on is disabled cannot be reconstructed. Changing bank-counting options starts a fresh baseline for affected goals.
-- **Tracker:** a compact on-screen list of in-progress cards with progress bars. It can hide in combat.
+- **Tracker:** a compact on-screen list of in-progress and pinned cards with progress bars. Enable **Tracker: include all open tasks** in General settings (or **Show all open tasks** in the tracker header menu) to also include manual To Do tasks and reminders. Scroll to reach additional tasks. Done/archived tasks and tasks belonging to other characters remain excluded. It can hide in combat.
+  - Matching location tasks appear first and gently pulse while you are in their zone/subzone, including To Do tasks. They stop pulsing when you leave. Toggle **Tracker: show and pulse location tasks while nearby** in General to disable this. It is independent of popup reminders and never forces a hidden tracker to appear.
 - **Stats:** completions today and this week, a day streak, and a total.
 - **Sharing:** `/tb share party|raid|guild`.
   - Members are asked before anything is imported.

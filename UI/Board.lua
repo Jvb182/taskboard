@@ -13,69 +13,8 @@ local columnFrames = {}
 local cardPool, usedCards = {}, {}
 local dirty = true
 local drag
-local examplesFrame
-
 function Board:ShowExamples()
-    if not examplesFrame then
-        examplesFrame = CreateFrame("Frame", "TaskboardExamples", frame, "BackdropTemplate")
-        examplesFrame:SetSize(520, 430)
-        examplesFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-        examplesFrame:SetFrameStrata("DIALOG")
-        examplesFrame:SetClampedToScreen(true)
-        examplesFrame:EnableMouse(true)
-        Theme.Panel(examplesFrame, Theme.colors.window, Theme.colors.windowBorder)
-        table.insert(UISpecialFrames, "TaskboardExamples")
-        local title = W.Text(examplesFrame, "GameFontNormalLarge")
-        title:SetPoint("TOPLEFT", 16, -14)
-        title:SetText("Quick Add examples")
-        local close = CreateFrame("Button", nil, examplesFrame, "UIPanelCloseButton")
-        close:SetPoint("TOPRIGHT", 2, 2)
-        local scroll, content = W.Scroll(examplesFrame)
-        scroll:SetPoint("TOPLEFT", 16, -44)
-        scroll:SetPoint("BOTTOMRIGHT", -34, 16)
-        content:SetSize(464, 760)
-        local lines = {
-            "Type an example into Quick Add, then press Enter.",
-            "For item or quest links, focus the box and shift-click the link.",
-            "", "ITEMS AND OTHER GOALS",
-            "get 17 Silverleaf",
-            "Get 20 Peacebloom #herbs !high",
-            "[shift-click an item] x17",
-            "save 10g 50s",
-            "reach level 40",
-            "Herbalism 150",
-            "Honored with Stormwind",
-            "quest: The Defias Brotherhood",
-            "", "REMINDERS",
-            "Visit the trainer @Ironforge",
-            'Buy supplies @"Stormwind City"',
-            "Sort supplies @bank",
-            "Buy vials @vendor",
-            "Check mail @mail",
-            "List auctions @ah",
-            "Learn new skills @trainer",
-            "", "REPEATING TASKS AND ORGANIZATION",
-            "Check auctions *daily",
-            "Plan dungeon runs *weekly",
-            "Organize bags #chores !low",
-            "Prepare for tonight !high >doing",
-            "Alchemy prep; 20 Peacebloom; 20 Silverleaf; buy vials",
-            "", "SYNTAX AT A GLANCE",
-            "#tag groups tasks; !low, !med or !high sets priority.",
-            "@zone or @bank adds a reminder; quote multiword zones.",
-            "*daily or *weekly repeats a task; >doing sets its status.",
-            "A semicolon starts a new subtask.",
-            "Item goals normally count items you already own.",
-            "Repeating item goals default to gains above a starting count.",
-        }
-        for i, line in ipairs(lines) do
-            local text = W.Text(content, "GameFontHighlightSmall")
-            text:SetPoint("TOPLEFT", 0, -(i - 1) * 22)
-            text:SetWidth(464)
-            text:SetText(line)
-        end
-    end
-    examplesFrame:Show()
+    ns.Help:Show("quick")
 end
 
 -------------------------------------------------------------------------------
@@ -689,7 +628,7 @@ function Board:Create()
     options:SetPoint("RIGHT", close, "LEFT", -4, 0)
     local logButton = W.Button(frame, "Log", 40, 18, function() ns:Fire("SHOW_LOG") end, { "Log and diagnostics", "Copy this into bug reports." })
     logButton:SetPoint("RIGHT", options, "LEFT", -6, 0)
-    local examplesButton = W.Button(frame, "Examples", 76, 18, function() Board:ShowExamples() end)
+    local examplesButton = W.Button(frame, "Help", 76, 18, function() ns.Help:Show() end)
     examplesButton:SetPoint("RIGHT", logButton, "LEFT", -6, 0)
     for _, button in ipairs({ boardButton, close, options, logButton, examplesButton }) do
         button:SetFrameLevel(titleBar:GetFrameLevel() + 1)

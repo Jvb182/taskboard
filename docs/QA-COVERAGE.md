@@ -1,6 +1,6 @@
 # Taskboard 1.2.1 offline QA audit
 
-Audit date: 2026-11-08. **216 automated tests passed, 0 failed** under Lua 5.1 with the WoW API mock and Forever client API fixture. The baseline had 190 passing tests. This audit added 26 cases; the first regression run reproduced nine failing scenarios before fixes.
+Audit date: 2026-11-08. **219 automated tests passed, 0 failed** under Lua 5.1 with the WoW API mock and Forever client API fixture. The baseline had 190 passing tests. This audit added 29 cases; the first regression run reproduced nine failing scenarios before fixes.
 
 These are unit tests plus simulated integration/UI-handler tests. They do not establish real-client rendering, event delivery, sound playback, server reset timing, or multiplayer delivery. There is not yet a two-to-three-test guarantee for every individual manual checklist case. Multiple assertions inside one test are not counted as separate tests, and the table below is a feature-level coverage map, not line/branch coverage.
 
@@ -44,7 +44,7 @@ Paths below are relative to `tests/spec/`. Each row identifies automated evidenc
 | RM: zone/NPC reminders | `reminders_spec`, `personalization_spec`, `ui_spec`: matching, cooldown, disabled state, smart reminder quantities, nearby tracker state | Zone boundaries and real vendor/bank/AH/trainer events |
 | MB: mailbox | `reminders_spec`, `qa_audit_spec`: learning, persistence, fallback coordinates, entry/exit hysteresis, absent coordinates, cooldown, newly added tasks, supported completion and exclusions | Actual 35/50-yard behavior, map boundaries, indoors/stacked floors and client coordinates |
 | TR: tracker | `ui_spec`, `personalization_spec`: default/pinned/all-open/nearby visibility, progress, pulse state and settings | Visual separation, scrolling, placement, pulse appearance and combat behavior |
-| MP: map pins | Client API conformance covers called APIs; dedicated pin behavior coverage is incomplete | All MP checks: create/clear/replace a real waypoint and verify map placement |
+| MP: map pins | `ui_spec`, `qa_audit_spec`: waypoint creation, pin replacement/clear/reload, absent position handling and unsupported-map fallback | Real waypoint placement, map artwork and tracking arrow |
 | AP: appearance | `personalization_spec`, `ui_spec`: seven theme configurations, accents, opacity, opaque dialogs, persistence and resize state | Artwork availability, contrast, text readability and scale on the actual client |
 | FB: feedback | `personalization_spec`, `ui_spec`, `qa_audit_spec`: event selection, Off/master controls, no duplicate completion, batching and stale-toast clicks | Audible sound choices/volume/channels and toast appearance/click targets |
 | RC: recurrence | `recurring_spec`, `regression_spec`, `persistence_spec`: daily/weekly, offline catch-up, baselines, stock rearming, missed streaks and archive exclusions | Real daily/weekly server boundary and alternate-character login timing |
@@ -56,7 +56,7 @@ Paths below are relative to `tests/spec/`. Each row identifies automated evidenc
 
 For each distinct logic behavior, aim for a normal path, a boundary/negative path, and recovery/persistence where meaningful. Add a failing regression test before fixing a defect. Shared assertions can be parameterized across task types, but must assert user-visible behavior. A raw count of two or three tests is not proof of coverage.
 
-The 26 new cases cover mailbox state/completion, destination ordering, board ownership/selection, import failure and stale-toast handling, plus separate disabled-completion and foreign-character tests for five live goal types. Dedicated map-pin tests and a case-by-case traceability matrix for the full manual checklist remain coverage gaps; do not represent this report as exhaustive certification.
+The 29 new cases cover mailbox state/completion, destination ordering, board ownership/selection, import failure and stale-toast handling, plus separate disabled-completion and foreign-character tests for five live goal types. Map-pin boundary/persistence tests are also included. A case-by-case traceability matrix for the full manual checklist remains a coverage gap; do not represent this report as exhaustive certification.
 
 ## Prioritized in-game pass
 

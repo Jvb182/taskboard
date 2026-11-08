@@ -75,7 +75,7 @@ function Editor:Create()
     ui.heading = W.Text(frame, "GameFontNormal")
     ui.heading:SetPoint("TOPLEFT", 12, -10)
     ui.heading:SetText("Edit card")
-    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+    local close = W.CloseButton(frame)
     close:SetPoint("TOPRIGHT", 2, 2)
 
     local scroll

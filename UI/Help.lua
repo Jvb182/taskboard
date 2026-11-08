@@ -157,7 +157,7 @@ function Help:Show(id)
         local title = W.Text(frame, "GameFontNormalLarge")
         title:SetPoint("TOPLEFT", 16, -14)
         title:SetText("Taskboard Help")
-        local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+        local close = W.CloseButton(frame)
         close:SetPoint("TOPRIGHT", 2, 2)
         for i, section in ipairs(self.SECTIONS) do
             local key = section.id

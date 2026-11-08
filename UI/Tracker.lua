@@ -5,7 +5,7 @@ local Util, DB, Theme, W = ns.Util, ns.DB, ns.Theme, ns.Widgets
 local Tracker = ns:NewModule("Tracker")
 local frame, header, rows = nil, nil, {}
 local inCombat = false
-local ROW_H = 30
+local ROW_H, ROW_GAP = 36, 6
 local offset = 0
 
 -- Cards to show, best first.
@@ -39,11 +39,16 @@ local function row(i)
     r:SetHeight(ROW_H)
     r:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     r.title = W.Text(r, "GameFontHighlightSmall")
-    r.title:SetPoint("TOPLEFT", 4, -2)
+    r.title:SetPoint("TOPLEFT", 6, -4)
     r.title:SetPoint("RIGHT", -4, 0)
     r.bar = W.ProgressBar(r, 11)
-    r.bar:SetPoint("BOTTOMLEFT", 4, 4)
-    r.bar:SetPoint("BOTTOMRIGHT", -4, 4)
+    r.bar:SetPoint("BOTTOMLEFT", 6, 5)
+    r.bar:SetPoint("BOTTOMRIGHT", -6, 5)
+    r.divider = r:CreateTexture(nil, "BACKGROUND")
+    r.divider:SetPoint("BOTTOMLEFT", 6, -3)
+    r.divider:SetPoint("BOTTOMRIGHT", -6, -3)
+    r.divider:SetHeight(1)
+    r.divider:SetColorTexture(1, 1, 1, 0.14)
     r:SetHighlightTexture(Theme.WHITE)
     r:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.06)
     r:SetScript("OnClick", ns.Wrap("tracker row", function(self, button)
@@ -129,8 +134,9 @@ function Tracker:Refresh()
         local card = entry.card
         r.card, r.board = card, entry.board
         r:ClearAllPoints()
-        r:SetPoint("TOPLEFT", 2, -20 - (i - 1) * ROW_H)
+        r:SetPoint("TOPLEFT", 2, -24 - (i - 1) * (ROW_H + ROW_GAP))
         r:SetPoint("RIGHT", -2, 0)
+        r.divider:SetShown(i < shown)
         local color = Theme.PRIORITY[card.priority] or Theme.PRIORITY[0]
         r.title:SetText(Util.Color(string.format("%02x%02x%02x", color[1] * 255, color[2] * 255, color[3] * 255), "-") .. " " .. card.title)
         local summary = card._summary
@@ -144,7 +150,7 @@ function Tracker:Refresh()
         r:Show()
     end
     for i = shown + 1, #rows do rows[i]:Hide() end
-    frame:SetHeight(22 + shown * ROW_H + (shown > 0 and 2 or 0))
+    frame:SetHeight(shown > 0 and (28 + shown * ROW_H + (shown - 1) * ROW_GAP) or 22)
     frame:Show()
 end
 

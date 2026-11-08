@@ -513,15 +513,9 @@ function Board:BoardMenu()
     local items = { { text = "Boards", title = true } }
     local current = activeBoard()
     for _, b in ipairs(DB:VisibleBoards()) do
-        local label = b.name .. (b.scope == "character" and " (this character)" or b.scope == "shared" and (" (from " .. shortChar(b.shared and b.shared.from) .. ")") or "")
+        local label = b.name .. (b.scope == "character" and (" (" .. shortChar(b.owner) .. ")") or b.scope == "shared" and (" (from " .. shortChar(b.shared and b.shared.from) .. ")") or "")
         items[#items + 1] = { text = label, checked = b == current, func = function() DB:SetActiveBoard(b) end }
     end
-    items[#items + 1] = { text = "New board (all characters)", func = function()
-        Board:Prompt("New board name", "", function(text) local b = DB:CreateBoard(text, "account") if b then DB:SetActiveBoard(b) end end)
-    end }
-    items[#items + 1] = { text = "New board (this character only)", func = function()
-        Board:Prompt("New board name", "", function(text) local b = DB:CreateBoard(text, "character") if b then DB:SetActiveBoard(b) end end)
-    end }
     if current then
         items[#items + 1] = { text = "Rename this board", disabled = DB:IsReadOnly(current), func = function()
             Board:Prompt("Rename board", current.name, function(text) DB:RenameBoard(current, text) end)
@@ -706,6 +700,7 @@ function Board:Create()
     frame:SetScript("OnHide", function()
         if drag then Board:EndDrag() end
         W.HideMenu()
+        if ns.Options then ns.Options:Hide() end
     end)
     return frame
 end

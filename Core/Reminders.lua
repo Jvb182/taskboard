@@ -6,9 +6,13 @@ local Util, DB, Goals = ns.Util, ns.DB, ns.Goals
 
 local Reminders = ns:NewModule("Reminders")
 Reminders.COOLDOWN = 300
+Reminders.MAIL_RADIUS = 35 -- yards
+Reminders.MAIL_LEAVE_RADIUS = 50
 Reminders.stats = { shown = 0 }
 
 local lastShown = {} -- cardID .. context -> time
+local mailOpen, nearMailbox = false, false
+local show
 
 Reminders.NPC_EVENTS = {
     MERCHANT_SHOW = "vendor", BANKFRAME_OPENED = "bank", MAIL_SHOW = "mail",
@@ -53,11 +57,11 @@ function Reminders:ForZone(zone, subzone, now)
     return lines
 end
 
-function Reminders:ForNPC(npc, now)
+function Reminders:ForNPC(npc, now, context)
     local lines = {}
     for _, entry in ipairs(openCards()) do
         local where = entry.card.where
-        if where and where.npc == npc and ready(entry.card.id .. ":" .. npc, now) then
+        if where and where.npc == npc and ready(entry.card.id .. ":" .. (context or npc), now) then
             lines[#lines + 1] = { card = entry.card, board = entry.board, text = entry.card.title }
         end
     end
@@ -83,7 +87,94 @@ function Reminders:ForNPC(npc, now)
     return lines
 end
 
-local function show(title, lines)
+-- The client exposes player coordinates, but no mailbox locations. Remember
+-- the position when a mailbox is opened, then remind on later approaches.
+local function playerWorldPosition()
+    if not (C_Map and C_Map.GetBestMapForUnit and C_Map.GetPlayerMapPosition) then return end
+    local mapID = C_Map.GetBestMapForUnit("player")
+    if not mapID then return end
+    local pos = C_Map.GetPlayerMapPosition(mapID, "player")
+    if not pos then return end
+    if C_Map.GetWorldPosFromMapPos then
+        local ok, continent, world = pcall(C_Map.GetWorldPosFromMapPos, mapID, pos)
+        if ok and type(continent) == "number" and world then
+            local x, y = tonumber(world.x), tonumber(world.y)
+            if x and y and x == x and y == y then return continent, x, y end
+        end
+    end
+    -- Some maps return no world position. Same-map dimensions still give a
+    -- useful distance in yards without confusing different map coordinate sets.
+    if C_Map.GetMapWorldSize then
+        local ok, width, height = pcall(C_Map.GetMapWorldSize, mapID)
+        local x, y = tonumber(pos.x), tonumber(pos.y)
+        if ok and type(width) == "number" and type(height) == "number" and width > 0 and height > 0
+            and x and y and x == x and y == y then
+            return "map:" .. tostring(mapID), x * width, y * height
+        end
+    end
+end
+
+local function distanceSquared(a, continent, x, y)
+    if type(a) ~= "table" or a.continent ~= continent or type(a.x) ~= "number" or type(a.y) ~= "number" then return end
+    return (a.x - x) ^ 2 + (a.y - y) ^ 2
+end
+
+function Reminders:LearnMailbox()
+    local continent, x, y = playerWorldPosition()
+    if not continent then return end
+    local spots = ns.db.mailboxes
+    if type(spots) ~= "table" then spots = {}; ns.db.mailboxes = spots end
+    for _, spot in ipairs(spots) do
+        local d2 = distanceSquared(spot, continent, x, y)
+        if d2 and d2 < 20 * 20 then return end
+    end
+    -- Bound SavedVariables growth, even after many alts and mailboxes.
+    if #spots >= 200 then table.remove(spots, 1) end
+    spots[#spots + 1] = { continent = continent, x = x, y = y }
+    ns.Log:Info("reminders", "Learned mailbox location (%d saved)", #spots)
+end
+
+function Reminders:CheckNearbyMailbox(now)
+    if mailOpen or not ns.db.settings.reminders then return end
+    local continent, x, y = playerWorldPosition()
+    if not continent then
+        if nearMailbox then nearMailbox = false; ns:Fire("TRACKER_SETTINGS") end
+        return
+    end
+    local best
+    for _, spot in ipairs(ns.db.mailboxes or {}) do
+        local d2 = distanceSquared(spot, continent, x, y)
+        if d2 and (not best or d2 < best) then best = d2 end
+    end
+    if not best or best > self.MAIL_LEAVE_RADIUS ^ 2 then
+        if nearMailbox then nearMailbox = false; ns:Fire("TRACKER_SETTINGS") end
+        return
+    end
+    if nearMailbox or best > self.MAIL_RADIUS ^ 2 then return end
+    nearMailbox = true
+    ns:Fire("TRACKER_SETTINGS")
+    show("Near a mailbox", self:ForNPC("mail", now, "mail-near"))
+end
+
+function Reminders:IsNearMailbox()
+    return nearMailbox
+end
+
+function Reminders:CompleteMailChecks()
+    for _, entry in ipairs(openCards()) do
+        local card = entry.card
+        if card.where and card.where.npc == "mail" then
+            local title = Util.Lower(Util.Trim(card.title)):gsub("[%p%s]+", " ")
+            if title == "check mail" or title == "check mailbox" or
+                title == "check my mail" or title == "check my mailbox" then
+                local done = DB:ColumnByRole(entry.board, "done")
+                if done then DB:MoveCard(entry.board, card.id, done.id, nil, "mailbox opened") end
+            end
+        end
+    end
+end
+
+show = function(title, lines)
     if #lines == 0 then return end
     Reminders.stats.shown = Reminders.stats.shown + #lines
     ns.Log:Info("reminders", "%s: %d reminder(s)", title, #lines)
@@ -103,10 +194,17 @@ function Reminders:OnLogin()
     ns.After(5, "login zone reminder", zoneChanged)
     for event, npc in pairs(self.NPC_EVENTS) do
         ns:RegisterEvent(event, function()
+            if npc == "mail" then
+                mailOpen = true; nearMailbox = true; self:LearnMailbox()
+                ns:Fire("TRACKER_SETTINGS")
+                self:CompleteMailChecks()
+            end
             if not ns.db.settings.reminders then return end
             show("At the " .. DB.NPCS[npc], self:ForNPC(npc, Util.Now()))
         end)
     end
+    ns:RegisterEvent("MAIL_CLOSED", function() mailOpen = false end)
+    ns.Ticker(3, "nearby mailbox", function() self:CheckNearbyMailbox(Util.Now()) end)
 end
 
 function Reminders:ResetCooldowns()

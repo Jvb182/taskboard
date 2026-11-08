@@ -7,6 +7,12 @@ local panels, texts, brands = {}, {}, {}
 Theme.WHITE = "Interface\\Buttons\\WHITE8x8"
 Theme.BAR = "Interface\\TargetingFrame\\UI-StatusBar"
 Theme.BACKDROP = { bgFile = Theme.WHITE, edgeFile = Theme.WHITE, edgeSize = 1, insets = { left = 1, right = 1, top = 1, bottom = 1 } }
+Theme.CLASSIC_WINDOW = { bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+    edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border", tile = true, tileSize = 32, edgeSize = 24,
+    insets = { left = 7, right = 7, top = 7, bottom = 7 } }
+Theme.CLASSIC_PANEL = { bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, tileSize = 16, edgeSize = 12,
+    insets = { left = 3, right = 3, top = 3, bottom = 3 } }
 
 Theme.colors = {
     window = { 0.055, 0.063, 0.082, 0.96 },
@@ -53,6 +59,8 @@ Theme.PRESETS = {
     { id = "forest", name = "Forest", tint = { -0.015, 0.035, -0.005 } },
     { id = "violet", name = "Arcane", tint = { 0.035, -0.005, 0.055 } },
     { id = "contrast", name = "High contrast", tint = { -0.04, -0.04, -0.04 } },
+    { id = "classic_stone", name = "Classic stone", tint = { 0.025, 0.015, 0.005 }, classic = true },
+    { id = "classic_leather", name = "Classic leather", tint = { 0.085, 0.045, 0.005 }, classic = true },
 }
 Theme.ACCENTS = {
     { id = "sky", name = "Sky", color = { 0.31, 0.76, 0.97 } },
@@ -104,6 +112,7 @@ function Theme:Apply()
     self.HEX.accent = string.format("%02x%02x%02x", accent.color[1] * 255, accent.color[2] * 255, accent.color[3] * 255)
     for f, colors in pairs(panels) do
         local bg = colors[1]
+        f:SetBackdrop(preset.classic and (bg == self.colors.window and self.CLASSIC_WINDOW or self.CLASSIC_PANEL) or self.BACKDROP)
         f:SetBackdropColor(bg[1], bg[2], bg[3], colors[3] and 1 or bg[4])
         f:SetBackdropBorderColor(unpack(colors[2]))
     end
@@ -123,8 +132,10 @@ function Theme.Panel(frame, bg, border, opaque)
     if not frame.SetBackdrop then
         Mixin(frame, BackdropTemplateMixin)
     end
-    frame:SetBackdrop(Theme.BACKDROP)
     bg = bg or Theme.colors.panel
+    local selected = ns.db and ns.db.settings and ns.db.settings.theme or "midnight"
+    local classic = selected == "classic_stone" or selected == "classic_leather"
+    frame:SetBackdrop(classic and (bg == Theme.colors.window and Theme.CLASSIC_WINDOW or Theme.CLASSIC_PANEL) or Theme.BACKDROP)
     frame:SetBackdropColor(bg[1], bg[2], bg[3], opaque and 1 or bg[4])
     frame:SetBackdropBorderColor(unpack(border or Theme.colors.panelBorder))
     panels[frame] = { bg, border or Theme.colors.panelBorder, opaque }

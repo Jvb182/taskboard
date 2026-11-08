@@ -115,14 +115,37 @@ describe("DB", function()
         T.eq(#card.subtasks, ns.DB.LIMITS.subtasks)
     end)
 
-    it("character boards are only visible to their owner", function()
+    it("gives each character one board and makes both boards visible on alts", function()
         local m, ns = T.client()
-        local mine = ns.DB:CreateBoard("Alt stuff", "character")
+        local mine = ns.DB:GetActiveBoard()
         T.eq(mine.owner, "Testchar-Forever")
+        T.eq(ns.DB:CreateBoard("Extra", "character"), mine)
         local saved = m.Logout()
         local m2, ns2 = T.client({ name = "Altchar" }, saved)
-        for _, b in ipairs(ns2.DB:VisibleBoards()) do T.no(b.name == "Alt stuff", "hidden from other characters") end
-        T.eq(#ns2.DB:VisibleBoards(), 1)
+        T.eq(#ns2.DB:VisibleBoards(), 2)
+        T.eq(ns2.DB:GetActiveBoard().owner, "Altchar-Forever")
+        T.ok(ns2.db.boards[mine.id])
+    end)
+
+    it("merges older local boards by character without losing card status", function()
+        local saved = { db = { boards = {
+            a = { id = "a", name = "First", cards = {
+                c1 = { id = "c1", title = "To do", char = "Testchar-Forever", column = "todo" },
+                c2 = { id = "c2", title = "Alt task", char = "Altchar-Forever", column = "doing" },
+            } },
+            b = { id = "b", name = "Second", scope = "character", owner = "Testchar-Forever", cards = {
+                c3 = { id = "c3", title = "Finished", char = "Testchar-Forever", column = "done" },
+            } },
+        } } }
+        local m, ns = T.client(nil, saved)
+        T.eq(#ns.DB:VisibleBoards(), 2)
+        local own = ns.DB:BoardForCharacter("Testchar-Forever")
+        local alt = ns.DB:BoardForCharacter("Altchar-Forever")
+        T.ok(own.cards.c1 and own.cards.c3 and alt.cards.c2)
+        T.eq(ns.DB:CardRole(own, own.cards.c3), "done")
+        local _, again = T.client(nil, m.Logout())
+        T.eq(#again.DB:VisibleBoards(), 2)
+        T.noErrors(ns); T.noErrors(again)
     end)
 end)
 

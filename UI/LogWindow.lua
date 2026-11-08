@@ -150,25 +150,42 @@ function LogWindow:ShowImport()
 end
 
 function LogWindow:DoImport()
-    if Util.Count(ns.db.boards) >= DB.LIMITS.boards then ns.Print("Import failed: too many boards.") return end
     local data, err = ns.Serialize.Import(box:GetText())
     if not data then ns.Print("|cffff5555Import failed: %s|r", tostring(err)) return end
     local board = DB.NormalizeBoard(data)
     if not board then ns.Print("|cffff5555Import failed: not a board|r") return end
-    -- Always import as a new board you own.
-    board.id = Util.NewID("b")
-    board.scope, board.owner, board.shared = "account", nil, nil
-    for _, card in pairs(board.cards) do
-        card.char, card.progress, card.auto = ns.CharKey(), nil, {}
-        for _, entry in ipairs(ns.Goals.CardGoals(card)) do
-            entry.goal.baseline, entry.goal.baselineBank = nil, nil
-            entry.owner.progress = nil
+    local target = DB:BoardForCharacter(ns.CharKey())
+    if not target then target = DB:CreateBoard("My Tasks", "character") end
+    if Util.Count(target.cards) + Util.Count(board.cards) > DB.LIMITS.cards then
+        ns.Print("Import failed: this character's board would exceed the card limit.")
+        return
+    end
+    local count = 0
+    for _, col in ipairs(board.columns) do
+        local dest = col.role and DB:ColumnByRole(target, col.role) or nil
+        if not dest then
+            for _, candidate in ipairs(target.columns) do
+                if not candidate.role and candidate.name == col.name then dest = candidate; break end
+            end
+        end
+        if not dest and #target.columns < DB.LIMITS.columns then dest = DB:AddColumn(target, col.name) end
+        if not dest then dest = DB:ColumnByRole(target, "doing") end
+        for _, id in ipairs(board.order[col.id] or {}) do
+            local card = board.cards[id]
+            if card then
+                card.char, card.progress, card.auto = ns.CharKey(), nil, {}
+                for _, entry in ipairs(ns.Goals.CardGoals(card)) do
+                    entry.goal.baseline, entry.goal.baselineBank = nil, nil
+                    entry.owner.progress = nil
+                end
+                local added = DB:AddCard(target, card, dest.id)
+                if added then count = count + 1 end
+            end
         end
     end
-    ns.db.boards[board.id] = board
-    DB:SetActiveBoard(board)
-    ns.Log:Info("db", "Imported board '%s' with %d card(s)", board.name, Util.Count(board.cards))
-    ns.Print("Imported \"%s\" (%d cards).", board.name, Util.Count(board.cards))
+    DB:SetActiveBoard(target)
+    ns.Log:Info("db", "Imported %d card(s) from '%s'", count, board.name)
+    ns.Print("Imported %d card(s) into %s.", count, target.name)
     ns.Engine:MarkAll()
     frame:Hide()
 end

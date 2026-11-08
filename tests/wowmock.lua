@@ -604,6 +604,10 @@ function Mock.new(opts)
             local x, y = m.state.pos[1], m.state.pos[2]
             return { GetXY = function() return x, y end, x = x, y = y }
         end,
+        GetWorldPosFromMapPos = function(mapID, pos)
+            return mapID, { x = pos.x * 1000, y = pos.y * 1000 }
+        end,
+        GetMapWorldSize = function() return 1000, 1000 end,
         GetMapInfo = function(id) return { mapID = id, name = id == 1429 and "Elwynn Forest" or ("Map " .. id) } end,
         CanSetUserWaypointOnMap = function() return true end,
         SetUserWaypoint = function(point) m.waypoints[#m.waypoints + 1] = point return true end,

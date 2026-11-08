@@ -4,7 +4,7 @@ This file prepares a CurseForge listing. Uploading is a separate action in the o
 
 ## Upload file
 
-Build with `python tests/tools/package.py --curseforge`. Upload `dist/Taskboard-1.1.3-CurseForge.zip`. It has exactly one top-level folder, `Taskboard`, containing `Taskboard.toc`, Bindings.xml, README, docs/TESTING.md and the runtime Lua files. Do **not** upload `Taskboard-1.1.3.zip`: that manual upgrade package also includes the old Questboard migration loader and has two top-level folders.
+Build with `python tests/tools/package.py --curseforge`. Upload `dist/Taskboard-1.2.0-CurseForge.zip`. It has exactly one top-level folder, `Taskboard`, containing `Taskboard.toc`, Bindings.xml, README, docs/TESTING.md and the runtime Lua files. Do **not** upload `Taskboard-1.2.0.zip`: that manual upgrade package also includes the old Questboard migration loader and has two top-level folders.
 
 The CurseForge build installs Taskboard for new users. Existing Questboard users can migrate their saved data by installing the two-folder upgrade ZIP from the GitHub repository first, enabling **Taskboard - legacy data loader** for one login, and then managing Taskboard through CurseForge. The old SavedVariables are not included in any ZIP.
 
@@ -18,7 +18,7 @@ The CurseForge build installs Taskboard for new users. Existing Questboard users
 - Additional categories: Quests & Leveling, Map & Minimap, Professions, if available; only choose relevant ones.
 - License: All Rights Reserved unless a different license is deliberately selected.
 - Source link: https://github.com/Jvb182/taskboard (private; public visitors cannot browse it). A public source link is optional if the owner wants to make it public later.
-- Logo: choose an original Taskboard image or icon. Preview screenshots are optional for a WoW addon; genuine in-game screenshots will make the listing clearer.
+- Logo: upload the approved `assets/Taskboard-logo-400.png` (400 × 400 PNG). It is separate from the addon ZIP. Preview screenshots are optional for a WoW addon; genuine in-game screenshots will make the listing clearer.
 
 ## Suggested description
 
@@ -26,17 +26,19 @@ The CurseForge build installs Taskboard for new users. Existing Questboard users
 
 Type `/tb` or click the minimap button to open the board. Quick Add accepts tasks such as `Get 17 Silverleaf`, `save 10g`, `Herbalism 150`, or `Buy vials @Goldshire`. Shift-click an item or quest link into Quick Add, or use `@` location suggestions to attach an arrival reminder. Combine tags, priorities, daily or weekly repeats, and subtasks. The on-screen tracker can show in-progress cards, all open tasks, and nearby location reminders.
 
-Choose from five themes and accent colors, adjust board/tracker opacity, and set separate sounds for moves, completions, subtasks, and reminders. Settings, editor, Help, logs, and menus stay opaque. The in-game Help panel explains every feature with examples. Boards can be limited to one character, shared with party/raid/guild members, or exported and imported as text.
+Choose from seven themes, including Classic stone and Classic leather skins using original WoW frame artwork. Change accent colors, adjust board/tracker opacity, and set separate sounds for moves, completions, subtasks, and reminders. Settings, editor, Help, logs, and menus stay opaque. Each character has one board that your other characters can open. Boards can be shared with party/raid/guild members or exported and imported as text.
+
+Mail tasks can remind you within 35 yards of a mailbox Taskboard has learned from a previous visit. Opening a mailbox completes a plain `Check mail @mail` task; other mail tasks stay open.
 
 Taskboard targets **WoW Forever 1.60.1** (interface `16001`). It is not advertised for Retail or other Classic versions. Type `/tb help` for the guide and `/tb options` for settings. Report problems with your client build, steps to reproduce, and `/tb diag` output.
 
 ## First file
 
-- Display name: Taskboard 1.1.3 for WoW Forever
+- Display name: Taskboard 1.2.0 for WoW Forever
 - Release type: Release after the owner has completed the in-game checklist; use Beta if gathering broader test feedback first. A Release file is needed for default CurseForge app syncing.
 - Game version type/flavor: **Forever**
 - Supported version: **1.60.1**
-- Changelog: First CurseForge package. Includes live goal tracking, recurring tasks, location reminders, configurable tracker and sounds, theme controls, board sharing, and in-game Help. The 1.1.3 build keeps dialogs and menus opaque.
+- Changelog: First CurseForge package. Includes live goal tracking, recurring tasks, mailbox proximity reminders, configurable tracker and sounds, seven themes including two classic skins, one board per character, board sharing, and in-game Help. Closing the board closes its settings window.
 
 ## Submission steps
 

@@ -2,7 +2,7 @@
 
 Formerly Questboard. Open with `/tb` or `/taskboard`; existing key bindings are retained.
 
-Quick Add has an **Examples** button in the board's title bar, with one example per line in a scrollable panel. Examples no longer appear when hovering over the input.
+The board's **Help** button (or `/tb help`) opens a full reference with **Quick Add**, **Tracking & reminders**, and **Settings & sharing** tabs. It covers goal examples, location suggestions, bank counting, recurring item modes, tracker behavior, boards, appearance, sounds, sharing, import/export, commands, and troubleshooting. Each tab scrolls; help never pops up merely from hovering over Quick Add.
 
 Type `@` followed by a letter in Quick Add to suggest locations: `@g` narrows to `@go` for Goldshire. Suggestions come from the client's localized area names, indexed in small batches on first use (area IDs 1–30000), including zones and subzones. Click a result or use Up/Down and Tab/Enter; Enter accepts the location first, then a second Enter adds the task. Scroll for more matches. Multiword locations are quoted automatically. Escape dismisses suggestions, and unlisted locations can still be typed manually. `@Goldshire` adds an arrival reminder for an unfinished task; it does not complete the task on arrival.
 

@@ -155,6 +155,7 @@ function Commands:Handle(msg)
     elseif cmd == "refresh" then
         ns.Engine:MarkAll()
     elseif cmd == "help" or cmd == "?" then
+        ns:Fire("SHOW_HELP")
         for _, line in ipairs(HELP) do DEFAULT_CHAT_FRAME:AddMessage(line) end
     else
         -- Anything else is treated as a new card: "/tb Get 20 Peacebloom".

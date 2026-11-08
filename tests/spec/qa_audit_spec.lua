@@ -7,6 +7,39 @@ local function learn(m)
 end
 
 describe("QA checklist regressions", function()
+    it("map pins survive reload and can be replaced and cleared", function()
+        local m, ns = T.client()
+        local c = ns.Commands:Add("Meet friends")
+        local b = ns.DB:GetActiveBoard()
+        ns.Editor:Open(c, b); ns.Editor:PinHere()
+        local n, a = T.client(nil, m.Logout())
+        local saved = a.db.boards[b.id].cards[c.id]
+        T.near(saved.pin.x, 0.42)
+        a.Editor:Open(saved, a.db.boards[b.id])
+        n.state.pos = { 0.25, 0.75 }; a.Editor:PinHere()
+        T.near(saved.pin.x, 0.25); T.near(saved.pin.y, 0.75)
+        a.Editor:Internals().ui.pinClear:Click()
+        T.eq(saved.pin, nil); a.Editor:ShowPin(saved); T.eq(#n.waypoints, 0); T.noErrors(a)
+    end)
+
+    it("unavailable map coordinates preserve the existing pin with an explanation", function()
+        local m, ns = T.client()
+        local c = ns.Commands:Add("Meet friends")
+        ns.Editor:Open(c, ns.DB:GetActiveBoard()); ns.Editor:PinHere()
+        m.env.C_Map.GetPlayerMapPosition = function() return nil end
+        ns.Editor:PinHere()
+        T.near(c.pin.x, 0.42); T.ok(m.ChatContains("position isn't available")); T.noErrors(ns)
+    end)
+
+    it("unsupported waypoint maps report coordinates without creating a waypoint", function()
+        local m, ns = T.client()
+        local c = ns.Commands:Add("Meet friends")
+        ns.Editor:Open(c, ns.DB:GetActiveBoard()); ns.Editor:PinHere()
+        m.env.C_Map.CanSetUserWaypointOnMap = function() return false end
+        ns.Editor:ShowPin(c)
+        T.eq(#m.waypoints, 0); T.ok(m.ChatContains("42.0, 65.0")); T.noErrors(ns)
+    end)
+
     local liveGoals = {
         { name = "money", text = "Save 100g", event = "PLAYER_MONEY", reach = function(m) m.state.money = 1000000 end },
         { name = "level", text = "reach level 22", event = "PLAYER_LEVEL_UP", reach = function(m) m.state.level = 22 end },

@@ -2,7 +2,7 @@
 ## Title: |cff4fc3f7Task|rboard
 ## Notes: Kanban to-do board with live goal tracking: "Get 20 Peacebloom" counts itself as you loot.
 ## Author: John
-## Version: 1.1.0
+## Version: 1.1.1
 ## SavedVariables: TaskboardDB, TaskboardLog
 ## OptionalDeps: Questboard
 ## IconTexture: Interface\Icons\INV_Misc_Note_01
@@ -24,6 +24,7 @@ Core\Diagnostics.lua
 Core\Commands.lua
 UI\Theme.lua
 UI\Widgets.lua
+UI\Help.lua
 UI\Board.lua
 UI\Editor.lua
 UI\Tracker.lua

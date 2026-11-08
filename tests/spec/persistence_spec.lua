@@ -10,7 +10,7 @@ describe("SavedVariables", function()
         m.Advance(1)
         ns.DB:MoveCard(board, b.id, "todo", 1)
         ns.db.settings.sounds = false
-        m.Slash("/qb")
+        m.Slash("/tb")
         local saved = m.Logout()
 
         -- Runtime caches (keys starting with "_") are never written.

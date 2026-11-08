@@ -6,12 +6,12 @@ An in-game Kanban board for WoW: Forever (interface `16001`, client 1.60.1) with
 
 1. A real Kanban board: To Do → In Progress → Done (columns can be renamed and added), drag and drop, priorities, tags, notes and subtasks.
 2. **Live goal tracking.** "Get 20 Peacebloom" shows `5/20` as you loot, moves itself to In Progress, and celebrates when it hits 20/20 and moves to Done.
-3. Fast entry: `/qb add Get 20 Peacebloom #herbs !high`, or shift-click an item or quest link into the add box or the `/qb add` chat line.
+3. Fast entry: `/tb add Get 20 Peacebloom #herbs !high`, or shift-click an item or quest link into the add box or the `/tb add` chat line.
 4. Context reminders by zone, and when you open the bank, a vendor, the mailbox, the AH or a trainer.
 5. Map pins, using the built-in waypoint arrow.
 6. Daily and weekly repeating cards, streaks and stats.
 7. Party and guild board sharing, with per-member progress.
-8. Logs and diagnostics that make bug reports easy: `/qb log`, `/qb diag` and `/qb selftest`.
+8. Logs and diagnostics that make bug reports easy: `/tb log`, `/tb diag` and `/tb selftest`.
 9. An offline test suite that runs without the game. It checks Taskboard's logic and also every API, event, widget method and template it uses against the Forever client's generated API docs.
 
 ## Non-goals
@@ -38,7 +38,7 @@ Core/
   Recurring.lua            daily/weekly resets, streaks
   Stats.lua                completion history and counters
   Sync.lua                 party/guild share, progress broadcast (addon messages, chunked)
-  Diagnostics.lua          /qb diag report, API capability probe, in-game self-test
+  Diagnostics.lua          /tb diag report, API capability probe, in-game self-test
   Commands.lua             slash commands
 UI/
   Theme.lua                colors, fonts, backdrop helpers
@@ -121,7 +121,7 @@ A **Goal** looks like this:
 
 ## Quick-add syntax
 
-`/qb add <text>` (aliases `/todo` and `/qb a`):
+`/tb add <text>` (aliases `/todo` and `/tb a`):
 
 | Token | Meaning |
 |---|---|
@@ -149,7 +149,7 @@ A **Goal** looks like this:
 
 ## Sharing
 
-- `/qb share party|raid|guild` sends the active board, serialized and chunked through `C_ChatInfo.SendAddonMessage` with the prefix `QBRD1`.
+- `/tb share party|raid|guild` sends the active board, serialized and chunked through `C_ChatInfo.SendAddonMessage` with the prefix `QBRD1`.
 - Receivers are asked before importing (setting `syncAccept`). An imported board is read-only for non-owners and keeps its board ID.
 - Members broadcast their own progress on the shared board's goal cards (throttled). The owner's card shows each member's progress.
 - Received data is validated:
@@ -159,8 +159,8 @@ A **Goal** looks like this:
 
 ## Diagnostics
 
-- `/qb log [n] [level]`, `/qb log show` (window), `/qb debug on|off`.
-- `/qb diag` shows:
+- `/tb log [n] [level]`, `/tb log show` (window), `/tb debug on|off`.
+- `/tb diag` shows:
   - version and client build
   - a capability table of every API Taskboard uses, present or missing
   - DB counts
@@ -169,7 +169,7 @@ A **Goal** looks like this:
   - error count with the last error and its stack
   - sync counters
   - memory use
-- `/qb selftest` runs the parser, serializer and DB checks plus live API probes in game.
+- `/tb selftest` runs the parser, serializer and DB checks plus live API probes in game.
 - Every event handler, script handler and timer runs under `xpcall`. Errors are logged with a stack and shown once in chat, and they never break the UI.
 
 ## Testing (offline)

@@ -4,7 +4,7 @@ local T, Mock = ...
 
 local ALLOWED_WRITES = {
     Taskboard = true, TaskboardDB = true, TaskboardLog = true,
-    SLASH_TASKBOARD1 = true, SLASH_TASKBOARD2 = true, SLASH_TASKBOARD3 = true, SLASH_TASKBOARDTODO1 = true,
+    SLASH_TASKBOARD1 = true, SLASH_TASKBOARD2 = true, SLASH_TASKBOARDTODO1 = true,
     BINDING_HEADER_QUESTBOARD = true, BINDING_NAME_QUESTBOARD_TOGGLE = true,
     BINDING_NAME_QUESTBOARD_TRACKER = true, BINDING_NAME_QUESTBOARD_QUICKADD = true,
 }
@@ -17,14 +17,14 @@ local function keys(t)
 end
 
 local function session(m, ns)
-    m.Slash("/qb")
-    m.Slash("/qb add Get 20 Peacebloom #herbs !high @bank *daily; 5 Silverleaf; vials")
-    m.Slash("/qb add save 10g")
-    m.Slash("/qb add reach level 25")
-    m.Slash("/qb add Herbalism 50")
-    m.Slash("/qb add Friendly with Stormwind")
-    m.Slash("/qb add quest: Wanted: Hogger")
-    m.Slash("/qb add Visit @Ironforge")
+    m.Slash("/tb")
+    m.Slash("/tb add Get 20 Peacebloom #herbs !high @bank *daily; 5 Silverleaf; vials")
+    m.Slash("/tb add save 10g")
+    m.Slash("/tb add reach level 25")
+    m.Slash("/tb add Herbalism 50")
+    m.Slash("/tb add Friendly with Stormwind")
+    m.Slash("/tb add quest: Wanted: Hogger")
+    m.Slash("/tb add Visit @Ironforge")
     m.state.skills = { { name = "Herbalism", rank = 10, maxRank = 75 } }
     m.state.factions = { { id = 72, name = "Stormwind", standing = 100 } }
     m.state.questLog = { { id = 176, title = "Wanted: Hogger" } }
@@ -50,17 +50,17 @@ local function session(m, ns)
     ns.Widgets.HideMenu()
     ns.Board:TagMenu()
     ns.Widgets.HideMenu()
-    m.Slash("/qb log show")
-    m.Slash("/qb diag")
-    m.Slash("/qb selftest")
-    m.Slash("/qb export")
-    m.Slash("/qb import")
-    m.Slash("/qb options")
-    m.Slash("/qb list")
-    m.Slash("/qb tracker")
-    m.Slash("/qb tracker")
+    m.Slash("/tb log show")
+    m.Slash("/tb diag")
+    m.Slash("/tb selftest")
+    m.Slash("/tb export")
+    m.Slash("/tb import")
+    m.Slash("/tb options")
+    m.Slash("/tb list")
+    m.Slash("/tb tracker")
+    m.Slash("/tb tracker")
     m.state.inGroup = true
-    m.Slash("/qb share party")
+    m.Slash("/tb share party")
     m.Advance(10)
     m.AdvanceTime(86400)
     m.env.TaskboardMinimapButton:Click("LeftButton")

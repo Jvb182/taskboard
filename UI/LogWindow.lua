@@ -28,7 +28,7 @@ function LogWindow:Create()
     frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
     frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     frame:Hide()
-    Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder)
+    Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder, true)
     table.insert(UISpecialFrames, "TaskboardLogWindow")
 
     titleText = W.Text(frame, "GameFontNormal")

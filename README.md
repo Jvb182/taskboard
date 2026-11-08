@@ -18,7 +18,7 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
   - Search, filter by tag, and show only this character's cards.
   - Multiple boards, shared across all your characters or limited to one.
   - A horizontal scrollbar keeps extra columns reachable in narrow windows.
-- **Make it yours:** `/tb options` → **Appearance** offers Midnight, Warm leather, Forest, Arcane and High contrast themes; Sky, Gold, Mint, Rose and Lilac accents; and 35–100% panel opacity. Changes apply live and persist across reloads. Text stays opaque; status/priority colors retain consistent meanings.
+- **Make it yours:** `/tb options` → **Appearance** offers Midnight, Warm leather, Forest, Arcane and High contrast themes; Sky, Gold, Mint, Rose and Lilac accents; and 35–100% board/tracker opacity. Settings, editor, Help, logs and popup menus (including the Board dropdown) always have opaque backgrounds. Changes apply live and persist across reloads. Text stays opaque; status/priority colors retain consistent meanings.
 - **Event sounds:** `/tb options` → **Sounds** lets you choose Off, Soft click, Chime or Quest complete separately for status changes, completions, subtasks and zone/NPC reminders. Each has a Preview button. Manual and automatic completions both give feedback; reordering and daily/weekly resets are silent. The master Play sounds switch is under General, and volume follows the game settings. Sounds can remain on when popups are off.
 - **Live goals:** each card or subtask can track any of these:
 

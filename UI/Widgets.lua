@@ -207,7 +207,7 @@ function W.LocationSuggestions(box)
     panel:SetClampedToScreen(true)
     panel:EnableMouse(true)
     panel:EnableMouseWheel(true)
-    Theme.Panel(panel, Theme.colors.window, Theme.colors.windowBorder)
+    Theme.Panel(panel, Theme.colors.window, Theme.colors.windowBorder, true)
     panel:Hide()
     local rows, matches, selected, offset = {}, {}, 1, 0
     local start, finish, changing
@@ -327,7 +327,7 @@ function W.Menu(owner, items)
         menu = CreateFrame("Frame", "TaskboardMenu", UIParent, "BackdropTemplate")
         menu:SetFrameStrata("FULLSCREEN_DIALOG")
         menu:SetClampedToScreen(true)
-        Theme.Panel(menu, Theme.colors.window, Theme.colors.windowBorder)
+        Theme.Panel(menu, Theme.colors.window, Theme.colors.windowBorder, true)
         menu.rows = {}
         menu:Hide()
         blocker:Hide()

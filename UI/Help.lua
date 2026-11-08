@@ -79,7 +79,7 @@ Help.SECTIONS = {
         { "p", "General controls automatic starting/completion, progress messages, popups, the sound master switch, reminders, smart reminders, bank counting, tracker visibility, hiding in combat, the minimap button, share offers and debug logging." },
         { "p", "Bind Open or close the board, Show or hide the tracker, and Quick add a card in the game's Key Bindings > AddOns. Left-click the minimap button for the board, right-click it for the tracker, or drag it to reposition it." },
         { "h", "Appearance" },
-        { "p", "Choose Midnight, Warm leather, Forest, Arcane or High contrast. Accent choices are Sky, Gold, Mint, Rose and Lilac. Panel opacity ranges from 35% to 100%; text stays opaque. Status and priority colors retain their meaning. Changes apply live and are saved. Reset appearance restores the defaults." },
+        { "p", "Choose Midnight, Warm leather, Forest, Arcane or High contrast. Accent choices are Sky, Gold, Mint, Rose and Lilac. Board and tracker opacity ranges from 35% to 100%; text stays opaque. Settings, editor, Help, logs and popup menus always have solid backgrounds. Status and priority colors retain their meaning. Changes apply live and are saved. Reset appearance restores the defaults." },
         { "h", "Sounds" },
         { "p", "Choose Off, Soft click, Chime or Quest complete separately for status changes, completed tasks, completed subtasks and reminders. Preview plays a choice without changing any tasks. The General Play sounds switch controls all of them; loudness follows the game's audio settings." },
         { "p", "Sounds can play with visual popups disabled. Reordering within a column and recurring resets are silent. Nearby repeated events may share one sound to avoid a burst of noise." },
@@ -153,7 +153,7 @@ function Help:Show(id)
         frame:RegisterForDrag("LeftButton")
         frame:SetScript("OnDragStart", function() frame:StartMoving() end)
         frame:SetScript("OnDragStop", function() frame:StopMovingOrSizing() end)
-        Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder)
+        Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder, true)
         table.insert(UISpecialFrames, "TaskboardHelp")
         local title = W.Text(frame, "GameFontNormalLarge")
         title:SetPoint("TOPLEFT", 16, -14)

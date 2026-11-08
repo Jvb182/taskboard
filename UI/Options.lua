@@ -40,6 +40,7 @@ Options.ITEMS = {
     { "smartReminders", "Smart reminders: missing items at the AH, goal items in the bank" },
     { "includeBank", "Count items in the bank toward goals" },
     { "trackerShown", "Show the on-screen tracker" },
+    { "trackerAllOpen", "Tracker: include all open tasks (including To Do)" },
     { "trackerHideInCombat", "Hide the tracker in combat" },
     { "minimapShown", "Show the minimap button" },
     { "acceptShares", "Allow party, raid and guild members to offer shared boards" },
@@ -61,7 +62,7 @@ local function set(key, value)
     else s[key] = value end
     ns.Log:Info("options", "%s = %s", key, tostring(value))
     ns:Fire("SETTINGS_CHANGED", key, value)
-    if key == "trackerShown" or key == "trackerHideInCombat" then ns:Fire("TRACKER_SETTINGS") end
+    if key == "trackerShown" or key == "trackerHideInCombat" or key == "trackerAllOpen" then ns:Fire("TRACKER_SETTINGS") end
     if key == "includeBank" then ns.Engine:MarkAll() end
 end
 

@@ -6,6 +6,7 @@ local Tracker = ns:NewModule("Tracker")
 local frame, header, rows = nil, nil, {}
 local inCombat = false
 local ROW_H = 30
+local offset = 0
 
 -- Cards to show, best first.
 function Tracker:Entries()
@@ -14,7 +15,7 @@ function Tracker:Entries()
         local card, board = entry.card, entry.board
         local role = DB:CardRole(board, card)
         local mine = ns.Engine:Owns(card, board)
-        if mine and role ~= "done" and (role == "doing" or card.track) then list[#list + 1] = entry end
+        if mine and role ~= "done" and (ns.db.settings.trackerAllOpen or role == "doing" or card.track) then list[#list + 1] = entry end
     end
     table.sort(list, function(a, b)
         if (a.card.track and 1 or 0) ~= (b.card.track and 1 or 0) then return a.card.track and true or false end
@@ -55,6 +56,11 @@ end
 function Tracker:Create()
     if frame then return end
     frame = CreateFrame("Frame", "TaskboardTracker", UIParent, "BackdropTemplate")
+    frame:EnableMouseWheel(true)
+    frame:SetScript("OnMouseWheel", ns.Wrap("scroll tracker", function(_, delta)
+        offset = math.max(0, offset - delta)
+        Tracker:Refresh()
+    end))
     frame:SetWidth(240)
     frame:SetFrameStrata("MEDIUM")
     frame:SetClampedToScreen(true)
@@ -80,6 +86,11 @@ function Tracker:Create()
             W.Menu(nil, {
                 { text = "Taskboard tracker", title = true },
                 { text = "Open board", func = function() ns.Board:Show() end },
+                { text = "Show all open tasks", checked = ns.db.settings.trackerAllOpen, func = function()
+                    ns.db.settings.trackerAllOpen = not ns.db.settings.trackerAllOpen
+                    offset = 0
+                    ns:Fire("TRACKER_SETTINGS")
+                end },
                 { text = "Collapse", checked = ns.db.ui.trackerCollapsed == true, func = function()
                     ns.db.ui.trackerCollapsed = not ns.db.ui.trackerCollapsed
                     Tracker:Refresh()
@@ -107,12 +118,14 @@ function Tracker:Refresh()
     self:Create()
     local entries = self:Entries()
     if #entries == 0 then frame:Hide() return end
-    Theme.Brand(header.text, string.format("  %d in progress", #entries))
     local collapsed = ns.db.ui.trackerCollapsed
     local shown = collapsed and 0 or math.min(#entries, s.trackerMax or 8)
+    offset = math.max(0, math.min(offset, #entries - math.max(1, shown)))
+    Theme.Brand(header.text, #entries > shown and not collapsed and
+        string.format("  %d-%d of %d (scroll)", offset + 1, offset + shown, #entries) or string.format("  %d tasks", #entries))
     for i = 1, shown do
         local r = row(i)
-        local entry = entries[i]
+        local entry = entries[offset + i]
         local card = entry.card
         r.card, r.board = card, entry.board
         r:ClearAllPoints()

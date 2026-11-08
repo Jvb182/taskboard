@@ -467,6 +467,14 @@ end
 -------------------------------------------------------------------------------
 -- Open
 -------------------------------------------------------------------------------
+function Editor:SyncHeight()
+    if not frame then return end
+    local boardFrame = ns.Board.frame
+    local saved = ns.db.ui.board
+    local height = boardFrame and boardFrame:GetHeight() or (saved and saved.h) or 500
+    frame:SetHeight(math.max(340, math.min(1100, height)))
+end
+
 function Editor:Open(card, board)
     self:Create()
     if current.card ~= card then
@@ -480,11 +488,10 @@ function Editor:Open(card, board)
     local boardFrame = ns.Board.frame
     if boardFrame and boardFrame:IsShown() then
         frame:SetPoint("TOPLEFT", boardFrame, "TOPRIGHT", 4, 0)
-        frame:SetHeight(math.max(420, boardFrame:GetHeight()))
     else
         frame:SetPoint("CENTER", 0, 0)
-        frame:SetHeight(560)
     end
+    self:SyncHeight()
     frame:Show()
     self:Refresh()
 end
@@ -494,6 +501,7 @@ function Editor:Current()
 end
 
 function Editor:OnLogin()
+    ns:On("BOARD_RESIZED", function() Editor:SyncHeight() end)
     for _, message in ipairs({ "PROGRESS_CHANGED", "BOARD_CHANGED", "BOARD_REFRESH", "BOARDS_CHANGED" }) do
         ns:On(message, function() Editor:Refresh() end)
     end

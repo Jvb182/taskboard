@@ -68,7 +68,7 @@ Help.SECTIONS = {
     } },
     { id = "settings", title = "Settings & sharing", entries = {
         { "h", "Boards, cards and layout" },
-        { "p", "Drag the title or empty top bar to move the main board; use the bottom-right grip to resize it. Its position and size are saved. Scroll sideways when extra columns do not fit." },
+        { "p", "Drag the title or empty top bar to move the main board; use the bottom-right grip to resize it. Its position and size are saved. The card editor follows the board's height as you resize, including when opened from the tracker. Its fields stay scrollable. Scroll the board sideways when extra columns do not fit." },
         { "p", "The Board menu switches boards and creates account-wide or character-only boards. It also renames, exports, imports and deletes boards. Search filters text, Tags filters by tag, and Mine hides cards belonging to other characters." },
         { "e", "/tb board Alchemy - switch to or create a board" },
         { "p", "Drag cards between columns or reorder them. Right-click a card to edit, move, duplicate, archive or delete it. The editor changes title, notes, goals, subtasks, tags, priority, character, reminder, repeat, tracker and map pin settings. Shared cards have editing restrictions." },

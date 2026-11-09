@@ -51,7 +51,8 @@ Mock.UNDOCUMENTED = {
     NUM_BAG_SLOTS = true, NUM_TOTAL_EQUIPPED_BAG_SLOTS = true, UISpecialFrames = true, StaticPopupDialogs = true,
     Minimap = true, UIParent = true, GameTooltip = true, DEFAULT_CHAT_FRAME = true, UIErrorsFrame = true,
     SlashCmdList = true, SOUNDKIT = true, YES = true, NO = true, ACCEPT = true, DECLINE = true,
-    BackdropTemplateMixin = true, Mixin = true, ChatFrameUtil = true, UiMapPoint = true, Settings = true,
+    BackdropTemplateMixin = true, Mixin = true, ChatFrameUtil = true, ChatEdit_ActivateChat = true,
+    CHAT_FRAMES = true, ChatFrame1 = true, ChatFrame1EditBox = true, UiMapPoint = true, Settings = true,
 }
 
 -------------------------------------------------------------------------------
@@ -388,6 +389,11 @@ function Mock.new(opts)
 
     env.UIParent = env.CreateFrame("Frame", "UIParent")
     env.UIParent._w, env.UIParent._h = 1920, 1080
+    env.ChatFrame1 = env.CreateFrame("Frame", "ChatFrame1", env.UIParent)
+    env.ChatFrame1EditBox = env.CreateFrame("EditBox", "ChatFrame1EditBox", env.ChatFrame1)
+    env.ChatFrame1.editBox = env.ChatFrame1EditBox
+    env.CHAT_FRAMES = { "ChatFrame1" }
+    env.ChatEdit_ActivateChat = function(box) if box then box:SetFocus() end end
     env.Minimap = env.CreateFrame("Frame", "Minimap", env.UIParent)
     env.Minimap._w, env.Minimap._h = 140, 140
     env.UISpecialFrames = {}

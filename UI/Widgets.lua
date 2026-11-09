@@ -258,8 +258,9 @@ function W.LocationToken(text, cursor)
     return start, finish, query
 end
 
-function W.LocationSuggestions(box)
-    local panel = CreateFrame("Frame", nil, box, "BackdropTemplate")
+function W.LocationSuggestions(box, opts)
+    opts = opts or {}
+    local panel = CreateFrame("Frame", nil, opts.chat and UIParent or box, "BackdropTemplate")
     panel:SetPoint("TOPLEFT", box, "BOTTOMLEFT", 0, -2)
     panel:SetSize(300, 200)
     panel:SetFrameStrata("DIALOG")
@@ -288,16 +289,17 @@ function W.LocationSuggestions(box)
         local name = matches[index]
         if not name or not start then return end
         local text = box:GetText()
-        local token = '@"' .. name .. '"'
+        local token = opts.plain and name or ('@"' .. name .. '"')
         local prefix = text:sub(1, start - 1) .. token
         local suffix = text:sub(finish + 1)
-        if suffix == "" then prefix = prefix .. " " end
+        if suffix == "" and not opts.plain then prefix = prefix .. " " end
         changing = true
         box:SetText(prefix .. suffix)
         box:SetCursorPosition(#prefix)
         changing = false
         panel:Hide()
         box:SetFocus()
+        if opts.onChoose then opts.onChoose(name) end
     end
     for i = 1, 8 do
         local index = i
@@ -307,8 +309,16 @@ function W.LocationSuggestions(box)
     refresh = function()
         if changing then return end
         if not box:HasFocus() or not box:IsVisible() then panel:Hide(); return end
+        local text = box:GetText()
+        if opts.onlyWhen and not opts.onlyWhen(text) then panel:Hide(); return end
         local query
-        start, finish, query = W.LocationToken(box:GetText(), box:GetCursorPosition())
+        if opts.plain then
+            start, finish = 1, #text
+            query = ns.Util.Trim(text:sub(1, box:GetCursorPosition()):gsub("^@", ""))
+            if query == "" then query = nil end
+        else
+            start, finish, query = W.LocationToken(text, box:GetCursorPosition())
+        end
         if not query then panel:Hide(); return end
         rememberPlace(GetRealZoneText and GetRealZoneText())
         rememberPlace(GetSubZoneText and GetSubZoneText())
@@ -343,16 +353,19 @@ function W.LocationSuggestions(box)
     box:HookScript("OnEditFocusLost", function() ns.After(0.1, "hide locations", function()
         if not box:HasFocus() then panel:Hide() end
     end) end)
-    local enter, escape = box:GetScript("OnEnterPressed"), box:GetScript("OnEscapePressed")
+    local enter, tab = box:GetScript("OnEnterPressed"), box:GetScript("OnTabPressed")
+    local escape, arrow = box:GetScript("OnEscapePressed"), box:GetScript("OnArrowPressed")
     box:SetScript("OnEnterPressed", ns.Wrap("choose location", function(self)
         if panel:IsShown() and matches[selected] then choose(selected) elseif enter then panel:Hide(); enter(self) end
     end))
-    box:SetScript("OnTabPressed", ns.Wrap("choose location", function() if panel:IsShown() then choose(selected) end end))
+    box:SetScript("OnTabPressed", ns.Wrap("choose location", function(self)
+        if panel:IsShown() and matches[selected] then choose(selected) elseif tab then tab(self) end
+    end))
     box:SetScript("OnEscapePressed", function(self)
         if panel:IsShown() then panel:Hide() elseif escape then escape(self) end
     end)
-    box:SetScript("OnArrowPressed", ns.Wrap("location navigation", function(_, key)
-        if not panel:IsShown() or #matches == 0 then return end
+    box:SetScript("OnArrowPressed", ns.Wrap("location navigation", function(self, key)
+        if not panel:IsShown() or #matches == 0 then if arrow then arrow(self, key) end; return end
         if key == "UP" then selected = math.max(1, selected - 1)
         elseif key == "DOWN" then selected = math.min(#matches, selected + 1) else return end
         offset = math.max(0, math.min(offset, selected - 1))
@@ -364,6 +377,28 @@ function W.LocationSuggestions(box)
         draw()
     end)
     return panel
+end
+
+local chatBoxes = setmetatable({}, { __mode = "k" })
+local function isTaskboardCommand(text)
+    return text:match("^%s*/tb%s+") or text:match("^%s*/taskboard%s+") or text:match("^%s*/todo%s+")
+end
+function W.AttachChatLocations(box)
+    if not box or chatBoxes[box] then return end
+    chatBoxes[box] = true
+    W.LocationSuggestions(box, { chat = true, onlyWhen = isTaskboardCommand })
+end
+function W.InstallChatLocations()
+    if type(CHAT_FRAMES) == "table" then
+        for _, name in ipairs(CHAT_FRAMES) do
+            local frame = _G[name]
+            if frame then W.AttachChatLocations(frame.editBox) end
+        end
+    end
+    W.AttachChatLocations(_G.ChatFrame1EditBox)
+    if ChatEdit_ActivateChat then
+        hooksecurefunc("ChatEdit_ActivateChat", function(box) W.AttachChatLocations(box) end)
+    end
 end
 
 -------------------------------------------------------------------------------

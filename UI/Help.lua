@@ -27,7 +27,7 @@ Help.SECTIONS = {
         { "e", "Finished preparations >done" },
         { "p", "Use #tag to group tasks. Priority is !low (!l, !1), !med (!medium, !m, !2), or !high (!h, !3, !urgent). Start in >todo, >doing (also >progress or >wip), or >done. Drag cards between board columns to change their status later." },
         { "h", "Locations and NPC reminders" },
-        { "p", "Type @ plus a letter to suggest zones and towns, not NPC names. @g narrows to @go for Goldshire. Click a result or use Up/Down and Tab/Enter. Enter first accepts the location; press it again to add the task. Scroll for more matches, or Escape to dismiss. Multiword names are quoted automatically. You can type a missing location manually." },
+        { "p", "Type @ plus a letter to suggest zones and towns, not NPC names. @g narrows to @go for Goldshire. Suggestions work in Quick Add and while typing a /tb or /todo task in chat. Click a result or use Up/Down and Tab/Enter. Enter first accepts the location; press it again to add the task. Scroll for more matches, or Escape to dismiss. Multiword names are quoted automatically. You can type a missing location manually. In the card editor's Remind me field, type the place name without @ to get suggestions." },
         { "e", "Buy vials @Goldshire" },
         { "e", 'Buy supplies @"Stormwind City"' },
         { "h", "Supported NPC type tags" },

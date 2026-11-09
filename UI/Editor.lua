@@ -101,10 +101,8 @@ function Editor:Create()
     ui.title.commitOnBlur = true
     y = y - 30
 
-    section("Column", y); y = y - 14
-    ui.columnRow = { buttons = {} }
-    ui.columnY = y
-    -- The remaining fields move as a group when the status grid gains rows.
+    -- Keep the remaining fields together so their content can resize with subtasks.
+    ui.fieldsY = y
     ui.fields = CreateFrame("Frame", nil, scrollContent)
     ui.fields:SetWidth(INNER)
     content = ui.fields
@@ -230,6 +228,12 @@ function Editor:Create()
     for i, opt in ipairs({ { "none", "Never" }, { "daily", "Daily" }, { "weekly", "Weekly" } }) do
         local b = W.Button(L, opt[2], 70, 20, function() apply({ recur = opt[1] ~= "none" and opt[1] or false }) end)
         b:SetPoint("TOPLEFT", (i - 1) * 74, ly)
+        b.selectedMark = b:CreateTexture(nil, "ARTWORK")
+        b.selectedMark:SetTexture(Theme.WHITE)
+        b.selectedMark:SetPoint("BOTTOMLEFT", 3, 3)
+        b.selectedMark:SetPoint("BOTTOMRIGHT", -3, 3)
+        b.selectedMark:SetHeight(3)
+        b.selectedMark:Hide()
         b.value = opt[1]
         ui.recur[#ui.recur + 1] = b
     end
@@ -412,35 +416,9 @@ function Editor:Refresh()
     if not ui.title:HasFocus() then ui.title:SetText(card.title) end
     ui.title:Refresh()
 
-    -- Column buttons are rebuilt because boards can have custom columns.
-    for _, b in ipairs(ui.columnRow.buttons) do b:Hide() end
-    local statusColumns = DB:StatusColumns(board)
-    local n = #statusColumns
-    local perRow = math.min(2, math.max(1, n))
-    local bw = math.floor((INNER - 4 * (perRow - 1)) / perRow)
-    local fieldOffset = -ui.columnY + math.ceil(n / perRow) * 24 + 4
+    local fieldOffset = -ui.fieldsY
     ui.fields:ClearAllPoints()
     ui.fields:SetPoint("TOPLEFT", scrollContent, "TOPLEFT", 0, -fieldOffset)
-    for i, col in ipairs(statusColumns) do
-        local b = ui.columnRow.buttons[i]
-        if not b then
-            b = W.Button(scrollContent, "", bw, 20)
-            W.Tooltip(b, function(self) return self.columnName end)
-            ui.columnRow.buttons[i] = b
-        end
-        b:SetWidth(bw)
-        b:ClearAllPoints()
-        b:SetPoint("TOPLEFT", ((i - 1) % perRow) * (bw + 4), ui.columnY - math.floor((i - 1) / perRow) * 24)
-        b.columnName = col.name
-        b.label:SetWidth(bw - 12)
-        b.label:SetWordWrap(false)
-        b:SetLabel(col.name)
-        b:SetActive(col.id == card.column)
-        b:SetScript("OnClick", ns.Wrap("editor column", function()
-            if not ro then DB:MoveCard(board, card.id, col.id) Editor:Refresh() end
-        end))
-        b:Show()
-    end
 
     ui.priority:Select(card.priority)
     if not ui.tags:HasFocus() then ui.tags:SetText(table.concat(card.tags, " ")) end
@@ -487,7 +465,13 @@ function Editor:Refresh()
     ui.zone:Refresh()
     local npc = card.where and card.where.npc or (card.where and card.where.zone and "zone") or "none"
     for _, b in ipairs(ui.npc) do b:SetActive(b.value == npc) end
-    for _, b in ipairs(ui.recur) do b:SetActive(b.value == (card.recur or "none")) end
+    for _, b in ipairs(ui.recur) do
+        local selected = b.value == (card.recur or "none")
+        b:SetActive(selected)
+        b.selectedMark:SetVertexColor(unpack(Theme.colors.accent))
+        b.selectedMark:SetShown(selected)
+        b.label:SetTextColor(unpack(selected and Theme.colors.accent or Theme.colors.text))
+    end
     ui.streak:SetText(card.recur and ("Streak " .. (card.streak or 0)) or "")
     ui.recurItems:SetShown(card.recur ~= nil)
     ui.recurItems:SetChecked(card.recurItems ~= "stock")
@@ -621,5 +605,4 @@ end
 function Editor:Internals()
     return { frame = frame, ui = ui }
 end
-
 

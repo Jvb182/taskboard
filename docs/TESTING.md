@@ -9,10 +9,13 @@ Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), i
 3. Enable Lua error display with `/console scriptErrors 1`. Log in and run `/tb selftest` and `/tb diag`.
 4. Check `/tb`, the minimap button and all three key bindings. Reload with a populated board and verify cards, order, settings, position and recurring progress survive.
 5. Upgrade from an actual Questboard installation using the packaged legacy loader. Verify old boards/settings/logs appear in Taskboard, legacy bindings still work, and a second login does not overwrite new edits with the old save.
+6. Check the ZIP layouts: the default CurseForge ZIP contains only `Taskboard/`, and the optional Legacy Loader ZIP contains only `Questboard/Questboard.toc`. Neither includes `tests/manual-addons/`.
+
+The optional `tests/manual-addons/TaskboardWelcomePreview` helper opens the current welcome card on an existing board for copy/layout review. It adds a card and does not satisfy the isolated fresh-install check.
 
 ## Appearance and sound
 
-1. Open `/tb options`. Try all seven themes, including Classic stone and Classic leather, and accents while the board, tracker and a popup are visible. Confirm changes apply immediately and survive reload.
+1. Open `/tb options`. Try all nine theme choices, including Classic stone, Classic leather and Quest parchment, and accents while the board, tracker and a popup are visible. Confirm changes apply immediately and survive reload.
 2. Drag opacity from 35% to 100%. Check that board/tracker backgrounds fade and text remains readable over a bright outdoor scene and a dark dungeon. Settings, editor, Help, logs and the Board dropdown must remain opaque.
 3. Preview every sound choice. Move cards between statuses, manually finish one, automatically complete an item goal, and check manual/automatic subtasks. Each event uses its selected sound; Off and the master switch silence it.
 4. Disable visual popups but leave sound on. Completions/reminders must still sound. Reordering within a column and daily/weekly resets must stay silent. Check sound levels with the game's own audio settings.
@@ -48,13 +51,13 @@ Test narrow/wide windows, UI scaling, long titles and notes, a full board, eight
 
 ## Bug reports
 
-Include the version, client build, exact steps, expected and observed result, `/tb diag`, and `/tb log show`. Include screenshots for layout problems. Keep the SavedVariables backup until migration and reset behavior have been checked.
+Include the version, client build, exact steps, expected and observed result, `/tb diag`, and relevant `/tb log show` lines. Include screenshots for layout problems. Review copied diagnostics and images for private names or task details. Use the project Issues tab (or Comments if unavailable); test-build users can report to the person who shared the addon. Keep the SavedVariables backup until migration and reset behavior have been checked.
 
 ## 1.3.0 focused in-game checks
 
 - [ ] Add populated custom columns, move them left/right through their header menus, and reload. Cards and status roles stay intact. Boundary actions are disabled; hidden columns keep their saved slots.
 - [ ] Archive more than 25 tasks. Browse Previous/Next pages through all tasks, restore one on the last page, and verify the total drops by one.
-- [ ] Check parchment artwork and dark text in Classic stone and Classic leather, as well as Quest parchment. Check narrow columns, different window sizes and UI scales.
+- [ ] Check Classic stone's solid dark Blizzard backdrop and light text. Check parchment artwork and dark text in Classic leather and Quest parchment. Try narrow columns, different window sizes and UI scales.
 - [ ] Read Help with its larger body text/headings; check wrapping and scrolling. Search across tabs for mailbox, sound and columns, including mixed case and no results. Clear or select a tab to restore normal browsing.
 
 - [ ] Switch one character board to Simple; confirm In Progress/custom tasks move to To Do with progress preserved. Other characters retain their own layout. Reload and switch back.

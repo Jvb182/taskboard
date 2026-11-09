@@ -22,11 +22,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("spec", nargs="?")
     parser.add_argument("--report-json", type=Path, help="Write named test results for coverage review")
+    parser.add_argument("--addon-root", type=Path, default=Path(ROOT),
+                        help="Load runtime files from this Taskboard folder (for packaged ZIP tests)")
     args = parser.parse_args()
+    addon_root = args.addon_root.resolve()
+    if not (addon_root / "Taskboard.toc").is_file():
+        parser.error(f"Missing Taskboard.toc in addon root: {addon_root}")
     lua = lupa_lua51.LuaRuntime(unpack_returned_tuples=True)
     g = lua.globals()
     g.QB_TEST_ROOT = ROOT + "tests/"
-    g.QB_ADDON_ROOT = ROOT
+    g.QB_ADDON_ROOT = addon_root.as_posix() + "/"
     if args.spec:
         g.QB_ONLY = args.spec
     failed = lua.execute('return dofile(QB_TEST_ROOT .. "run.lua")')
@@ -41,4 +46,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

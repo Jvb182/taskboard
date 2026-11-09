@@ -23,7 +23,7 @@ Source: [live Taskboard QA page](https://chatgpt.com/space/page_765a50b302b88191
 - [x] **MAIL1303** With Automatic completion off, opening a mailbox leaves plain check-mail tasks open. Turn it on and open the mailbox again: a To Do check-mail card and a Daily In Progress check-mail card both move to Done once. Verified live on Apollo on 9 November; the separate plain Mail title needs retesting after the updated addon loads.
 
 
-- [x] **SET1301** Reset all data shows a warning; Cancel keeps the old task and settings. Confirm clears cards, settings, learned mailbox spots, statistics, and diagnostic log, then an empty board survives reload. Passed in the mocked client; live UI action remains untested.
+- [x] **SET1301** Reset all data shows a warning; Cancel keeps the old task and settings. Confirm clears cards, settings, statistics, and diagnostic log while preserving learned mailbox spots; an empty board survives reload. Passed in the mocked client; live UI action remains untested.
 
 
 - [x] **SND1305** All seven selectable sounds play through Preview in the mocked client; Off remains silent. The new choices are Page turn, Coin, Message, and Alert.
@@ -775,7 +775,7 @@ These cases remain unchecked because their full acceptance criteria require live
 
 - [ ] **MAIL1304** After a UI reload, open a mailbox with a plain `Mail @mail` task and Automatic completion on. It moves to Done; a Send items task stays open.
 
-- [ ] **SET1302** On disposable data in WoW, cancel Reset all data once and check that the data remains. Then confirm and reload: the board is empty, settings are defaults, and learned mailbox spots are cleared. Partial live QA: Cancel closed the warning and retained the saved `QA repeat sample` card; the confirmed reset and post-reset reload remain untested.
+- [ ] **SET1302** On disposable data in WoW, cancel Reset all data once and check that the data remains. Then confirm and reload: the board is empty, settings are defaults, and learned mailbox spots remain available. Partial live QA: Cancel closed the warning and retained the saved `QA repeat sample` card; the confirmed reset and post-reset reload remain untested.
 
 - [ ] **SND1306** In WoW, preview the seven sounds for each event, compare volume and clarity, and verify Off remains silent. Partial live QA: the event dropdown showed Off and all seven named sounds, including Page turn, Coin, Message, and Alert. Audible preview remains for the player.
 

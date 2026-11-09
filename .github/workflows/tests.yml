@@ -19,6 +19,8 @@ jobs:
       - run: python tests/run.py --report-json dist/qa-results.json
       - run: python tests/tools/package.py
       - run: python tests/tools/package.py --curseforge
+      - run: python tests/tools/package.py --legacy-loader
+      - run: python tests/tools/check_package.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -27,4 +29,11 @@ jobs:
             dist/Taskboard-*.zip
             dist/qa-results.json
           if-no-files-found: error
-
+  required-tests:
+    name: required-tests
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+    steps:
+      - name: Require both test platforms
+        run: test '${{ needs.test.result }}' = 'success'

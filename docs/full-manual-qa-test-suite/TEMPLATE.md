@@ -31,7 +31,7 @@ Copy this template to `YYYY-MM-DD-taskboard-qa.md` for each run. Fill in the run
 
 - [ ] **SET1301** Click Reset all data, read the warning, then Cancel. Existing boards, tasks, settings, learned mailbox spots, statistics, and log remain unchanged.
 
-- [ ] **SET1302** On disposable data, confirm Reset all data. After reload, one empty character board exists, all settings are defaults, and learned mailbox spots, statistics, and diagnostic history are cleared. Old Questboard data is not reimported.
+- [ ] **SET1302** On disposable data, confirm Reset all data. After reload, one empty character board exists and all settings, statistics, and diagnostic history are cleared. Learned mailbox spots remain available. Old Questboard data is not reimported.
 
 - [ ] **SND1305** Assign and preview Soft click, Chime, Quest complete, Page turn, Coin, Message, and Alert for each event. Each choice plays; Off is silent.
 

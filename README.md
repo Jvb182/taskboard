@@ -88,13 +88,13 @@ Only these NPC type tags are recognized: `@bank`, `@vendor`/`@merchant`, `@mail`
 
 ## Install
 
-For CurseForge, use the single-folder `Taskboard-1.3.0-CurseForge.zip` built with `python tests/tools/package.py --curseforge`. First-time users need only the Taskboard folder. Existing Questboard users should follow the one-time migration instructions below using the two-folder GitHub upgrade ZIP before switching to CurseForge updates. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
+For CurseForge, use the single-folder `Taskboard-<version>-CurseForge.zip` built with `python tests/tools/package.py --curseforge`; `<version>` comes from `Taskboard.toc`. First-time users need only that file. Existing Questboard users need the optional legacy loader described below. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
 
-For a new install, extract the CurseForge ZIP so `World of Warcraft/_forever_/Interface/AddOns/Taskboard/Taskboard.toc` exists. For a Questboard upgrade, use the separate two-folder GitHub ZIP; its small `Questboard/Questboard.toc` compatibility folder only loads legacy saved data and has no UI or tracking code. Restart the game after installing the newly named add-on.
+For a new install, extract the CurseForge ZIP so `World of Warcraft/_forever_/Interface/AddOns/Taskboard/Taskboard.toc` exists. Restart the game after installing the newly named add-on.
 
-**Upgrading from Questboard:** with the game closed, back up your old SavedVariables, then extract the ZIP and allow it to replace `Questboard/Questboard.toc`. Enable Taskboard and **Taskboard - legacy data loader** for the first login. Taskboard copies existing boards, settings and logs once, then saves to `TaskboardDB`/`TaskboardLog`; the old save is left intact. After a successful logout/reload and verification of your boards, the legacy loader can be disabled. Do not run the original Questboard code alongside Taskboard.
+**Upgrading from Questboard:** with the game closed, back up your old SavedVariables. Install Taskboard, then download the optional `Taskboard-<version>-Legacy-Loader.zip` from the project's CurseForge Files page and extract it into `Interface/AddOns/`, replacing `Questboard/Questboard.toc` if asked. The loader contains only a TOC: it loads the old saved data without running the original Questboard code. Enable Taskboard and **Taskboard - legacy data loader** for one login. Taskboard copies existing boards, settings and logs into `TaskboardDB`/`TaskboardLog`; the old save is left intact. After a logout/reload and verification, disable or remove the loader. CurseForge's app does not install optional additional files automatically, so download this helper manually from the website. Do not run the original Questboard code alongside Taskboard.
 
-For a source checkout, install the runtime folder as `Taskboard` and also copy `compat/Questboard` alongside it if you need legacy migration. Running `python tests/tools/package.py` prepares the correct layout automatically.
+For a source checkout, install the runtime folder as `Taskboard` and also copy `compat/Questboard` alongside it if you need legacy migration. `python tests/tools/package.py` builds a combined manual upgrade ZIP; `--legacy-loader` builds the standalone helper.
 
 Open the board with `/tb` or the minimap button, or bind a key under Key Bindings → AddOns.
 
@@ -133,13 +133,16 @@ To refresh the fixture after a client patch, run `tests/tools/gen_api_fixture.py
 
 What the offline tests cannot cover: texture paths, real layout and visuals, and real server behavior such as item cache timing and addon-message throttling. Those need an in-game check.
 
-See [the in-game test checklist](docs/TESTING.md) before releasing. CI runs Lua 5.1 tests on Windows and Linux, then builds an installable ZIP:
+See [the in-game test checklist](docs/TESTING.md) before releasing. CI runs Lua 5.1 tests on Windows and Linux, builds all three ZIP layouts, checks their exact contents, and runs the suite against the extracted CurseForge package:
 
 ```
 python tests/tools/package.py
+python tests/tools/package.py --curseforge
+python tests/tools/package.py --legacy-loader
+python tests/tools/check_package.py
 ```
 
-The archive contains the Taskboard runtime and the legacy data loader, ready to extract into `Interface/AddOns/`.
+The default archive contains the Taskboard runtime and legacy data loader for a manual upgrade. The CurseForge archive contains only Taskboard; the Legacy Loader archive is an optional manual download. See [architecture](docs/ARCHITECTURE.md) and [coverage](docs/QA-COVERAGE.md) for module boundaries, test evidence and the remaining real-client checks.
 
 
 ## Board layouts and custom styling (1.3.0)
@@ -156,6 +159,6 @@ Use **Board settings > Simple mode (To Do / Done)** to simplify one character's 
 
 **Sounds > Repeat sound while nearby tasks flash** is off by default. It uses the reminder sound every 15, 30 or 60 seconds while an eligible flashing task is visible, at most once per interval. It respects sound/reminder switches and stops when tasks are completed, no longer nearby, or the tracker is hidden/collapsed.
 
-**General > Reset all data** asks for confirmation before clearing every board, task, setting, learned mailbox location, statistic and diagnostic log on this account. Cancel keeps the existing data.
+**General > Reset all data** asks for confirmation before clearing every board, task, setting, statistic and diagnostic log on this account. Learned mailbox locations are kept. Cancel keeps the existing data.
 
 Set the board, tracker and Quick Add shortcuts in **WoW Key Bindings > AddOns > Taskboard**; General Settings and Help explain where to find them.

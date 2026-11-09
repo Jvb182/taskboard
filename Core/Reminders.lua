@@ -170,14 +170,29 @@ function Reminders:IsNearMailbox()
     return nearMailbox
 end
 
+function Reminders:MailboxStatus()
+    local continent, x, y = playerWorldPosition()
+    local nearest
+    for _, spot in ipairs(ns.db.mailboxes or {}) do
+        local d2 = continent and distanceSquared(spot, continent, x, y)
+        if d2 and (not nearest or d2 < nearest) then nearest = d2 end
+    end
+    local eligible = 0
+    for _, entry in ipairs(openCards()) do
+        if entry.card.where and entry.card.where.npc == "mail" then eligible = eligible + 1 end
+    end
+    return string.format("Mailbox: %d learned, %d eligible task(s), position %s, nearest %s, window %s, nearby %s, reminders %s",
+        #(ns.db.mailboxes or {}), eligible, continent and "available" or "unavailable",
+        nearest and string.format("%.1f yards", math.sqrt(nearest)) or "none on this map/continent",
+        mailOpen and "open" or "closed", nearMailbox and "yes" or "no", ns.db.settings.reminders and "on" or "off")
+end
+
 function Reminders:CompleteMailChecks()
     if not ns.db.settings.autoComplete then return end
     for _, entry in ipairs(openCards()) do
         local card = entry.card
         if card.where and card.where.npc == "mail" and not card.goal and #card.subtasks == 0 then
-            local title = Util.Trim(Util.Lower(card.title):gsub("[%p%s]+", " "))
-            if title == "check mail" or title == "check mailbox" or
-                title == "check my mail" or title == "check my mailbox" then
+            if ns.Parser.IsMailCheck(card.title) then
                 local done = DB:ColumnByRole(entry.board, "done")
                 if done then DB:MoveCard(entry.board, card.id, done.id, nil, "mailbox opened") end
             end

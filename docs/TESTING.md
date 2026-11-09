@@ -1,4 +1,4 @@
-# Taskboard 1.2.1 in-game test checklist
+# Taskboard 1.2.2 in-game test checklist
 
 Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), interface 16001. They cannot certify real rendering, client event order or server delivery. Record `/tb diag` and the actual client build with each test report.
 

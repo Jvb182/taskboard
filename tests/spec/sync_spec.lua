@@ -63,6 +63,76 @@ describe("Sync wire format", function()
 end)
 
 describe("Sharing between two players", function()
+    it("declines an offer without importing and accepts a fresh offer", function()
+        local m, ns = T.client(grouped("Bob"))
+        local board = ns.DB.NormalizeBoard({ id = "offered-qa", name = "Offered", cards = {
+            c = { id = "c", title = "Shared task" },
+        } })
+        T.ok(ns.Sync:HandlePayload({ k = "board", v = 1, board = board }, "Alice-Forever", "PARTY"))
+        T.eq(#m.popups, 1)
+        m.CancelPopup()
+        T.eq(ns.db.boards[board.id], nil)
+        T.eq(next(ns.Sync.offers), nil)
+        T.ok(ns.Sync:HandlePayload({ k = "board", v = 2, board = board }, "Alice-Forever", "PARTY"))
+        m.AcceptPopup()
+        T.ok(ns.db.boards[board.id])
+        T.noErrors(ns)
+    end)
+
+    it("uses raid and guild channels when those groups are available", function()
+        local m, ns = T.client({ name = "Alice", setup = function(mm)
+            mm.state.inGroup, mm.state.inRaid, mm.state.inGuild = true, true, true
+        end })
+        local board = ns.DB:GetActiveBoard()
+        local ok, channel = ns.Sync:ShareBoard(board, "raid")
+        T.ok(ok); T.eq(channel, "RAID")
+        ok, channel = ns.Sync:ShareBoard(board, "guild")
+        T.ok(ok); T.eq(channel, "GUILD")
+        m.Advance(5)
+        local seenRaid, seenGuild = false, false
+        for _, sent in ipairs(m.sent) do
+            if sent.channel == "RAID" then seenRaid = true end
+            if sent.channel == "GUILD" then seenGuild = true end
+        end
+        T.ok(seenRaid); T.ok(seenGuild); T.noErrors(ns)
+    end)
+
+    it("closes a recipient editor when the owner removes its open card", function()
+        local mA, nsA = T.client(grouped("Alice"))
+        local mB, nsB = T.client(grouped("Bob"))
+        local own = nsA.DB:GetActiveBoard()
+        local card = nsA.Commands:Add("Remove shared card")
+        T.ok(nsA.Sync:ShareBoard(own, "party"))
+        mA.Advance(5); deliver(mA, mB, "Alice-Forever"); mB.AcceptPopup()
+        local received = nsB.db.boards[own.id]
+        nsB.Editor:Open(received.cards[card.id], received)
+        T.ok(nsB.Editor:Internals().frame:IsShown())
+        nsA.DB:DeleteCard(own, card.id)
+        mA.Advance(8); deliver(mA, mB, "Alice-Forever")
+        T.no(nsB.Editor:Internals().frame:IsShown())
+        T.eq(nsB.db.boards[own.id].cards[card.id], nil)
+        T.noErrors(nsA); T.noErrors(nsB)
+    end)
+
+    it("retains owner and recipient boards with their permissions after both reload", function()
+        local mA, nsA = T.client(grouped("Alice"))
+        local mB, nsB = T.client(grouped("Bob"))
+        local own = nsA.DB:GetActiveBoard()
+        local bobOwn = nsB.DB:GetActiveBoard()
+        local card = nsA.Commands:Add("Persist shared task")
+        T.ok(nsA.Sync:ShareBoard(own, "party"))
+        mA.Advance(5); deliver(mA, mB, "Alice-Forever"); mB.AcceptPopup()
+        local _, alice = T.client(grouped("Alice"), mA.Logout())
+        local _, bob = T.client(grouped("Bob"), mB.Logout())
+        T.ok(alice.db.boards[own.id].shared.owner)
+        T.ok(bob.db.boards[bobOwn.id], "recipient kept a separate personal board")
+        local received = bob.db.boards[own.id]
+        T.eq(received.scope, "shared")
+        T.ok(bob.DB:IsReadOnly(received))
+        T.eq(received.cards[card.id].title, "Persist shared task")
+        T.noErrors(alice); T.noErrors(bob)
+    end)
+
     it("lets a recipient set a local tracker preference in the editor across owner updates", function()
         local m, ns = T.client(grouped("Bob"))
         local source = ns.DB.NormalizeBoard({ id = "remote-qa", name = "Alice board", cards = {
@@ -112,6 +182,10 @@ describe("Sharing between two players", function()
         T.ok(member, "Alice sees Bob")
         T.near(member[card.id].frac, 0.4, 0.001)
         T.eq(member[card.id].text, "Peacebloom 4/10")
+        mA.Loot(2447, 2)
+        mA.Advance(1)
+        T.eq(card.progress.cur, 2, "Alice sees her own bags")
+        T.eq(cardB.progress.cur, 4, "Bob keeps separate progress")
 
         -- Members can't move the owner's cards.
         mB.Loot(2447, 10)

@@ -18,8 +18,8 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
   - Search, filter by tag, and show only this character's cards.
   - One board per character, accessible from your other characters. Older local boards merge by card owner on upgrade; received shared boards remain separate.
   - A horizontal scrollbar keeps extra columns reachable in narrow windows.
-- **Make it yours:** `/tb options` → **Appearance** offers Midnight, Warm leather, Forest, Arcane, High contrast, Classic stone and Classic leather themes. The classic skins use original WoW frame artwork. Sky, Gold, Mint, Rose and Lilac accents and 35–100% board/tracker opacity remain available. Settings, editor, Help, logs and popup menus stay opaque. Closing the board also closes its settings window.
-- **Event sounds:** `/tb options` → **Sounds** lets you choose Off, Soft click, Chime or Quest complete separately for status changes, completions, subtasks and zone/NPC reminders. Each has a Preview button. Manual and automatic completions both give feedback; reordering and daily/weekly resets are silent. The master Play sounds switch is under General, and volume follows the game settings. Sounds can remain on when popups are off.
+- **Make it yours:** `/tb options` → **Appearance** offers Midnight, Warm leather, Forest, Arcane, High contrast, Classic stone, Classic leather, Quest parchment and Custom. Classic stone uses a dark Blizzard dialog backdrop with light text; Classic leather and Quest parchment use warm parchment with dark text. Sky, Gold, Mint, Rose and Lilac accents, custom RGB/hex colors and 35–100% board/tracker opacity are available. Settings, editor, Help, logs and popup menus stay opaque. Closing the board closes its dependent windows.
+- **Event sounds:** `/tb options` → **Sounds** offers Off, Soft click, Chime, Quest complete, Page turn, Coin, Message and Alert separately for status changes, completions, subtasks and zone/NPC reminders. Each has a Preview button. Optional repeating sound can play every 15, 30 or 60 seconds while a nearby task flashes. Manual and automatic completions both give feedback; reordering and daily/weekly resets are silent. The master Play sounds switch is under General, and volume follows the game settings. Sounds can remain on when popups are off.
 - **Live goals:** each card or subtask can track any of these:
 
   | Goal | Example |
@@ -49,7 +49,7 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
   | `;` | separates subtasks |
 
 - **Reminders:** a card pinned to a zone or an NPC pops up when you arrive there or open that NPC.
-  - Plain `Check mail`, `Check mailbox`, `Open mail` and `Visit the mailbox` tasks automatically receive a Mail reminder, including existing tasks after reload. Explicit locations win; choosing Off in the editor stays off. `@mail` and `@mailbox` both work for other mail errands.
+  - Plain `Mail`, `Mailbox`, `Check mail`, `Check mailbox`, `Open mail` and `Visit the mailbox` tasks automatically receive a Mail reminder, including existing tasks after reload. Explicit locations win; choosing Off in the editor stays off. `@mail` and `@mailbox` both work for other mail errands.
   - Mailbox spots are learned when you open them. On later visits, `@mail` tasks remind you within 35 yards and pulse in the tracker while nearby. Taskboard cannot detect an unvisited mailbox's position from the client API.
   - With automatic completion enabled, opening a mailbox finishes plain `Check mail @mail` tasks (also `Check mailbox` and `Check my mail`, including trailing punctuation). Tasks with goals or subtasks, and other `@mail` tasks, remain open until you finish them.
   - At the AH: lists the goal items you still need.
@@ -86,7 +86,7 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
 
 For CurseForge, use the single-folder `Taskboard-1.3.0-CurseForge.zip` built with `python tests/tools/package.py --curseforge`. First-time users need only the Taskboard folder. Existing Questboard users should follow the one-time migration instructions below using the two-folder GitHub upgrade ZIP before switching to CurseForge updates. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
 
-Use the packaged ZIP: extract both included folders into `World of Warcraft/_forever_/Interface/AddOns/`. The main addon is `Taskboard/Taskboard.toc`. The small `Questboard/Questboard.toc` compatibility folder only loads legacy saved data and has no UI or tracking code. Restart the game after installing the newly named add-on.
+For a new install, extract the CurseForge ZIP so `World of Warcraft/_forever_/Interface/AddOns/Taskboard/Taskboard.toc` exists. For a Questboard upgrade, use the separate two-folder GitHub ZIP; its small `Questboard/Questboard.toc` compatibility folder only loads legacy saved data and has no UI or tracking code. Restart the game after installing the newly named add-on.
 
 **Upgrading from Questboard:** with the game closed, back up your old SavedVariables, then extract the ZIP and allow it to replace `Questboard/Questboard.toc`. Enable Taskboard and **Taskboard - legacy data loader** for the first login. Taskboard copies existing boards, settings and logs once, then saves to `TaskboardDB`/`TaskboardLog`; the old save is left intact. After a successful logout/reload and verification of your boards, the legacy loader can be disabled. Do not run the original Questboard code alongside Taskboard.
 
@@ -142,7 +142,7 @@ The archive contains the Taskboard runtime and the legacy data loader, ready to 
 
 Click a column header and choose **Move column left/right** to reorder columns without moving their cards. The order persists per board. **Board > Show archived cards** shows the archived total and Previous/Next page controls, with 20 tasks per page; click a task to restore it.
 
-Help uses larger 16-pixel body text and 18-pixel headings. Its search box searches all tabs, including examples; Clear or selecting a tab restores normal browsing. Classic stone, Classic leather and Quest parchment all use quest parchment backgrounds with dark text. Classic skins retain their original window borders.
+Help uses larger 16-pixel body text and 18-pixel headings. Its search box searches all tabs, including examples; Clear or selecting a tab restores normal browsing. Classic stone uses a solid dark Blizzard dialog backdrop with light text. Classic leather and Quest parchment use warm parchment with dark text. Classic skins retain their original window borders.
 
 Use **Board > Simple mode (To Do / Done)** to simplify one character's board. Existing In Progress/custom-column tasks move to To Do with their progress intact; the stored columns return when Standard mode is restored. Automatic starting is suspended in Simple mode, while goal tracking, reminders and completion continue. The tracker includes open Simple tasks, but can still be hidden.
 
@@ -151,5 +151,7 @@ Use **Board > Simple mode (To Do / Done)** to simplify one character's board. Ex
 **Appearance > Quest parchment** uses the game's quest parchment artwork and dark text. **Custom theme colors** offers RGB sliders and hex input for background, text, borders and accent; Apply saves, Cancel discards, and Reset appearance restores defaults. Help and other dialogs have a solid backing. Closing the board closes Settings, Help, the picker and the editor, committing focused card edits.
 
 **Sounds > Repeat sound while nearby tasks flash** is off by default. It uses the reminder sound every 15, 30 or 60 seconds while an eligible flashing task is visible, at most once per interval. It respects sound/reminder switches and stops when tasks are completed, no longer nearby, or the tracker is hidden/collapsed.
+
+**General > Reset all data** asks for confirmation before clearing every board, task, setting, learned mailbox location, statistic and diagnostic log on this account. Cancel keeps the existing data.
 
 Set the board, tracker and Quick Add shortcuts in **WoW Key Bindings > AddOns > Taskboard**; General Settings and Help explain where to find them.

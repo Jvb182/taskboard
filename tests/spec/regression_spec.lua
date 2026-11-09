@@ -56,6 +56,10 @@ describe("Review regressions: editor and ownership", function()
     it("text imports reassign goals and clear foreign progress", function()
         local ma, a = T.client({ name = "Alice" })
         local card = a.Commands:Add("20 Peacebloom")
+        card.progress = { cur = 12, target = 20, text = "Peacebloom 12/20" }
+        card.goal.baseline = 9
+        card.goal.baselineBank = true
+        card.auto = { started = true, completed = true }
         local text = assert(a.Serialize.Export(a.DB:GetActiveBoard()))
         local mb, b = T.client({ name = "Bob" })
         b.LogWindow:ShowImport()
@@ -68,8 +72,63 @@ describe("Review regressions: editor and ownership", function()
         end
         T.ok(imported)
         T.eq(imported.char, "Bob-Forever")
+        T.eq(imported.progress.cur, 0)
+        T.eq(imported.goal.baseline, nil)
+        T.eq(imported.goal.baselineBank, nil)
+        T.eq(imported.auto.started, nil)
         mb.Loot(2447, 20); mb.Advance(1)
         T.eq(imported.column, "done")
+        T.noErrors(b)
+    end)
+
+    it("round-trips item-link text, punctuation and notes without markup injection", function()
+        local ma, a = T.client({ name = "Alice" })
+        local link = "|cnIQ1:|Hitem:765:::::::::|h[Silverleaf]|h|r"
+        local card = a.Commands:Add("get 17 " .. link .. " - 'QA' [test]")
+        local board = a.DB:GetActiveBoard()
+        a.DB:UpdateCard(board, card, { notes = "Line one\n|TInterface/Icons/INV_Misc_QuestionMark:16|t\nLine three" })
+        local export = assert(a.Serialize.Export(board))
+        local mb, b = T.client({ name = "Bob" })
+        b.LogWindow:ShowImport()
+        b.LogWindow:Internals().box:SetText(export)
+        b.LogWindow:DoImport()
+        local found
+        for _, candidate in pairs(b.DB:GetActiveBoard().cards) do
+            if candidate.title == card.title then found = candidate end
+        end
+        T.ok(found)
+        T.eq(found.title, "get 17 [Silverleaf] - 'QA' [test]")
+        T.eq(found.goal.itemID, 765)
+        T.eq(found.goal.target, 17)
+        T.contains(found.notes, "Line one")
+        T.contains(found.notes, "Line three")
+        T.no(found.notes:find("|T", 1, true))
+        T.noErrors(b)
+    end)
+
+    it("imports every original status including Done and archived cards", function()
+        local ma, a = T.client({ name = "Alice" })
+        local source = a.DB:GetActiveBoard()
+        local cards = {
+            a.Commands:Add("QA import todo"), a.Commands:Add("QA import working"),
+            a.Commands:Add("QA import finished"), a.Commands:Add("QA import archived"),
+        }
+        a.DB:MoveCard(source, cards[2].id, "doing")
+        a.DB:MoveCard(source, cards[3].id, "done")
+        cards[4].archived = true
+        a.DB:UpdateCard(source, cards[4], { notes = "Keep this note" })
+        local export = assert(a.Serialize.Export(source))
+        local mb, b = T.client({ name = "Bob" })
+        b.LogWindow:ShowImport(); b.LogWindow:Internals().box:SetText(export); b.LogWindow:DoImport()
+        local imported = b.DB:GetActiveBoard()
+        local found = {}
+        for _, card in pairs(imported.cards) do found[card.title] = card end
+        for _, card in ipairs(cards) do T.ok(found[card.title], card.title) end
+        T.eq(imported.cards[found[cards[1].title].id].column, "todo")
+        T.eq(found[cards[2].title].column, "doing")
+        T.eq(found[cards[3].title].column, "done")
+        T.ok(found[cards[4].title].archived)
+        T.eq(found[cards[4].title].notes, "Keep this note")
         T.noErrors(b)
     end)
 
@@ -101,6 +160,32 @@ describe("Review regressions: editor and ownership", function()
 end)
 
 describe("Review regressions: reset periods", function()
+    it("tracks 17 extra Silverleaf above 15 held and decreases with net spending", function()
+        local m, ns = T.client()
+        m.Loot(765, 15)
+        local c = ns.Commands:Add("get 17 Silverleaf *daily")
+        T.eq(c.goal.baseline, 15)
+        T.eq(c.progress.cur, 0)
+        m.Loot(765, 5); m.Advance(1)
+        T.eq(c.progress.cur, 5)
+        m.RemoveItem(765, 3); m.Advance(1)
+        T.eq(c.progress.cur, 2)
+        T.eq(c.column, "doing")
+        T.noErrors(ns)
+    end)
+
+    it("resets recurring item subtasks to the next period's inventory baseline", function()
+        local m, ns = T.client()
+        local c = ns.Commands:Add("Alchemy prep *daily; 2 Peacebloom")
+        m.Loot(2447, 2); m.Advance(1)
+        T.ok(c.subtasks[1].done)
+        ns.Recurring:Reset("daily"); m.Advance(1)
+        T.no(c.subtasks[1].done)
+        T.eq(c.subtasks[1].goal.baseline, 2)
+        T.eq(c.subtasks[1].progress.cur, 0)
+        T.noErrors(ns)
+    end)
+
     it("resets hidden character boards when an alt logs in first", function()
         local ma, a = T.client({ name = "Alice" })
         local ba = a.DB:CreateBoard("Alice daily", "character")
@@ -399,3 +484,4 @@ describe("Release usability", function()
         T.eq(c.progress.cur, 2)
     end)
 end)
+

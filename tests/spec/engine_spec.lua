@@ -6,6 +6,19 @@ local function col(ns, card)
 end
 
 describe("Live tracking: Get 20 Peacebloom", function()
+    it("keeps separate targets for two cards tracking the same item", function()
+        local m, ns = T.client()
+        local three = ns.Commands:Add("Get 3 Peacebloom")
+        local five = ns.Commands:Add("Get 5 Peacebloom")
+        m.Loot(2447, 3); m.Advance(1)
+        T.eq(three.progress.cur, 3); T.eq(three.progress.target, 3)
+        T.eq(five.progress.cur, 3); T.eq(five.progress.target, 5)
+        T.eq(col(ns, three), "done"); T.eq(col(ns, five), "doing")
+        m.Loot(2447, 2); m.Advance(1)
+        T.eq(col(ns, five), "done"); T.eq(five.progress.target, 5)
+        T.noErrors(ns)
+    end)
+
     it("counts 0 -> 5 -> 20 as you loot, moves the card and celebrates", function()
         local m, ns = T.client()
         local card = ns.Commands:Add("Get 20 Peacebloom #herbs")
@@ -163,3 +176,5 @@ describe("Live tracking: Get 20 Peacebloom", function()
         m.env.C_Item.GetItemCount = real
     end)
 end)
+
+

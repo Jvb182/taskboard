@@ -74,6 +74,14 @@ local function row(i)
     r.title = W.Text(r, "GameFontHighlightSmall")
     r.title:SetPoint("TOPLEFT", 6, -4)
     r.title:SetPoint("RIGHT", -4, 0)
+    r.priority = W.Text(r, "GameFontHighlightSmall")
+    r.priority:SetPoint("TOPRIGHT", -6, -4)
+    r.repeatLabel = W.Text(r, "GameFontDisableSmall")
+    r.repeatLabel:SetPoint("TOPRIGHT", -6, -4)
+    r.priorityStripe = r:CreateTexture(nil, "ARTWORK")
+    r.priorityStripe:SetPoint("TOPLEFT", 0, -2)
+    r.priorityStripe:SetPoint("BOTTOMLEFT", 0, 2)
+    r.priorityStripe:SetWidth(4)
     r.bar = W.ProgressBar(r, 11)
     r.bar:SetPoint("BOTTOMLEFT", 6, 5)
     r.bar:SetPoint("BOTTOMRIGHT", -6, 5)
@@ -183,7 +191,22 @@ function Tracker:Refresh()
         r:SetPoint("RIGHT", -2, 0)
         r.divider:SetShown(i < shown)
         local color = Theme.PRIORITY[card.priority] or Theme.PRIORITY[0]
-        r.title:SetText(Util.Color(string.format("%02x%02x%02x", color[1] * 255, color[2] * 255, color[3] * 255), "-") .. " " .. card.title)
+        local priority = card.priority or 0
+        local hasPriority = priority > 0
+        local repeatText = card.recur == "daily" and "Daily" or card.recur == "weekly" and "Weekly" or nil
+        r.repeatLabel:SetText(repeatText or "")
+        r.repeatLabel:SetShown(repeatText ~= nil)
+        r.priorityStripe:SetColorTexture(color[1], color[2], color[3], 1)
+        r.priorityStripe:SetShown(hasPriority)
+        r.priority:SetShown(hasPriority)
+        r.priority:ClearAllPoints()
+        r.priority:SetPoint("TOPRIGHT", -(repeatText and 49 or 6), -4)
+        r.priority:SetText(hasPriority and Util.Color(string.format("%02x%02x%02x", color[1] * 255, color[2] * 255, color[3] * 255),
+            ({ "LOW", "MED", "HIGH" })[priority] or "HIGH") or "")
+        r.title:ClearAllPoints()
+        r.title:SetPoint("TOPLEFT", 8, -4)
+        r.title:SetPoint("RIGHT", (hasPriority and -50 or -4) - (repeatText and 43 or 0), 0)
+        r.title:SetText(card.title)
         local summary = card._summary
         if summary and summary.total > 0 then
             local text = card.progress and card.progress.text or (math.floor(summary.frac * 100 + 0.5) .. "%")

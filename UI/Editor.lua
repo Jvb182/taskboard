@@ -257,7 +257,18 @@ function Editor:Create()
     ui.pinClear:SetPoint("TOPLEFT", 218, ly)
     ly = ly - 28
 
-    ui.track = W.Check(L, "Show in the on-screen tracker", function(checked) apply({ track = checked }) end)
+    ui.track = W.Check(L, "Show in the on-screen tracker", function(checked)
+        if readOnly() then
+            -- Tracking a received card is this player's own preference.
+            if current.card then
+                current.card.track = checked or nil
+                ns:Fire("BOARD_REFRESH")
+                Editor:Refresh()
+            end
+        else
+            apply({ track = checked })
+        end
+    end)
     ui.track:SetPoint("TOPLEFT", -4, ly)
     ly = ly - 28
 
@@ -610,4 +621,5 @@ end
 function Editor:Internals()
     return { frame = frame, ui = ui }
 end
+
 

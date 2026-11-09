@@ -266,6 +266,65 @@ describe("QA checklist regressions", function()
         T.noErrors(ns)
     end)
 
+    it("GL10 shows current money and decreases before reaching the target", function()
+        local m, ns = T.client()
+        local c = ns.Commands:Add("Save 100g")
+        m.state.money = 75 * 10000; m.Fire("PLAYER_MONEY"); m.Advance(0.5)
+        T.eq(c.progress.text, "75g / 100g")
+        m.state.money = 20 * 10000; m.Fire("PLAYER_MONEY"); m.Advance(0.5)
+        T.eq(c.progress.text, "20g / 100g")
+        T.no(c.column == "done")
+        m.state.money = 100 * 10000; m.Fire("PLAYER_MONEY"); m.Advance(1)
+        T.eq(c.column, "done"); T.noErrors(ns)
+    end)
+
+    it("RM08-10 matches only the opened NPC type", function()
+        local m, ns = T.client()
+        local bank = ns.Commands:Add("Sort supplies @bank")
+        local vendor = ns.Commands:Add("Buy vials @vendor")
+        local auction = ns.Commands:Add("List auctions @ah")
+        local got
+        ns:On("REMINDER", function(_, lines) got = lines end)
+        local cases = { { "BANKFRAME_OPENED", bank }, { "MERCHANT_SHOW", vendor },
+            { "AUCTION_HOUSE_SHOW", auction } }
+        for _, case in ipairs(cases) do
+            got = nil; m.Fire(case[1])
+            T.ok(got); T.eq(#got, 1); T.eq(got[1].card, case[2])
+        end
+        T.noErrors(ns)
+    end)
+
+    it("RM12 and RM15 keep explicit reminders when smart suggestions are off", function()
+        local m, ns = T.client()
+        ns.Commands:Add("Buy vials @bank")
+        ns.Commands:Add("Get 20 Peacebloom")
+        m.state.bank[2447] = 6
+        local got
+        ns:On("REMINDER", function(_, lines) got = lines end)
+        ns.db.settings.reminders = false
+        m.Fire("BANKFRAME_OPENED"); T.eq(got, nil)
+        ns.db.settings.reminders = true
+        ns.db.settings.smartReminders = false
+        m.Fire("BANKFRAME_OPENED")
+        T.ok(got); T.eq(#got, 1); T.eq(got[1].card.title, "Buy vials")
+        got = nil; m.Fire("AUCTION_HOUSE_SHOW"); T.eq(got, nil)
+        T.noErrors(ns)
+    end)
+
+    it("MB10-12 completes check-mail title variants but not other mail errands", function()
+        local m, ns = T.client()
+        local checks = {}
+        for _, title in ipairs({ "Check mailbox", "Check my mail", "Check my mailbox", "cHeCk MaIl" }) do
+            checks[#checks + 1] = ns.Commands:Add(title .. " @mail")
+        end
+        local send = ns.Commands:Add("Send materials @mail")
+        local collect = ns.Commands:Add("Collect auction proceeds @mail")
+        m.Fire("MAIL_SHOW")
+        for _, c in ipairs(checks) do T.eq(c.column, "done") end
+        T.eq(send.column, "todo"); T.eq(collect.column, "todo")
+        T.noErrors(ns)
+    end)
+
     it("EX02 import fails cleanly if no personal board can be created", function()
         local m, ns = T.client()
         local text = assert(ns.Serialize.Export(ns.DB:GetActiveBoard()))
@@ -280,3 +339,4 @@ describe("QA checklist regressions", function()
         T.ok(m.ChatContains("Import failed")); T.noErrors(ns)
     end)
 end)
+

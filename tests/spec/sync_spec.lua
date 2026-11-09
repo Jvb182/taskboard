@@ -79,22 +79,25 @@ describe("Sharing between two players", function()
         T.noErrors(ns)
     end)
 
-    it("uses raid and guild channels when those groups are available", function()
-        local m, ns = T.client({ name = "Alice", setup = function(mm)
-            mm.state.inGroup, mm.state.inRaid, mm.state.inGuild = true, true, true
-        end })
-        local board = ns.DB:GetActiveBoard()
-        local ok, channel = ns.Sync:ShareBoard(board, "raid")
-        T.ok(ok); T.eq(channel, "RAID")
-        ok, channel = ns.Sync:ShareBoard(board, "guild")
-        T.ok(ok); T.eq(channel, "GUILD")
-        m.Advance(5)
-        local seenRaid, seenGuild = false, false
-        for _, sent in ipairs(m.sent) do
-            if sent.channel == "RAID" then seenRaid = true end
-            if sent.channel == "GUILD" then seenGuild = true end
+    it("shares and accepts in raid and guild channels", function()
+        for _, case in ipairs({ { "raid", "RAID" }, { "guild", "GUILD" } }) do
+            local function member(name)
+                return T.client({ name = name, setup = function(mm)
+                    mm.state.inGroup, mm.state.inRaid, mm.state.inGuild = true, true, true
+                end })
+            end
+            local mA, nsA = member("Alice")
+            local mB, nsB = member("Bob")
+            local board = nsA.DB:GetActiveBoard()
+            local ok, channel = nsA.Sync:ShareBoard(board, case[1])
+            T.ok(ok); T.eq(channel, case[2])
+            mA.Advance(5)
+            T.ok(deliver(mA, mB, "Alice-Forever") > 0)
+            T.eq(#mB.popups, 1)
+            mB.AcceptPopup()
+            T.eq(nsB.db.boards[board.id].shared.channel, case[2])
+            T.noErrors(nsA); T.noErrors(nsB)
         end
-        T.ok(seenRaid); T.ok(seenGuild); T.noErrors(ns)
     end)
 
     it("closes a recipient editor when the owner removes its open card", function()

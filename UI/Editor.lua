@@ -301,6 +301,7 @@ function Editor:Create()
 
     frame:SetScript("OnHide", function()
         for _, box in ipairs({ ui.title, ui.tags, ui.goal, ui.subAdd, ui.zone, ui.notes }) do box:ClearFocus() end
+        for _, row in ipairs(ui.subRows) do if row.edit and row.edit:HasFocus() then row.edit:ClearFocus() end end
         current.card, current.board = nil, nil
     end)
 end
@@ -327,6 +328,50 @@ local function subtaskRow(i)
     row.text = W.Text(row, "GameFontHighlightSmall")
     row.text:SetPoint("LEFT", 20, 0)
     row.text:SetPoint("RIGHT", -24, 0)
+    row.edit = W.EditBox(row, INNER - 44, 20, "Edit subtask", true)
+    row.edit:SetPoint("LEFT", 20, 0)
+    row.edit:Hide()
+    local function finishEdit(save)
+        if not row.editing then return end
+        row.editing = false
+        local card, board, subID = row.editCard, row.editBoard, row.editSubID
+        local text = Util.StripLinks(Util.Trim(row.edit:GetText()))
+        row.edit:ClearFocus()
+        row.edit:Hide(); row.text:Show(); row.editHit:Show()
+        row.editCard, row.editBoard, row.editSubID = nil, nil, nil
+        if not save or text == "" or not card or not board or DB:IsReadOnly(board) then return end
+        local subs = Util.DeepCopy(card.subtasks)
+        for _, sub in ipairs(subs) do
+            if sub.id == subID and sub.text ~= text then
+                sub.text = text
+                sub.goal = Parser.ParseGoal(text)
+                if sub.goal then sub.done = false; sub.progress = nil end
+                if DB:UpdateCard(board, card, { subtasks = subs }) then
+                    ns.Engine:Refresh(card, board)
+                    if current.card == card then Editor:Refresh() end
+                end
+                return
+            end
+        end
+    end
+    row.finishEdit = finishEdit
+    row.edit:SetScript("OnEnterPressed", ns.Wrap("edit subtask", function() finishEdit(true) end))
+    row.edit:SetScript("OnEscapePressed", ns.Wrap("cancel subtask edit", function() finishEdit(false) end))
+    row.edit:HookScript("OnEditFocusLost", ns.Wrap("save subtask edit", function() finishEdit(true) end))
+    row.editHit = CreateFrame("Button", nil, row)
+    row.editHit:SetPoint("LEFT", 20, 0)
+    row.editHit:SetPoint("RIGHT", -24, 0)
+    row.editHit:SetHeight(22)
+    row.editHit:SetScript("OnClick", ns.Wrap("edit subtask", function()
+        if readOnly() or not current.card or not current.card.subtasks[row.index] then return end
+        row.editCard, row.editBoard = current.card, current.board
+        row.editSubID = current.card.subtasks[row.index].id
+        row.editing = true
+        row.edit:SetText(current.card.subtasks[row.index].text)
+        row.text:Hide(); row.editHit:Hide(); row.edit:Show()
+        row.edit:SetFocus(); row.edit:HighlightText()
+    end))
+    W.Tooltip(row.editHit, "Click to edit subtask")
     row.remove = W.IconButton(row, "Interface\\Buttons\\UI-StopButton", 14, function()
         local subs = Util.DeepCopy(current.card.subtasks)
         table.remove(subs, row.index)
@@ -405,12 +450,14 @@ function Editor:Refresh()
     local y = ui.subY
     for i, s in ipairs(card.subtasks) do
         local row = subtaskRow(i)
+        if row.editing and row.editCard ~= card then row.finishEdit(true) end
         row.index = i
         row:ClearAllPoints()
         row:SetPoint("TOPLEFT", 0, y)
         row.check:SetChecked(s.done)
         local progress = s.progress and ("  |cffaaaaaa" .. s.progress.text .. "|r") or ""
         row.text:SetText((s.done and "|cff959ba8" or "") .. s.text .. (s.done and "|r" or "") .. progress)
+        row.editHit:EnableMouse(not ro)
         row.remove:SetShown(not ro)
         row:Show()
         y = y - 22

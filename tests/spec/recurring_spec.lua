@@ -5,6 +5,7 @@ describe("Recurring cards", function()
         local m, ns = T.client()
         local board = ns.DB:GetActiveBoard()
         local done = ns.Commands:Add("Daily cooking *daily; fish; cook")
+        ns.DB:UpdateCard(board, done, { notes = "Keep the recipe" })
         local open = ns.Commands:Add("Daily fishing *daily")
         open.streak = 4
         done.subtasks[1].done = true
@@ -12,6 +13,8 @@ describe("Recurring cards", function()
         T.ok(ns.db.resets.nextDaily, "next reset scheduled")
         m.AdvanceTime(3600 * 10 + 61) -- past the daily reset (ticker checks every 60s)
         T.eq(ns.DB:CardRole(board, done), "todo")
+        T.eq(done.title, "Daily cooking")
+        T.eq(done.notes, "Keep the recipe")
         T.eq(done.streak, 1)
         T.eq(done.subtasks[1].done, false, "subtasks cleared")
         T.eq(open.streak, 0, "missed day resets the streak")
@@ -70,3 +73,5 @@ describe("Stats", function()
         T.eq(ns.db.stats.history[#ns.db.stats.history].title, "x520")
     end)
 end)
+
+

@@ -26,11 +26,19 @@ Source: [live Taskboard QA page](https://chatgpt.com/space/page_765a50b302b88191
 
 - [x] **SET1301** Reset all data shows a warning; Cancel keeps the old task and settings. Confirm clears cards, settings, learned mailbox spots, statistics, and diagnostic log, then an empty board survives reload. Passed in the mocked client; live UI action remains untested.
 
-- [ ] **SET1302** On disposable data in WoW, cancel Reset all data once and check that the data remains. Then confirm and reload: the board is empty, settings are defaults, and learned mailbox spots are cleared.
+- [ ] **SET1302** On disposable data in WoW, cancel Reset all data once and check that the data remains. Then confirm and reload: the board is empty, settings are defaults, and learned mailbox spots are cleared. Partial live QA: Cancel closed the warning and retained the saved `QA repeat sample` card; the confirmed reset and post-reset reload remain untested.
 
 - [x] **SND1305** All seven selectable sounds play through Preview in the mocked client; Off remains silent. The new choices are Page turn, Coin, Message, and Alert.
 
-- [ ] **SND1306** In WoW, preview the seven sounds for each event, compare volume and clarity, and verify Off remains silent.
+- [ ] **SND1306** In WoW, preview the seven sounds for each event, compare volume and clarity, and verify Off remains silent. Partial live QA: the event dropdown showed Off and all seven named sounds, including Page turn, Coin, Message, and Alert. Audible preview remains for the player.
+
+- [x] **SET1303** With a saved mock card on the board, open Reset all data and choose No. The dialog closes and the card remains. Verified live on Apollo after a UI reload.
+
+- [x] **SND1307** Open the event sound dropdown in WoW. Off, Soft click, Chime, Quest complete, Page turn, Coin, Message, and Alert are all present. Verified live on Apollo; sound quality is covered by SND1306.
+
+- [x] **HELP1301** Search Help for `Reset all data`. The new reset explanation appears on an opaque, legible Help panel. Verified live on Apollo after a UI reload.
+
+- [x] **RC1301** On one live mock card, select Daily, Weekly, then Never. Each choice visibly becomes active and updates the board's repeat label; Never remains selected after `/reload`. Verified live on Apollo. Server reset timing is covered by RC15.
 
 ## Board layouts
 
@@ -703,7 +711,7 @@ These need actual server reset sessions. Do not mark them passed by manually mov
 
 - [ ] **RC14** Change global/card bank-counting settings during an unfinished recurring item goal. A new baseline is established without an accidental completion.
 
-- [ ] **RC15** Change repeat mode between Never, Daily, and Weekly. The selected mode persists and the task follows only that schedule.
+- [ ] **RC15** Change repeat mode between Never, Daily, and Weekly. The selected mode persists and the task follows only that schedule. Partial live QA: changed one card through Daily, Weekly, and Never in WoW; the card label and selected button followed each choice, and Never persisted through `/reload`. Actual server reset schedules remain unobserved.
 
 - [ ] **RC16** Test `Check mail @mail *daily`. Opening completes it, reset makes it actionable again, and a later mailbox visit can complete the new period.
 

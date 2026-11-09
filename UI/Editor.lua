@@ -362,6 +362,7 @@ local function subtaskRow(i)
     row.editHit:SetPoint("LEFT", 20, 0)
     row.editHit:SetPoint("RIGHT", -24, 0)
     row.editHit:SetHeight(22)
+    row.editHit:RegisterForClicks("LeftButtonUp")
     row.editHit:SetScript("OnClick", ns.Wrap("edit subtask", function()
         if readOnly() or not current.card or not current.card.subtasks[row.index] then return end
         row.editCard, row.editBoard = current.card, current.board

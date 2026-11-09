@@ -314,7 +314,7 @@ describe("QA checklist regressions", function()
     it("MB10-12 completes check-mail title variants but not other mail errands", function()
         local m, ns = T.client()
         local checks = {}
-        for _, title in ipairs({ "Check mailbox", "Check my mail", "Check my mailbox", "cHeCk MaIl" }) do
+        for _, title in ipairs({ "Mail", "Mailbox", "Check mailbox", "Check my mail", "Check my mailbox", "cHeCk MaIl" }) do
             checks[#checks + 1] = ns.Commands:Add(title .. " @mail")
         end
         local send = ns.Commands:Add("Send materials @mail")
@@ -338,5 +338,32 @@ describe("QA checklist regressions", function()
         T.eq(ns.Util.Count(ns.db.boards), ns.DB.LIMITS.boards)
         T.ok(m.ChatContains("Import failed")); T.noErrors(ns)
     end)
-end)
 
+    it("reset all data needs confirmation and survives reload without old cards", function()
+        local m, ns = T.client()
+        ns.Commands:Add("Old task")
+        ns.db.settings.theme = "classic_stone"
+        ns.db.mailboxes = { { continent = 1, x = 10, y = 20 } }
+        ns.db.stats.total = 42
+        ns.Options:Show()
+        local buttons = m.FindByText("Reset all data", "Button")
+        T.eq(#buttons, 1)
+        buttons[1]:Click(); T.contains(m.popups[#m.popups].text, "cannot be undone")
+        m.CancelPopup(); T.eq(ns.db.settings.theme, "classic_stone")
+        T.ok(ns.DB:GetActiveBoard().cards and ns.Util.Count(ns.DB:GetActiveBoard().cards) > 0)
+        buttons[1]:Click(); m.AcceptPopup()
+        T.eq(ns.db.settings.theme, "midnight")
+        T.eq(ns.db.settings.autoComplete, true)
+        T.eq(#ns.db.mailboxes, 0)
+        T.eq(ns.db.stats.total, 0)
+        T.eq(ns.Util.Count(ns.db.boards), 1)
+        T.eq(ns.Util.Count(ns.DB:GetActiveBoard().cards), 0)
+        T.eq(#m.env.TaskboardLog.entries, 0)
+        local saved = m.Logout()
+        local m2, ns2 = T.client(nil, saved)
+        T.eq(ns2.Util.Count(ns2.DB:GetActiveBoard().cards), 0)
+        T.eq(ns2.db.settings.theme, "midnight")
+        T.eq(#ns2.db.mailboxes, 0)
+        T.noErrors(ns); T.noErrors(ns2)
+    end)
+end)

@@ -135,12 +135,12 @@ describe("Event sounds", function()
 
     it("previews each choice and keeps Off silent", function()
         local m, ns = T.client()
-        for _, name in ipairs({ "click", "chime", "quest" }) do
+        for _, name in ipairs({ "click", "chime", "quest", "page", "coin", "message", "alert" }) do
             ns.Options:SetSound("move", name); ns.Toast:PlaySound("move", true)
         end
-        T.eq(#m.sounds, 3)
+        T.eq(#m.sounds, 7)
         ns.Options:SetSound("move", "off"); ns.Toast:PlaySound("move", true)
-        T.eq(#m.sounds, 3)
+        T.eq(#m.sounds, 7)
     end)
 
     it("plays feedback for a manually checked subtask", function()

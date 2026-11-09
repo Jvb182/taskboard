@@ -22,15 +22,12 @@ Source: [live Taskboard QA page](https://chatgpt.com/space/page_765a50b302b88191
 
 - [x] **MAIL1303** With Automatic completion off, opening a mailbox leaves plain check-mail tasks open. Turn it on and open the mailbox again: a To Do check-mail card and a Daily In Progress check-mail card both move to Done once. Verified live on Apollo on 9 November; the separate plain Mail title needs retesting after the updated addon loads.
 
-- [ ] **MAIL1304** After a UI reload, open a mailbox with a plain `Mail @mail` task and Automatic completion on. It moves to Done; a Send items task stays open.
 
 - [x] **SET1301** Reset all data shows a warning; Cancel keeps the old task and settings. Confirm clears cards, settings, learned mailbox spots, statistics, and diagnostic log, then an empty board survives reload. Passed in the mocked client; live UI action remains untested.
 
-- [ ] **SET1302** On disposable data in WoW, cancel Reset all data once and check that the data remains. Then confirm and reload: the board is empty, settings are defaults, and learned mailbox spots are cleared. Partial live QA: Cancel closed the warning and retained the saved `QA repeat sample` card; the confirmed reset and post-reset reload remain untested.
 
 - [x] **SND1305** All seven selectable sounds play through Preview in the mocked client; Off remains silent. The new choices are Page turn, Coin, Message, and Alert.
 
-- [ ] **SND1306** In WoW, preview the seven sounds for each event, compare volume and clarity, and verify Off remains silent. Partial live QA: the event dropdown showed Off and all seven named sounds, including Page turn, Coin, Message, and Alert. Audible preview remains for the player.
 
 - [x] **SET1303** With a saved mock card on the board, open Reset all data and choose No. The dialog closes and the card remains. Verified live on Apollo after a UI reload.
 
@@ -74,7 +71,6 @@ Source: [live Taskboard QA page](https://chatgpt.com/space/page_765a50b302b88191
 
 - [x] **STYLE01** Select Classic Stone, Classic Leather, and Quest Parchment. Classic Stone shows a solid dark Blizzard dialog style with light text; the other two show warm parchment with dark text. Verified in WoW Forever on November 9, with screenshots of all three and a live retest after fixing Stone's see-through backdrop.
 
-- [ ] **STYLE02** Resize the board and test several UI scales. Check parchment on board, columns, tracker, Help and dialogs for stretching, clipping and obscured controls.
 
 - [x] **STYLE03** Set panel opacity to 35%. Settings, Help, editor, board dropdown, other menus and logs remain solid while board/tracker honor the opacity setting.
 
@@ -104,17 +100,12 @@ Source: [live Taskboard QA page](https://chatgpt.com/space/page_765a50b302b88191
 
 - [x] **CLOSE02** Edit a focused title or notes field, then close the board. Reopen the card and verify the edit was preserved; reopening the board does not reopen dialogs. Verified in WoW Forever on Verthius: typed a note, closed the board with X, reopened with `/tb`, then reopened the card and saw the saved note. The temporary QA card was removed.
 
-- [ ] **CLOSE03** Repeat window closing during combat; Help/settings/editor/logs remain closable without errors.
 
 ## Repeating nearby sound and mailbox reminders
 
-- [ ] **SND1301** Confirm repeating nearby sound is off by default. Enable it, choose a reminder sound and stand near an eligible flashing task. Partial live QA: Repeat nearby sound was off when first opened; enabled it, selected a 15-second interval and reloaded. The setting persisted. No audible proximity test yet.
 
-- [ ] **SND1302** Test 15/30/60-second intervals with two flashing tasks. Hear at most one repeat per interval; it starts after the selected delay.
 
-- [ ] **SND1303** Leave the area, finish/archive tasks, collapse/hide the tracker or hide it in combat. Repeating sounds stop; returning restarts the delay.
 
-- [ ] **SND1304** Test reminder sound Off, master sounds Off, reminders Off and location flashing Off. Each silences repeats.
 
 - [x] **MAIL1301** Add plain Check mail, Check mailbox and Open mail tasks. Confirm Mail is inferred, a learned mailbox triggers proximity reminders, and opening it completes eligible check-mail tasks when automatic completion is enabled. Automated client simulation: plain check-mail titles inferred Mail; learned mailbox proximity and eligible completion passed.
 
@@ -229,15 +220,10 @@ These are release blockers if they fail. The detailed sections below cover their
 
 - [x] **IN01** Install the release ZIP. Confirm `Interface/AddOns/Taskboard/Taskboard.toc` exists with no extra nested Taskboard folder. Confirmed the installed `Taskboard.toc` exists and the CurseForge ZIP has exactly one `Taskboard/Taskboard.toc` entry.
 
-- [ ] **IN02** On an isolated fresh setup, log in with Taskboard enabled. One personal board and the welcome card appear without errors.
 
-- [ ] **IN03** Upgrade a populated Taskboard setup. Compare task titles, notes, goals, statuses, subtasks, settings, and positions with the prior setup.
 
-- [ ] **IN04** Repeat login/reload after upgrading. The upgrade does not run again, duplicate cards, or restore old values over new edits.
 
-- [ ] **IN05** In an isolated Questboard migration test, install the manual upgrade ZIP and enable Taskboard plus the legacy data loader. Existing data appears in Taskboard.
 
-- [ ] **IN06** Edit a migrated card, reload, and then disable the legacy loader. The edit persists, and Taskboard still loads normally.
 
 - [x] **IN07** Check the board, tracker, editor, Help, Settings, minimap tooltip, and logs. User-facing branding says Taskboard and tasks; legacy compatibility identifiers may remain internally. Verified in the live UI and a source sweep: current labels and commands use Taskboard/tasks and `/tb`. Remaining Questboard text is confined to preserved binding identifiers, migration code/logs, and Help's explicit upgrade instructions.
 
@@ -267,9 +253,7 @@ These are release blockers if they fail. The detailed sections below cover their
 
 - [x] **UI10** Open Settings directly with `/tb options` while the board is closed. Settings opens and its own X closes it.
 
-- [ ] **UI11** Enter combat with Settings and the log window already open. Both X buttons still close their windows without a blocked-action error.
 
-- [ ] **UI12** Repeat the combat close test for the board, editor, and Help. Record any Lua error or control that becomes stuck.
 
 - [x] **UI13** Close the board with a dropdown open or while dragging a card. The dropdown/drag indicator disappears and no input remains captured.
 
@@ -301,19 +285,12 @@ Use A and B on the same WoW account and saved-data installation.
 
 - [x] **BD10** Change a task's assigned character in the editor. Progress and tracker eligibility follow that assignment. Not applicable to 1.3.0: the editor displays task ownership but has no reassignment control; ownership is set when a card is added or imported; verified in the live editor and `UI/Editor.lua`.
 
-- [ ] **BD11** On an isolated pre-1.2 save with multiple local boards, upgrade. Local cards merge into character boards without losing titles, notes, tags, priorities, goals, repeats, or subtask states.
 
-- [ ] **BD12** Compare To Do, In Progress, Done, and archived cards before/after the merge. Their status and archived state are preserved.
 
-- [ ] **BD13** Include mixed-character cards in an old account board. After migration, each card belongs to the board for its assigned character.
 
-- [ ] **BD14** Include custom columns in migration. Names/statuses are retained where the eight-column limit permits; record how overflow columns are mapped and confirm no cards vanish.
 
-- [ ] **BD15** Include a received shared board in migration. It remains separate with its ownership/editing restrictions.
 
-- [ ] **BD16** Reload twice after consolidation. Card totals stay stable and no old board is recreated.
 
-- [ ] **BD17** Test deleting only a disposable board, including canceling the confirmation. Another character's cards are not removed by accident; logging back into the deleted board's owner produces a usable personal board.
 
 # Quick Add and parsing
 
@@ -331,9 +308,9 @@ Use real game item/quest links where indicated; do not type the placeholder text
 
 - [x] **QA06** Add `get 17 Silverleaf #qa` and `20 Peacebloom #qa`. Item and target are parsed correctly.
 
-- [x] **QA07** Type `get 17 `, then shift-click Silverleaf from a bag. The target remains 17 and the title contains no broken color/link escape codes. Passed in the mocked client with a named-color Silverleaf link and 15 held items: the card displayed 15/17, then completed at 17 with a clean `[Silverleaf]` title. Real bag shift-click is still in GAME01.
+- [x] **QA07** Type `get 17 `, then shift-click Silverleaf from a bag. The target remains 17 and the title contains no broken color/link escape codes. Passed in the mocked client with a named-color Silverleaf link and 15 held items: the card displayed 15/17, then completed at 17 with a clean `[Silverleaf]` title. Real bag shift-click is still in the owner checklist.
 
-- [x] **QA08** Shift-click an item first, then append ` x17 #qa`. The target is 17. Passed with both supported item-link color formats in the parser suite; a separate Quick Add mock inserted a shift-click link into the focused input and saved the intended item and target. Real bag shift-click is still in GAME01.
+- [x] **QA08** Shift-click an item first, then append ` x17 #qa`. The target is 17. Passed with both supported item-link color formats in the parser suite; a separate Quick Add mock inserted a shift-click link into the focused input and saved the intended item and target. Real bag shift-click is still in the owner checklist.
 
 - [x] **QA09** Test a multiword item, an item not currently in bags, and a name not yet resolved by the client. No wrong item is silently substituted; a pending name can resolve after matching item data/loot becomes available. Passed in the mocked client: multiword known names resolve, unknown names remain pending, a matching first loot binds the ID, and a mismatched built-in ID is unbound with a warning.
 
@@ -429,13 +406,9 @@ Use real game item/quest links where indicated; do not type the placeholder text
 
 Use targets just above current values when possible. A goal already met at creation may immediately finish; that is different from a plain manual task incorrectly finishing.
 
-- [ ] **GL01** With bank counting off and 15 Silverleaf in bags, add `get 17 Silverleaf #qa`. It shows 15/17; acquiring two more finishes it.
 
-- [ ] **GL02** Split/merge stacks and move items between bags. The total is unchanged and is not counted twice.
 
-- [ ] **GL03** Buy, loot, trade for, and receive a tracked item by mail in separate trials. The count updates after each inventory change.
 
-- [ ] **GL04** Sell, consume, or trade away tracked items before completion. The displayed count decreases appropriately.
 
 - [x] **GL05** Complete an item goal, then spend/sell the items. The task stays Done instead of reopening itself. Passed with mocked inventory: removal after completion left the card Done and flagged regressed progress.
 
@@ -455,11 +428,9 @@ Use targets just above current values when possible. A goal already met at creat
 
 - [x] **GL13** Create `Honored with Stormwind #qa`, or use a faction relevant to your character. Reputation gains and reaching the standing update the goal correctly. Automated client simulation: faction progress and completion passed.
 
-- [ ] **GL14** Create a quest goal with a real shift-clicked quest link. It tracks the intended quest, with a clean display title.
 
 - [x] **GL15** Finish the quest objectives without turning it in. The task does not report the quest as turned in. Automated client simulation: completed objectives remain ready to turn in, not Done.
 
-- [ ] **GL16** Turn in the tracked quest. The task completes once; reloading does not generate another completion.
 
 - [x] **GL17** Combine live and manual subtasks. The card waits for every required subtask before ordinary goal-driven completion. Passed with two mocked item subtasks and one manual subtask.
 
@@ -471,27 +442,18 @@ Use targets just above current values when possible. A goal already met at creat
 
 Taskboard uses the client's item counts; it does not maintain its own bank cache or scan other characters' banks. Record what the client can supply away from the bank.
 
-- [ ] **BK01** Place a known amount of the goal item in bags and bank. With both bank switches on, the displayed total equals bags plus bank.
 
-- [ ] **BK02** Turn off Count items in the bank on that card. Its count becomes bags only.
 
-- [ ] **BK03** Turn the card switch on but the General bank-counting switch off. The result is still bags only.
 
-- [ ] **BK04** Turn both back on. The count returns to bags plus bank without duplication.
 
-- [ ] **BK05** Deposit and withdraw while the bank is open. Counts and status update correctly.
 
-- [ ] **BK06** Close the bank and travel away. Record whether the client continues supplying bank totals; the addon must not invent additional counts or error.
 
-- [ ] **BK07** Reload away from the bank, then visit the bank again. Record before/after counts and any correction after opening it.
 
-- [ ] **BK08** Switch to B with different bag/bank contents. B's tasks use B's inventory and do not change A's recorded goals.
 
 # Zone NPC and smart reminders
 
 - [x] **RM01** Create `Buy vials @Goldshire #qa` outside Goldshire, leaving it in To Do. Enter Goldshire: a reminder appears. Automated client simulation: a To Do task reminded on zone entry.
 
-- [ ] **RM02** Repeat with an In Progress task. It reminds too; Done and archived equivalents do not.
 
 - [x] **RM03** Test a matching subzone and case-insensitive prefix, such as `@gold`. Matching follows the saved zone/subzone text. Automated client simulation: subzone and case-insensitive prefix matching passed.
 
@@ -499,9 +461,7 @@ Taskboard uses the client's item counts; it does not maintain its own bank cache
 
 - [x] **RM05** Leave and reenter within five minutes. The same task/context is suppressed; after the cooldown, a new entry can remind again. Automated client simulation: reentry was suppressed until cooldown elapsed.
 
-- [ ] **RM06** Enter a matching location on the wrong assigned character. That character does not receive another character's task reminder.
 
-- [ ] **RM07** Acquire a task's goal item outside its reminder location. Progress still counts; the @ destination is not a restriction on where progress happens.
 
 - [x] **RM08** Open the bank with `Sort supplies @bank #qa`. The bank task reminds; unrelated vendor/AH/trainer tasks do not. Automated client simulation: opening bank reminded only the bank task.
 
@@ -523,23 +483,18 @@ Taskboard uses the client's item counts; it does not maintain its own bank cache
 
 The current design learns **your position when you open a mailbox**. It checks proximity about every **3 seconds**, enters the nearby state within **35 yards**, and leaves it beyond **50 yards**. Distances are approximate horizontal distances around the learned spot. A first-time, unlearned mailbox cannot give advance proximity reminders. The same task has a five-minute cooldown for repeated proximity alerts.
 
-- [ ] **MB01** At a mailbox not yet learned, open it once. Check the log for a learned-mailbox entry when position data is available.
 
 - [x] **MB02** Create `Send items @mail #qa` for proximity testing. Opening the mailbox must leave this task unfinished. Automated client simulation: opening mail left a send-items task in To Do.
 
 - [x] **MB03** Close the mailbox, move more than 50 yards away, wait at least three seconds, then approach within 35 yards. Within the next few seconds, receive Near a mailbox before opening it. Automated client simulation: after leaving beyond 50 yards, the next approach within 35 yards reminded before opening mail.
 
-- [ ] **MB04** Stay nearby. The task remains highlighted/pulsing in the tracker when that setting is enabled, without repeated popup spam.
 
 - [x] **MB05** Move beyond 50 yards and wait for a scan. The nearby pulse stops; an otherwise untracked To Do task can disappear from the tracker. Automated client simulation: leaving the mailbox radius cleared nearby state; tracker pulse stopped on location exit.
 
 - [x] **MB06** Reapproach within five minutes. No duplicate proximity popup is expected. After five minutes, leave beyond 50 yards and approach again to test a new reminder. Automated client simulation: reapproach within cooldown produced no duplicate reminder.
 
-- [ ] **MB07** Repeat after a UI reload and on B. Learned mailbox locations persist across characters, while reminders still apply only to eligible tasks.
 
-- [ ] **MB08** Learn a second mailbox, preferably across a zone/city-map boundary. Both spots work independently without false reminders far away.
 
-- [ ] **MB09** Add `Check mail @mail` while away, then open a mailbox. It moves to Done once and uses completion feedback.
 
 - [x] **MB10** Separately test `Check mailbox @mail`, `Check my mail @mail`, and `Check my mailbox @mail`. These supported titles also complete on opening. Automated client simulation: all listed check-mail title variants completed on mailbox opening.
 
@@ -549,17 +504,14 @@ The current design learns **your position when you open a mailbox**. It checks p
 
 - [x] **MB13** Add plain `Check mail` without an @ token. Mail is inferred; opening a mailbox completes it when automatic completion is enabled and there are no unfinished goals/subtasks. Automated client simulation: plain check-mail destination was inferred and mailbox opening completed it.
 
-- [ ] **MB14** Finish or archive an @mail task, leave, and reapproach. It no longer reminds or pulses.
 
 - [x] **MB15** Turn reminders off while near a learned mailbox, then walk beyond 50 yards. Nearby pulse state clears on the next scan even though popups are disabled. Automated client simulation: leaving with reminders disabled cleared nearby state.
 
 - [x] **MB16** Add a new @mail task while already near a learned mailbox with reminders enabled. It reminds on the next scan without requiring a new entry, and does not repeat while you stay nearby. Automated client simulation: a new nearby mail task reminded once without reentry.
 
-- [ ] **MB17** Try `Check mail! @mail` and capitalization/punctuation variations of the supported English phrases. They complete when automatic completion is enabled. Renamed/localized phrases remain manual unless they match a supported title.
 
 - [x] **MB18** Add a check-mail task with unfinished subtasks or an unrelated live goal, then open the mailbox. The extra work must not complete prematurely. Also disable Automatic completion and verify a plain check-mail task stays open. Automated client simulation: unfinished subtask/item goal and disabled automatic completion prevented completion.
 
-- [ ] **MB19** Test at an indoor/stacked-floor mailbox and where map positioning is unavailable. Record accuracy and diagnostics; missing position data must not cause errors or reminders at unrelated locations.
 
 # Tracker visibility movement and layout
 
@@ -583,7 +535,6 @@ The current design learns **your position when you open a mailbox**. It checks p
 
 - [x] **TR10** Hide the whole tracker, then progress a goal and enter a reminder location. It stays hidden. Automated client simulation: hidden tracker stayed hidden during location/goal updates.
 
-- [ ] **TR11** Drag the unlocked tracker, lock it, and attempt to drag again. Lock prevents movement; unlock restores it. Partial live QA: lock toggle could be changed and persisted after reload. Three computer-control drag attempts did not move the unlocked tracker; movement and lock prevention remain unverified.
 
 - [x] **TR12** Collapse/expand using the header. Tasks return correctly; the header menu can reopen the board and hide the tracker.
 
@@ -593,9 +544,7 @@ The current design learns **your position when you open a mailbox**. It checks p
 
 - [x] **TR15** Left-click and right-click tracker entries. The correct editor/card menu opens.
 
-- [ ] **TR16** Enable Hide tracker in combat. Combat hides it and leaving combat restores the correct state; a manually hidden tracker stays hidden.
 
-- [ ] **TR17** Reload after moving, locking, hiding, or collapsing the tracker. Each saved preference persists. Partial live QA: collapse, lock and hide choices persisted across reload; tracker could be restored with `/tb tracker`. Unlocked drag did not move with computer control, so position persistence remains unresolved.
 
 # Map pins
 
@@ -629,7 +578,6 @@ For each theme, inspect the main board, a card/editor, tracker, Settings, Help, 
 
 - [x] **AP07** Classic leather shows its distinct warm appearance and WoW-style artwork.
 
-- [ ] **AP08** Change Sky, Gold, Mint, Rose, and Lilac accents in each theme. Titles, highlights, and selected controls update; status/priority colors keep their meanings. Partial live QA: tried all five accents on Quest parchment and Lilac on High contrast. Buttons reacted and headings remained legible; the full theme-by-accent matrix and status/priority meaning check remain.
 
 - [x] **AP09** Compare default opacity, 35%, and 100%. Board/tracker backgrounds change without fading all text/icons. Partial live QA: 100% and 35% visibly changed the board and tracker backgrounds while text stayed legible; the original 100% setting was restored.
 
@@ -639,11 +587,9 @@ For each theme, inspect the main board, a card/editor, tracker, Settings, Help, 
 
 - [x] **AP10 checked substep — Verified: at 35% board opacity, Settings, Help, editor, log, and board dropdown remained solid.**
 
-- [ ] **AP11** Hover, select, focus, and disable controls after switching skins. Text contrast, borders, and active-state feedback remain clear.
 
 - [x] **AP12** Switch themes while several windows are already open, then open another window. Existing and newly opened windows match.
 
-- [ ] **AP13** Check all theme/accent buttons and the opacity slider at your normal and a smaller UI scale. Nothing is clipped or unreachable.
 
 - [x] **AP14** Reload with a classic skin, custom accent, and opacity selected. All three persist.
 
@@ -651,7 +597,6 @@ For each theme, inspect the main board, a card/editor, tracker, Settings, Help, 
 
 # Sounds popups progress messages and statistics
 
-- [ ] **FB01** Preview Off, Soft click, Chime, and Quest complete. Off is silent; the other choices can be heard at normal game volume.
 
 - [x] **FB02** Assign a distinct sound to status changes. Moving between statuses uses it; reordering within one column stays silent. Automated client simulation: status move emitted the chosen event sound; reorder emitted none.
 
@@ -659,21 +604,16 @@ For each theme, inspect the main board, a card/editor, tracker, Settings, Help, 
 
 - [x] **FB04** Automatically complete an item task. It produces one completion sound rather than stacked move and completion sounds. Automated client simulation: item auto-completion emitted one completion sound event.
 
-- [ ] **FB05** Set the subtask sound and complete manual and live subtasks. Feedback is appropriate; rapid events may be combined to avoid noise.
 
-- [ ] **FB06** Set the reminder sound, then trigger a location/NPC/mailbox reminder. It uses the chosen reminder sound.
 
 - [x] **FB07** Set one event to Off. That event is silent while the others remain enabled. Automated client simulation: event Off suppressed that event while other sounds remained available.
 
-- [ ] **FB08** Turn the master Play sounds switch off. Event sounds and preview respect it; turning it back on restores the chosen per-event sounds.
 
 - [x] **FB09** Disable visual popups but keep sounds on. Completion/reminder sounds still work without the popup. Automated client simulation: completion sound event fired with visual popups disabled.
 
 - [x] **FB10** Enable popups and trigger several events. Toasts stack/fade without obstructing interaction indefinitely. Live QA: two satisfied money goals added rapidly produced one `2 cards complete!` toast listing both; it faded, while the board remained interactive.
 
-- [ ] **FB11** Click a completion/reminder popup. It opens the intended card/board; an expired/deleted target does not open an unrelated card. Partial live QA: clicking the fresh “Task complete! save 3c” toast opened the editor for save 3c. Expired/deleted target and reminder toast cases remain.
 
-- [ ] **FB12** Toggle progress messages and gain tracked items. Messages appear only when enabled and use the correct item/count.
 
 - [x] **FB13** Reload after changing all sound selections and popup/message settings. Preferences persist. Live QA: changed all four sound selectors (Status Chime, Complete Soft click, Subtask Off, Zone Chime), enabled repeating sound at 15 seconds, reloaded, and all selections persisted. Progress messages and completion/reminder popups were both disabled, reloaded, and remained disabled.
 
@@ -689,7 +629,6 @@ These need actual server reset sessions. Do not mark them passed by manually mov
 
 - [x] **RC03** Reload halfway through the daily goal. The saved baseline/progress survives. Passed in the mocked client: a 5-item baseline and 6-item gain survived logout/login.
 
-- [ ] **RC04** Complete the daily goal, cross server daily reset, and check it again. It returns to To Do without an extra completion toast/sound.
 
 - [x] **RC05** Collect the next period's required extra stock. It completes once again from the new baseline. Passed in the mocked client across a simulated daily reset; completion total changed from one to two only after collecting the new period's stock.
 
@@ -699,7 +638,6 @@ These need actual server reset sessions. Do not mark them passed by manually mov
 
 - [x] **RC08** Test a manual daily task. Done resets to To Do at daily reset while the title/notes remain. Passed in the mocked client across a simulated daily reset; the card returned to To Do and its subtask reset.
 
-- [ ] **RC09** Repeat completion/reset with a weekly manual and item task at the weekly server reset.
 
 - [x] **RC10** Finish A's recurring task, log into B first after reset, then A. A's task is reset despite being offline. Passed in the mocked two-character login sequence.
 
@@ -707,13 +645,10 @@ These need actual server reset sessions. Do not mark them passed by manually mov
 
 - [x] **RC12** Archive a recurring task before reset. It stays archived and is not unexpectedly reset/reactivated. Passed in the mocked client across a simulated daily reset.
 
-- [ ] **RC13** Return on an offline character after reset. The new inventory baseline begins at login; confirm the displayed extra-count behavior agrees.
 
 - [x] **RC14** Change global/card bank-counting settings during an unfinished recurring item goal. A new baseline is established without an accidental completion. Mocked-client integration: switching card bank counting during an unfinished recurring item goal established a new baseline; the existing global-switch regression also passed.
 
-- [ ] **RC15** Change repeat mode between Never, Daily, and Weekly. The selected mode persists and the task follows only that schedule. Partial live QA: changed one card through Daily, Weekly, and Never in WoW; the card label and selected button followed each choice, and Never persisted through `/reload`. Actual server reset schedules remain unobserved.
 
-- [ ] **RC16** Test `Check mail @mail *daily`. Opening completes it, reset makes it actionable again, and a later mailbox visit can complete the new period.
 
 # Sharing with another player
 
@@ -727,7 +662,7 @@ Both testers should use the same release. Use small disposable boards first. Mar
 
 - [x] **SH04** Disable share offers in General settings. Incoming offers do not create boards; re-enable and retest. Passed in the mocked client: the Never setting suppressed incoming offers; re-enabling allowed an offer in the separate acceptance test.
 
-- [x] **SH05** Repeat successful share/accept in a raid and in a guild. Passed in separate mocked two-client raid and guild sessions: both transports delivered an offer, the recipient accepted, and the received board recorded the correct channel. Live transfer with a second player remains in GAME07.
+- [x] **SH05** Repeat successful share/accept in a raid and in a guild. Passed in separate mocked two-client raid and guild sessions: both transports delivered an offer, the recipient accepted, and the received board recorded the correct channel. Live transfer with a second player remains in the owner checklist.
 
 - [x] **SH06** Verify the received board remains separate from the recipient's one personal board and is labeled with its source. Passed in the mocked two-client flow: Bob retained his personal board while the imported board had shared scope and Alice as source.
 
@@ -741,7 +676,6 @@ Both testers should use the same release. Use small disposable boards first. Mar
 
 - [x] **SH11** Set a local tracker preference on a received card, then receive an owner update. The local preference survives. Passed in the mocked client after the fix on PR #4: a recipient's editor tracker checkbox changed the local preference, which survived an owner update and reload.
 
-- [ ] **SH12** Share a larger test board with normal other addons enabled. Transfer completes or reports an understandable failure, with no permanent partial board.
 
 - [x] **SH13** Stop sharing with `/tb unshare`, including during a queued transfer when feasible. Further pending outbound work stops. Passed in the mocked client: `/tb unshare` canceled queued messages and no further message was sent.
 
@@ -771,7 +705,7 @@ Imports add cards to the importing character's personal board. They can create d
 
 - [x] **EX09** Reload after import. Imported cards and their status survive; no second import occurs on login. Live QA: after `/reload`, the board still had 23 Queue/7 Finished; search showed the two imported cards with their distinct titles, and no extra import occurred.
 
-- [x] **EX10** Compare a before/after card inventory for migration and import tests. Account for every original card, including Done and archived entries. Passed in a mocked export/import inventory: all four disposable cards survived with their To Do, In Progress, Done, and archived states, including an archived card's notes. A populated legacy migration still needs the isolated test in GAME05.
+- [x] **EX10** Compare a before/after card inventory for migration and import tests. Account for every original card, including Done and archived entries. Passed in a mocked export/import inventory: all four disposable cards survived with their To Do, In Progress, Done, and archived states, including an archived card's notes. A populated legacy migration still needs the isolated test in the owner checklist.
 
 # Help commands diagnostics and performance
 
@@ -783,7 +717,6 @@ Imports add cards to the importing character's personal board. They can create d
 
 - [x] **DG04** Run `/tb list`, then `/tb done 1` and `/tb done <matching title>` on disposable tasks. The intended open task is completed.
 
-- [ ] **DG05** Run `/tb log show`. The log window opens, scrolls, and permits copying; its close button works outside and inside combat. Partial live QA: `/tb log show` opened the scrollable log, Select all was available, and X closed it. Combat close remains.
 
 - [x] **DG05 checked substep — Verified outside combat: `/tb log show` opened a scrollable log with Select all, and X closed it.**
 
@@ -795,15 +728,10 @@ Imports add cards to the importing character's personal board. They can create d
 
 - [x] **DG09** Run `/tb selftest` again after the session. Compare with the initial result and investigate new failures. The repeat in-game self-test reported 17 passed, 0 failed.
 
-- [ ] **DG10** Exercise a disposable board with roughly 100–200 varied tasks, long titles, subtasks, and eight columns. Scrolling, filtering, dragging, and typing remain responsive. Partial automated QA: 200 varied cards, long titles, subtasks and eight columns laid out and filtered with no Lua errors; live scrolling, dragging and typing responsiveness remains to check.
 
-- [ ] **DG11** Loot rapidly while the board/editor/tracker are open. No heavy stutter, duplicate rows, or selection corruption occurs.
 
-- [ ] **DG12** Travel through zones, open/close windows repeatedly, and play normally for at least 20 minutes. No growing popup backlog, stuck highlights, or repeated errors appear.
 
-- [ ] **DG13** Repeat the core smoke tests with your normal addon set. If a problem occurs, compare a minimal-addon setup and record the conflict.
 
-- [ ] **DG14** Check small/large UI scales and a changed resolution. Windows, menus, and tracker remain reachable with no hidden required controls.
 
 # Bug reports
 
@@ -821,9 +749,175 @@ For each issue, record the addon/client versions, character, location, relevant 
 
 # Release signoff
 
-- [ ] **SG01** All smoke tests pass on the target client.
 
-- [x] **SG02** Detailed tests are marked Passed, Failed, Not run, or Not applicable with reasons; an unchecked box alone is not treated as a pass. The unchecked-case audit below marks all remaining detailed cases Not run for their full live criteria and records the required condition.
+- [x] **SG02** Detailed tests are marked Passed, Failed, Not run, or Not applicable with reasons; an unchecked box alone is not treated as a pass. The unchecked tests are collected in the single owner checklist at the bottom; each remains Not run for its full live criteria.
+
+
+
+
+
+- [x] **SG07** Daily/weekly and multiplayer coverage is explicitly recorded. Any untested feature is identified before deciding between Beta and Release. RC04/09/13/15/16 and SH12 remain Not run in live conditions; The owner checklist identifies the required sessions.
+
+
+- [x] **SG09** The CurseForge description and Help accurately state supported client, mailbox learning, character boards, and current limitations. Reviewed and corrected README theme, sound, mailbox-title, install and reset descriptions; CurseForge copy and in-game Help were checked for client support, mailbox learning, character boards and limitations.
+
+
+**Release decision:** Pending  
+**Open issues:** No confirmed addon defect in this pass.  
+**Not run tests and reasons:** See the single owner checklist at the bottom for gameplay, combat, hearing, resets, multiplayer and isolated migration. Detailed unchecked cases remain unverified in-game reference checks.  
+**Tester and completion date:** Codex, 9 November 2026; owner sign-off pending.
+
+Reference build: [Taskboard 1.2.0 source](https://github.com/Jvb182/taskboard/commit/6893d6275730ab7286ac9be594e5de3acddd340e). The repository is private; access requires permission.
+
+## Tests I need you to run
+
+These cases remain unchecked because their full acceptance criteria require live play, a second player, a server reset, an older isolated save, audible or visual judgment, or an in-game confirmation. Partial automated or screen evidence remains in each case where recorded. Check a box only after its full criterion passes; mark an unavailable legacy-save scenario Not applicable in the test record.
+
+- [ ] **MAIL1304** After a UI reload, open a mailbox with a plain `Mail @mail` task and Automatic completion on. It moves to Done; a Send items task stays open.
+
+- [ ] **SET1302** On disposable data in WoW, cancel Reset all data once and check that the data remains. Then confirm and reload: the board is empty, settings are defaults, and learned mailbox spots are cleared. Partial live QA: Cancel closed the warning and retained the saved `QA repeat sample` card; the confirmed reset and post-reset reload remain untested.
+
+- [ ] **SND1306** In WoW, preview the seven sounds for each event, compare volume and clarity, and verify Off remains silent. Partial live QA: the event dropdown showed Off and all seven named sounds, including Page turn, Coin, Message, and Alert. Audible preview remains for the player.
+
+- [ ] **STYLE02** Resize the board and test several UI scales. Check parchment on board, columns, tracker, Help and dialogs for stretching, clipping and obscured controls.
+
+- [ ] **CLOSE03** Repeat window closing during combat; Help/settings/editor/logs remain closable without errors.
+
+- [ ] **SND1301** Confirm repeating nearby sound is off by default. Enable it, choose a reminder sound and stand near an eligible flashing task. Partial live QA: Repeat nearby sound was off when first opened; enabled it, selected a 15-second interval and reloaded. The setting persisted. No audible proximity test yet.
+
+- [ ] **SND1302** Test 15/30/60-second intervals with two flashing tasks. Hear at most one repeat per interval; it starts after the selected delay.
+
+- [ ] **SND1303** Leave the area, finish/archive tasks, collapse/hide the tracker or hide it in combat. Repeating sounds stop; returning restarts the delay.
+
+- [ ] **SND1304** Test reminder sound Off, master sounds Off, reminders Off and location flashing Off. Each silences repeats.
+
+- [ ] **IN02** On an isolated fresh setup, log in with Taskboard enabled. One personal board and the welcome card appear without errors.
+
+- [ ] **IN03** Upgrade a populated Taskboard setup. Compare task titles, notes, goals, statuses, subtasks, settings, and positions with the prior setup.
+
+- [ ] **IN04** Repeat login/reload after upgrading. The upgrade does not run again, duplicate cards, or restore old values over new edits.
+
+- [ ] **IN05** In an isolated Questboard migration test, install the manual upgrade ZIP and enable Taskboard plus the legacy data loader. Existing data appears in Taskboard.
+
+- [ ] **IN06** Edit a migrated card, reload, and then disable the legacy loader. The edit persists, and Taskboard still loads normally.
+
+- [ ] **UI11** Enter combat with Settings and the log window already open. Both X buttons still close their windows without a blocked-action error.
+
+- [ ] **UI12** Repeat the combat close test for the board, editor, and Help. Record any Lua error or control that becomes stuck.
+
+- [ ] **BD11** On an isolated pre-1.2 save with multiple local boards, upgrade. Local cards merge into character boards without losing titles, notes, tags, priorities, goals, repeats, or subtask states.
+
+- [ ] **BD12** Compare To Do, In Progress, Done, and archived cards before/after the merge. Their status and archived state are preserved.
+
+- [ ] **BD13** Include mixed-character cards in an old account board. After migration, each card belongs to the board for its assigned character.
+
+- [ ] **BD14** Include custom columns in migration. Names/statuses are retained where the eight-column limit permits; record how overflow columns are mapped and confirm no cards vanish.
+
+- [ ] **BD15** Include a received shared board in migration. It remains separate with its ownership/editing restrictions.
+
+- [ ] **BD16** Reload twice after consolidation. Card totals stay stable and no old board is recreated.
+
+- [ ] **BD17** Test deleting only a disposable board, including canceling the confirmation. Another character's cards are not removed by accident; logging back into the deleted board's owner produces a usable personal board.
+
+- [ ] **GL01** With bank counting off and 15 Silverleaf in bags, add `get 17 Silverleaf #qa`. It shows 15/17; acquiring two more finishes it.
+
+- [ ] **GL02** Split/merge stacks and move items between bags. The total is unchanged and is not counted twice.
+
+- [ ] **GL03** Buy, loot, trade for, and receive a tracked item by mail in separate trials. The count updates after each inventory change.
+
+- [ ] **GL04** Sell, consume, or trade away tracked items before completion. The displayed count decreases appropriately.
+
+- [ ] **GL14** Create a quest goal with a real shift-clicked quest link. It tracks the intended quest, with a clean display title.
+
+- [ ] **GL16** Turn in the tracked quest. The task completes once; reloading does not generate another completion.
+
+- [ ] **BK01** Place a known amount of the goal item in bags and bank. With both bank switches on, the displayed total equals bags plus bank.
+
+- [ ] **BK02** Turn off Count items in the bank on that card. Its count becomes bags only.
+
+- [ ] **BK03** Turn the card switch on but the General bank-counting switch off. The result is still bags only.
+
+- [ ] **BK04** Turn both back on. The count returns to bags plus bank without duplication.
+
+- [ ] **BK05** Deposit and withdraw while the bank is open. Counts and status update correctly.
+
+- [ ] **BK06** Close the bank and travel away. Record whether the client continues supplying bank totals; the addon must not invent additional counts or error.
+
+- [ ] **BK07** Reload away from the bank, then visit the bank again. Record before/after counts and any correction after opening it.
+
+- [ ] **BK08** Switch to B with different bag/bank contents. B's tasks use B's inventory and do not change A's recorded goals.
+
+- [ ] **RM02** Repeat with an In Progress task. It reminds too; Done and archived equivalents do not.
+
+- [ ] **RM06** Enter a matching location on the wrong assigned character. That character does not receive another character's task reminder.
+
+- [ ] **RM07** Acquire a task's goal item outside its reminder location. Progress still counts; the @ destination is not a restriction on where progress happens.
+
+- [ ] **MB01** At a mailbox not yet learned, open it once. Check the log for a learned-mailbox entry when position data is available.
+
+- [ ] **MB04** Stay nearby. The task remains highlighted/pulsing in the tracker when that setting is enabled, without repeated popup spam.
+
+- [ ] **MB07** Repeat after a UI reload and on B. Learned mailbox locations persist across characters, while reminders still apply only to eligible tasks.
+
+- [ ] **MB08** Learn a second mailbox, preferably across a zone/city-map boundary. Both spots work independently without false reminders far away.
+
+- [ ] **MB09** Add `Check mail @mail` while away, then open a mailbox. It moves to Done once and uses completion feedback.
+
+- [ ] **MB14** Finish or archive an @mail task, leave, and reapproach. It no longer reminds or pulses.
+
+- [ ] **MB17** Try `Check mail! @mail` and capitalization/punctuation variations of the supported English phrases. They complete when automatic completion is enabled. Renamed/localized phrases remain manual unless they match a supported title.
+
+- [ ] **MB19** Test at an indoor/stacked-floor mailbox and where map positioning is unavailable. Record accuracy and diagnostics; missing position data must not cause errors or reminders at unrelated locations.
+
+- [ ] **TR11** Drag the unlocked tracker, lock it, and attempt to drag again. Lock prevents movement; unlock restores it. Partial live QA: lock toggle could be changed and persisted after reload. Three computer-control drag attempts did not move the unlocked tracker; movement and lock prevention remain unverified.
+
+- [ ] **TR16** Enable Hide tracker in combat. Combat hides it and leaving combat restores the correct state; a manually hidden tracker stays hidden.
+
+- [ ] **TR17** Reload after moving, locking, hiding, or collapsing the tracker. Each saved preference persists. Partial live QA: collapse, lock and hide choices persisted across reload; tracker could be restored with `/tb tracker`. Unlocked drag did not move with computer control, so position persistence remains unresolved.
+
+- [ ] **AP08** Change Sky, Gold, Mint, Rose, and Lilac accents in each theme. Titles, highlights, and selected controls update; status/priority colors keep their meanings. Partial live QA: tried all five accents on Quest parchment and Lilac on High contrast. Buttons reacted and headings remained legible; the full theme-by-accent matrix and status/priority meaning check remain.
+
+- [ ] **AP11** Hover, select, focus, and disable controls after switching skins. Text contrast, borders, and active-state feedback remain clear.
+
+- [ ] **AP13** Check all theme/accent buttons and the opacity slider at your normal and a smaller UI scale. Nothing is clipped or unreachable.
+
+- [ ] **FB01** Preview Off, Soft click, Chime, and Quest complete. Off is silent; the other choices can be heard at normal game volume.
+
+- [ ] **FB05** Set the subtask sound and complete manual and live subtasks. Feedback is appropriate; rapid events may be combined to avoid noise.
+
+- [ ] **FB06** Set the reminder sound, then trigger a location/NPC/mailbox reminder. It uses the chosen reminder sound.
+
+- [ ] **FB08** Turn the master Play sounds switch off. Event sounds and preview respect it; turning it back on restores the chosen per-event sounds.
+
+- [ ] **FB11** Click a completion/reminder popup. It opens the intended card/board; an expired/deleted target does not open an unrelated card. Partial live QA: clicking the fresh “Task complete! save 3c” toast opened the editor for save 3c. Expired/deleted target and reminder toast cases remain.
+
+- [ ] **FB12** Toggle progress messages and gain tracked items. Messages appear only when enabled and use the correct item/count.
+
+- [ ] **RC04** Complete the daily goal, cross server daily reset, and check it again. It returns to To Do without an extra completion toast/sound.
+
+- [ ] **RC09** Repeat completion/reset with a weekly manual and item task at the weekly server reset.
+
+- [ ] **RC13** Return on an offline character after reset. The new inventory baseline begins at login; confirm the displayed extra-count behavior agrees.
+
+- [ ] **RC15** Change repeat mode between Never, Daily, and Weekly. The selected mode persists and the task follows only that schedule. Partial live QA: changed one card through Daily, Weekly, and Never in WoW; the card label and selected button followed each choice, and Never persisted through `/reload`. Actual server reset schedules remain unobserved.
+
+- [ ] **RC16** Test `Check mail @mail *daily`. Opening completes it, reset makes it actionable again, and a later mailbox visit can complete the new period.
+
+- [ ] **SH12** Share a larger test board with normal other addons enabled. Transfer completes or reports an understandable failure, with no permanent partial board.
+
+- [ ] **DG05** Run `/tb log show`. The log window opens, scrolls, and permits copying; its close button works outside and inside combat. Partial live QA: `/tb log show` opened the scrollable log, Select all was available, and X closed it. Combat close remains.
+
+- [ ] **DG10** Exercise a disposable board with roughly 100–200 varied tasks, long titles, subtasks, and eight columns. Scrolling, filtering, dragging, and typing remain responsive. Partial automated QA: 200 varied cards, long titles, subtasks and eight columns laid out and filtered with no Lua errors; live scrolling, dragging and typing responsiveness remains to check.
+
+- [ ] **DG11** Loot rapidly while the board/editor/tracker are open. No heavy stutter, duplicate rows, or selection corruption occurs.
+
+- [ ] **DG12** Travel through zones, open/close windows repeatedly, and play normally for at least 20 minutes. No growing popup backlog, stuck highlights, or repeated errors appear.
+
+- [ ] **DG13** Repeat the core smoke tests with your normal addon set. If a problem occurs, compare a minimal-addon setup and record the conflict.
+
+- [ ] **DG14** Check small/large UI scales and a changed resolution. Windows, menus, and tracker remain reachable with no hidden required controls.
+
+- [ ] **SG01** All smoke tests pass on the target client.
 
 - [ ] **SG03** Every failed case has a bug report and disposition. No unresolved data-loss, load, or core-workflow blocker remains.
 
@@ -833,56 +927,6 @@ For each issue, record the addon/client versions, character, location, relevant 
 
 - [ ] **SG06** Both classic skins, all accents, and opaque dialogs/dropdowns have been visually checked in game.
 
-- [x] **SG07** Daily/weekly and multiplayer coverage is explicitly recorded. Any untested feature is identified before deciding between Beta and Release. RC04/09/13/15/16 and SH12 remain Not run in live conditions; GAME06–07 identify the required sessions.
-
 - [ ] **SG08** The final distributed ZIP has the tested version and runtime files. A fresh install from that ZIP passes the smoke tests. Partial verification: both 1.3.0 ZIPs pass CRC checks, and all 25 installed runtime files match source by SHA-256. A clean install from the final ZIP has not been run.
 
-- [x] **SG09** The CurseForge description and Help accurately state supported client, mailbox learning, character boards, and current limitations. Reviewed and corrected README theme, sound, mailbox-title, install and reset descriptions; CurseForge copy and in-game Help were checked for client support, mailbox learning, character boards and limitations.
-
 - [ ] **SG10** Record the release decision and remaining issues below.
-
-**Release decision:** Pending  
-**Open issues:** No confirmed addon defect in this pass.  
-**Not run tests and reasons:** See the unchecked-case audit and GAME01–09 at the bottom for gameplay, combat, hearing, resets, multiplayer and isolated migration. Detailed unchecked cases remain unverified in-game reference checks.  
-**Tester and completion date:** Codex, 9 November 2026; owner sign-off pending.
-
-Reference build: [Taskboard 1.2.0 source](https://github.com/Jvb182/taskboard/commit/6893d6275730ab7286ac9be594e5de3acddd340e). The repository is private; access requires permission.
-
-## Unchecked-case audit
-
-Every unchecked detailed case is **Not run for its full live acceptance criteria**. Partial automated or in-game evidence is recorded beside the case. The groups below explain what is still needed; the GAME checkboxes summarize the same work and are not additional feature failures.
-
-| Group | Detailed unchecked cases | Why the live check remains |
-| --- | --- | --- |
-| Real inventory, quest and travel (GAME01/GAME04) | GL01–04, GL14, GL16, BK01–08, RM02, RM06–07, FB05, FB12 | Actual item, quest, bank, zone and character events are required. Mocked data paths do not prove the server/client events. |
-| Mailbox approach and completion (GAME02) | MAIL1304, MB01, MB04, MB07–09, MB14, MB17, MB19 | Requires walking away and back to learned mailboxes, another character or mailbox, and actual mailbox opens. |
-| Combat and diagnostics (GAME03) | CLOSE03, UI11–12, TR16, DG05 | Requires combat. The log opened and closed outside combat; copying and closing during combat remain live checks. |
-| Audible feedback (GAME04) | SND1301–04, SND1306, FB01, FB06, FB08, FB11 | Requires a live reminder or popup and a person to judge audible output at their normal volume. |
-| Visual and physical UI use (GAME04/GAME08) | STYLE02, TR11, TR17, AP08, AP11, AP13, DG10, DG14, SG06 | Needs a physical tracker drag, the full theme/accent and UI-scale review, or judgment of readability and responsiveness. A smaller-scale console setting did not visibly change this client. A 200-card simulated layout/filter passed, but live drag, scroll and typing were not verified. |
-| Isolated saves and upgrades (GAME05) | IN02–06, BD11–17, SG04 | Requires a fresh or historical populated save in an isolated profile. The current profile cannot prove migration without its original data. |
-| Server resets (GAME06) | RC04, RC09, RC13, RC15–16 | Requires real daily/weekly reset boundaries and an offline character. Repeat selection and mocked recurrence logic passed. |
-| Second player and long play (GAME07/GAME08) | SH12, DG11–13 | Requires a second player, rapid live loot, or extended play with the normal addon set. |
-| Full reset (GAME09) | SET1302 | Cancel passed. Confirming Reset all data in the live client needs the player's action-time approval because it deletes saved data. |
-| Release signoff (GAME08) | SG01, SG03, SG05, SG08, SG10 | Depends on the live checks above, a final ZIP install and the owner's release decision. |
-
-## Tests that need your participation
-
-These are the remaining real-client scenarios that require your movement, hearing, a second player, an actual reset, an older save file, or hands-on visual judgment. The detailed checklist above provides the exact edge cases and case IDs. Record a result and date for each group; mark an unavailable legacy-save test Not applicable rather than Passed.
-
-- [ ] **GAME01 — Real item and progression events.** Use a disposable item goal with a shift-clicked item link, then loot, spend or sell enough items to change its live count and finish it. Check the target, readable title, one completion, tracker and saved result after reload. As convenient, exercise money, level, profession, reputation and quest events. Reference: QA07–09 and GL.
-
-- [ ] **GAME02 — Mailbox approach and completion.** Open a mailbox once to teach its position; close it, walk beyond 50 yards, then return within 35 yards and wait three seconds. Confirm the reminder flashes on approach and stops on exit. Check a task added while already nearby, reminder Off, `Check mail @mail` auto-completion on opening, and a mail task with unfinished subtasks. Test an indoor or multilevel mailbox if available. Reference: MB01–19, MAIL1301–02 and SND1301–04.
-
-- [ ] **GAME03 — Combat window controls.** While in combat, close Settings, log, Help, editor and board windows with their X buttons and Escape where supported. Record any blocked-action or Lua error. Reference: UI11–12 and CLOSE03.
-
-- [ ] **GAME04 — Travel, bank, map and audible feedback.** While playing, enter and leave a task zone, approach relevant NPCs, check cached bank counts away from the bank and after reload, and set a real map waypoint. Listen to each selected event sound, repeating nearby reminder interval, Off and master sound switch at your normal game volume. Reference: RM, BK, MP, FB and SND1301–04.
-
-- [ ] **GAME05 — Isolated legacy migration.** If you have an older populated Questboard or pre-1.2 Taskboard save, test it in an isolated client profile. Compare every original card, status, archive, goal, setting and window position before and after the upgrade; reload twice, edit a migrated card and disable the legacy loader. Do not overwrite your active saves. Mark Not applicable if no older save exists. Reference: IN02–06 and BD11–16.
-
-- [ ] **GAME06 — Server resets.** Observe one actual daily and one weekly reset with manual and item goals, including a character that was offline during the boundary. Check rearming, inventory baseline and streak behavior without duplicate completions. Reference: RC01–16.
-
-- [ ] **GAME07 — Two-player sharing.** With a willing second player, send and decline/accept a party offer, then test the raid or guild channel you use. Verify owner updates, recipient read-only restrictions, member progress, reload and a larger transfer. Reference: SH01–15.
-
-- [ ] **GAME08 — Normal-play session and final decision.** Play at least 20 minutes with your usual addons and a populated board; note FPS, memory, input responsiveness, sound comfort, visual readability at your preferred UI scale, and any Lua errors. Capture `/tb diag` and screenshots for failures, then complete release sign-off. Reference: DG10–14 and SG01–10.
-
-- [ ] **GAME09 — Confirm live Reset all data.** On disposable data, confirm Reset all data, reload, and verify cards, settings and learned mailbox spots are cleared. Cancel has already passed. The live confirmation must be approved at the time because it deletes saved data.

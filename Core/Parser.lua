@@ -8,6 +8,7 @@ ns.Parser = Parser
 -- Deliberately match whole errands, not arbitrary sentences containing "mail".
 function Parser.IsMailCheck(text)
     local title = Util.Trim(Util.Lower(text or ""):gsub("[%p%s]+", " "))
+    if title == "mail" or title == "mailbox" then return true end
     local verb, rest = title:match("^(%a+)%s+(.+)$")
     if verb ~= "check" and verb ~= "open" and verb ~= "visit" then return false end
     rest = rest:gsub("^my ", ""):gsub("^the ", "")

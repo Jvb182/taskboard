@@ -10,6 +10,8 @@ A Kanban to-do board for **World of Warcraft: Forever** (interface `16001`) whos
 
 Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you loot. It moves to **In Progress** when you start and to **Done** with a sound and a popup when you finish.
 
+Typed item names remain trackable without links. If a quantity such as `Get 2 pots` is not a real item, click the unresolved subtask checkbox and confirm manual completion. For a whole-card item goal, use **Clear** in the card editor to remove tracking.
+
 ## Features
 
 - **Board:** To Do → In Progress → Done.
@@ -47,6 +49,8 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
   | `*daily` `*weekly` | repeating card |
   | `>doing` `>done` | starting column |
   | `;` | separates subtasks |
+
+Only these NPC type tags are recognized: `@bank`, `@vendor`/`@merchant`, `@mail`/`@mailbox`, `@ah`/`@auction`/`@auctionhouse`, and `@trainer`. They trigger when the matching window opens; mail can also remind near a learned mailbox. Other `@words` are treated as locations, not NPC names. For example, `Talk to @innkeeper` will not trigger when you speak to an innkeeper; use `Talk to innkeeper @Goldshire` for a zone reminder or keep it manual.
 
 - **Reminders:** a card pinned to a zone or an NPC pops up when you arrive there or open that NPC.
   - Plain `Mail`, `Mailbox`, `Check mail`, `Check mailbox`, `Open mail` and `Visit the mailbox` tasks automatically receive a Mail reminder, including existing tasks after reload. Explicit locations win; choosing Off in the editor stays off. `@mail` and `@mailbox` both work for other mail errands.
@@ -140,13 +144,13 @@ The archive contains the Taskboard runtime and the legacy data loader, ready to 
 
 ## Board layouts and custom styling (1.3.0)
 
-Click a column header and choose **Move column left/right** to reorder columns without moving their cards. The order persists per board. **Board > Show archived cards** shows the archived total and Previous/Next page controls, with 20 tasks per page; click a task to restore it.
+Click the current board name to list and switch between character and received boards; use the separate **Board settings** button for layout, sharing, archive, import/export, rename and deletion. Click a column header and choose **Move column left/right** to reorder columns without moving their cards. The order persists per board. **Board settings > Show archived cards** shows the archived total and Previous/Next page controls, with 20 tasks per page; click a task to restore it.
 
 Help uses larger 16-pixel body text and 18-pixel headings. Its search box searches all tabs, including examples; Clear or selecting a tab restores normal browsing. Classic stone uses a solid dark Blizzard dialog backdrop with light text. Classic leather and Quest parchment use warm parchment with dark text. Classic skins retain their original window borders.
 
-Use **Board > Simple mode (To Do / Done)** to simplify one character's board. Existing In Progress/custom-column tasks move to To Do with their progress intact; the stored columns return when Standard mode is restored. Automatic starting is suspended in Simple mode, while goal tracking, reminders and completion continue. The tracker includes open Simple tasks, but can still be hidden.
+Use **Board settings > Simple mode (To Do / Done)** to simplify one character's board. Existing In Progress/custom-column tasks move to To Do with their progress intact; the stored columns return when Standard mode is restored. Automatic starting is suspended in Simple mode, while goal tracking, reminders and completion continue. The tracker includes open Simple tasks, but can still be hidden.
 
-**Board > Show completed** hides the Done column without deleting tasks or history. Turn it back on to review completed work. With Simple mode enabled and completed hidden, only To Do appears.
+**Board settings > Show completed** hides the Done column without deleting tasks or history. Turn it back on to review completed work. With Simple mode enabled and completed hidden, only To Do appears.
 
 **Appearance > Quest parchment** uses the game's quest parchment artwork and dark text. **Custom theme colors** offers RGB sliders and hex input for background, text, borders and accent; Apply saves, Cancel discards, and Reset appearance restores defaults. Help and other dialogs have a solid backing. Closing the board closes Settings, Help, the picker and the editor, committing focused card edits.
 

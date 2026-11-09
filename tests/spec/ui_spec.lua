@@ -71,6 +71,37 @@ describe("Board window", function()
         T.noErrors(ns)
     end)
 
+    it("documents every NPC tag and separates repeat and subtask examples", function()
+        local m, ns = T.client()
+        local quick = ns.Help.SECTIONS[1].entries
+        local headings, words = {}, {}
+        for i, entry in ipairs(quick) do
+            if entry[1] == "h" then headings[entry[2]] = i end
+            words[#words + 1] = entry[2]
+        end
+        local helpText = table.concat(words, "\n")
+        T.ok(headings["Supported NPC type tags"] < headings["Repeating tasks"])
+        T.ok(headings["Repeating tasks"] < headings["Subtasks"])
+        T.eq(headings["Repeating tasks and subtasks"], nil)
+        for alias, npc in pairs(ns.Parser.NPC_ALIASES) do
+            T.contains(helpText, "@" .. alias)
+            T.eq(ns.Parser.Parse("Visit @" .. alias).where.npc, npc)
+        end
+        T.contains(helpText, "Any other @word is treated as a location name")
+        T.contains(helpText, "@innkeeper will not trigger")
+        T.eq(ns.Parser.Parse("Talk to @innkeeper").where.zone, "innkeeper")
+        T.eq(ns.Parser.Parse("Visit the trainer @trainer *weekly").recur, "weekly")
+        T.eq(#ns.Parser.Parse("Alchemy prep; 20 Peacebloom; buy vials").subtasks, 2)
+        ns.Help:Show("quick")
+        ns.Help.search:SetText("innkeeper")
+        local found = false
+        for _, row in ipairs(ns.Help.rows) do
+            if row:IsShown() and row:GetText():find("@innkeeper", 1, true) then found = true end
+        end
+        T.ok(found, "the unsupported-tag explanation is searchable")
+        T.noErrors(ns)
+    end)
+
     it("navigates location choices and dismisses them without losing typed text", function()
         local m, ns = T.client()
         m.state.areas = { [87] = "Goldshire", [88] = "Gadgetzan" }
@@ -300,6 +331,77 @@ describe("Board window", function()
         T.noErrors(ns)
     end)
 
+    it("separates board switching from settings in the header", function()
+        local m, ns = T.client({ setup = function(mm) mm.state.inGroup = true end })
+        local own = ns.DB:GetActiveBoard()
+        local other = ns.Sync:Import(ns.DB.NormalizeBoard({ id = "remote-menu", name = "Remote QA",
+            cards = { c = { id = "c", title = "Remote task" } } }), "Other-Forever", "PARTY", 1)
+        ns.Board:Show()
+        local ui = ns.Board:Internals()
+        T.contains(ui.boardButton.label:GetText(), own.name)
+        T.eq(ui.boardSettingsButton.label:GetText(), "Board settings")
+        ui.boardButton:Click()
+        menuRow(m, "Remote QA")
+        local switchTexts = {}
+        for _, row in ipairs(m.env.TaskboardMenu.rows) do
+            if row:IsShown() then switchTexts[#switchTexts + 1] = row.text:GetText() end
+        end
+        T.no(table.concat(switchTexts, "|"):find("Simple mode", 1, true))
+        ui.boardSettingsButton:Click()
+        menuRow(m, "Simple mode")
+        local settingTexts = {}
+        for _, row in ipairs(m.env.TaskboardMenu.rows) do
+            if row:IsShown() then settingTexts[#settingTexts + 1] = row.text:GetText() end
+        end
+        T.no(table.concat(settingTexts, "|"):find("Remote QA", 1, true))
+        ui.boardButton:Click()
+        menuRow(m, "Remote QA"):Click()
+        T.eq(ns.DB:GetActiveBoard(), other)
+        m.Advance(0.01)
+        T.contains(ui.boardButton.label:GetText(), "Remote QA")
+        T.noErrors(ns)
+    end)
+
+    it("opens the editor beside the board or tracker that launched it", function()
+        local m, ns = T.client()
+        local board = ns.DB:GetActiveBoard()
+        local card = ns.Commands:Add("Anchor test")
+        card.track = true
+        ns.Board:Show(); ns.Tracker:Refresh(); m.Advance(0.1)
+        local tracker = ns.Tracker:Internals().frame
+        local boardCard = cardFrame(ns, card)
+        boardCard:GetScript("OnClick")(boardCard, "LeftButton")
+        local editor = ns.Editor:Internals().frame
+        local point, relative, relativePoint = editor:GetPoint()
+        T.eq(editor:GetParent(), ns.Board.frame)
+        T.eq(relative, ns.Board.frame)
+        T.eq(point, "TOPLEFT")
+        T.eq(relativePoint, "TOPRIGHT")
+
+        local trackerRow
+        for _, row in ipairs(ns.Tracker:Internals().rows) do
+            if row.card == card then trackerRow = row; break end
+        end
+        T.ok(trackerRow)
+        tracker._left = 1600
+        trackerRow:GetScript("OnClick")(trackerRow, "LeftButton")
+        point, relative, relativePoint = editor:GetPoint()
+        T.eq(editor:GetParent(), tracker)
+        T.eq(relative, tracker)
+        T.eq(point, "TOPRIGHT")
+        T.eq(relativePoint, "TOPLEFT")
+
+        trackerRow:GetScript("OnClick")(trackerRow, "RightButton")
+        menuRow(m, "Edit"):Click()
+        T.eq(editor:GetParent(), tracker)
+        tracker._left = 20
+        trackerRow:GetScript("OnClick")(trackerRow, "LeftButton")
+        point, relative, relativePoint = editor:GetPoint()
+        T.eq(point, "TOPLEFT")
+        T.eq(relativePoint, "TOPRIGHT")
+        T.noErrors(ns)
+    end)
+
     it("closes an open editor when switching boards from the menu", function()
         local m, ns = T.client({ setup = function(mm) mm.state.inGroup = true end })
         local own = ns.DB:GetActiveBoard()
@@ -309,7 +411,7 @@ describe("Board window", function()
         ns.Board:Show()
         ns.Editor:Open(card, own)
         T.ok(ns.Editor:Internals().frame:IsShown())
-        ns.Board:BoardMenu()
+        ns.Board:BoardSwitcher()
         menuRow(m, "Remote QA"):Click()
         T.eq(ns.DB:GetActiveBoard(), other)
         T.no(ns.Editor:Internals().frame:IsShown())
@@ -318,6 +420,35 @@ describe("Board window", function()
 end)
 
 describe("Card editor", function()
+    it("can manually finish an unresolved typed item subtask after confirmation", function()
+        local m, ns = T.client()
+        local card = ns.Commands:Add("Supply run; Get 2 pots")
+        local board = ns.DB:GetActiveBoard()
+        T.eq(card.subtasks[1].goal.type, "item")
+        T.eq(card.subtasks[1].goal.itemID, nil)
+        ns.Board:Show()
+        ns.Editor:Open(card, board, "board")
+        local check = ns.Editor:Internals().ui.subRows[1].check
+
+        check:SetChecked(true)
+        check:GetScript("OnClick")(check)
+        T.eq(#m.popups, 1)
+        T.eq(check:GetChecked(), false)
+        m.CancelPopup()
+        T.eq(card.subtasks[1].goal.type, "item")
+        T.eq(card.subtasks[1].goal.itemID, nil)
+        T.eq(card.subtasks[1].done, false)
+
+        check:SetChecked(true)
+        check:GetScript("OnClick")(check)
+        m.AcceptPopup()
+        T.eq(card.subtasks[1].text, "Get 2 pots")
+        T.eq(card.subtasks[1].goal, nil)
+        T.eq(card.subtasks[1].done, true)
+        T.eq(ns.DB:CardRole(board, card), "done")
+        T.noErrors(ns)
+    end)
+
     it("edits every field", function()
         local m, ns = T.client()
         m.Slash("/tb")

@@ -93,7 +93,7 @@ local function row(i)
     r:SetHighlightTexture(Theme.WHITE)
     r:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.06)
     r:SetScript("OnClick", ns.Wrap("tracker row", function(self, button)
-        if button == "RightButton" then ns.Board:CardMenu(self.card, self.board) else ns.Editor:Open(self.card, self.board) end
+        if button == "RightButton" then ns.Board:CardMenu(self.card, self.board, "tracker") else ns.Editor:Open(self.card, self.board, "tracker") end
     end))
     rows[i] = r
     return r

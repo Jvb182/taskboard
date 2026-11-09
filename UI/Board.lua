@@ -8,7 +8,7 @@ Board.CARD_H = 44
 Board.BAR_H = 14
 Board.filter = { text = "", tag = nil }
 
-local frame, columnsHost, columnsViewport, horizontalScroll, footer, addBox, searchBox, boardButton, mineCheck, tagButton
+local frame, columnsHost, columnsViewport, horizontalScroll, footer, addBox, searchBox, boardButton, boardSettingsButton, mineCheck, tagButton
 local columnFrames = {}
 local cardPool, usedCards = {}, {}
 local dirty = true
@@ -80,10 +80,10 @@ local function cardTooltip(card, board)
     return lines
 end
 
-function Board:CardMenu(card, board)
+function Board:CardMenu(card, board, source)
     local readOnly = DB:IsReadOnly(board)
     local items = { { text = card.title, title = true } }
-    items[#items + 1] = { text = readOnly and "View" or "Edit", func = function() ns.Editor:Open(card, board) end }
+    items[#items + 1] = { text = readOnly and "View" or "Edit", func = function() ns.Editor:Open(card, board, source or "board") end }
     if not readOnly then
         for _, col in ipairs(DB:StatusColumns(board)) do
             if col.id ~= card.column then
@@ -152,7 +152,7 @@ local function createCard()
     end)
     c:SetScript("OnClick", ns.Wrap("card click", function(self, button)
         if button == "RightButton" then Board:CardMenu(self.card, self.board)
-        else ns.Editor:Open(self.card, self.board) end
+        else ns.Editor:Open(self.card, self.board, "board") end
     end))
     c:SetScript("OnDragStart", ns.Wrap("card drag", function(self) Board:BeginDrag(self) end))
     c:SetScript("OnDragStop", ns.Wrap("card drop", function() Board:EndDrag() end))
@@ -528,8 +528,8 @@ end
 -------------------------------------------------------------------------------
 -- Board menu, tags
 -------------------------------------------------------------------------------
-function Board:BoardMenu()
-    local items = { { text = "Boards", title = true } }
+function Board:BoardSwitcher()
+    local items = { { text = "Switch board", title = true } }
     local current = activeBoard()
     for _, b in ipairs(DB:VisibleBoards()) do
         local label = b.name .. (b.scope == "character" and (" (" .. shortChar(b.owner) .. ")") or b.scope == "shared" and (" (from " .. shortChar(b.shared and b.shared.from) .. ")") or "")
@@ -538,6 +538,13 @@ function Board:BoardMenu()
             DB:SetActiveBoard(b)
         end }
     end
+    if #items == 1 then items[#items + 1] = { text = "No boards available", disabled = true } end
+    W.Menu(nil, items)
+end
+
+function Board:BoardMenu()
+    local items = { { text = "Board settings", title = true } }
+    local current = activeBoard()
     if current then
         if current.scope == "character" then
             items[#items + 1] = { text = "Simple mode (To Do / Done)", checked = current.simpleMode, func = function()
@@ -659,8 +666,12 @@ function Board:Create()
     title:SetPoint("TOPLEFT", 12, -8)
     Theme.Brand(title)
 
-    boardButton = W.Button(frame, "Board", 150, 20, function() Board:BoardMenu() end, "Switch boards, choose Simple mode, show completed, share or export")
+    boardButton = W.Button(frame, "Boards", 150, 20, function() Board:BoardSwitcher() end, "Switch between your character boards and received shared boards")
     boardButton:SetPoint("LEFT", title, "RIGHT", 12, 0)
+    boardButton.label:SetWidth(144)
+    boardSettingsButton = W.Button(frame, "Board settings", 112, 20, function() Board:BoardMenu() end, "Change this board's layout, sharing, archive and data settings")
+    boardSettingsButton:SetPoint("LEFT", boardButton, "RIGHT", 6, 0)
+    boardSettingsButton.label:SetWidth(108)
 
     local close = W.CloseButton(frame)
     close:SetPoint("TOPRIGHT", 2, 2)
@@ -670,7 +681,7 @@ function Board:Create()
     logButton:SetPoint("RIGHT", options, "LEFT", -6, 0)
     local examplesButton = W.Button(frame, "Help", 76, 18, function() ns.Help:Show() end)
     examplesButton:SetPoint("RIGHT", logButton, "LEFT", -6, 0)
-    for _, button in ipairs({ boardButton, close, options, logButton, examplesButton }) do
+    for _, button in ipairs({ boardButton, boardSettingsButton, close, options, logButton, examplesButton }) do
         button:SetFrameLevel(titleBar:GetFrameLevel() + 1)
     end
 
@@ -783,6 +794,7 @@ end
 -- Test and debugging access.
 function Board:Internals()
     return { frame = frame, columns = columnFrames, cards = usedCards, addBox = addBox, searchBox = searchBox,
+             boardButton = boardButton, boardSettingsButton = boardSettingsButton,
              horizontalScroll = horizontalScroll, viewport = columnsViewport }
 end
 

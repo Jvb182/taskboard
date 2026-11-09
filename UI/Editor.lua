@@ -331,14 +331,34 @@ local function subtaskRow(i)
     row:SetSize(INNER, 22)
     row.check = W.Check(row, "", function(checked)
         local subs = Util.DeepCopy(current.card.subtasks)
-        if subs[row.index] and not subs[row.index].goal then
-            subs[row.index].done = checked
+        local sub = subs[row.index]
+        if sub and not sub.goal then
+            sub.done = checked
             apply({ subtasks = subs })
             ns.Engine:Refresh(current.card, current.board)
+        elseif checked and sub and sub.goal and sub.goal.type == "item" and not sub.goal.itemID then
+            row.check:SetChecked(false)
+            local card, board, subID = current.card, current.board, sub.id
+            W.Confirm("Taskboard has not identified '" .. (sub.goal.name or sub.text) .. "' as an item yet. Mark this subtask done manually and stop item tracking?", function()
+                if DB:IsReadOnly(board) then return end
+                local updated = Util.DeepCopy(card.subtasks)
+                for _, entry in ipairs(updated) do
+                    if entry.id == subID then
+                        entry.goal, entry.progress, entry.done = nil, nil, true
+                        break
+                    end
+                end
+                if DB:UpdateCard(board, card, { subtasks = updated }) then
+                    for _, entry in ipairs(card.subtasks) do
+                        if entry.id == subID then ns:Fire("SUBTASK_COMPLETED", card, board, entry); break end
+                    end
+                    ns.Engine:Refresh(card, board)
+                end
+            end)
         else
-            row.check:SetChecked(subs[row.index] and subs[row.index].done)
+            row.check:SetChecked(sub and sub.done)
         end
-    end, "Subtasks with a goal check themselves")
+    end, "Tracked subtasks check themselves. Click an unknown item goal to finish it manually.")
     row.check:SetPoint("LEFT", -4, 0)
     row.text = W.Text(row, "GameFontHighlightSmall")
     row.text:SetPoint("LEFT", 20, 0)
@@ -552,7 +572,7 @@ function Editor:SyncHeight()
     frame:SetHeight(math.max(340, math.min(1100, height)))
 end
 
-function Editor:Open(card, board)
+function Editor:Open(card, board, source)
     self:Create()
     if current.card ~= card then
         -- Blur while the old card is still current: commits cannot leak to the new one.
@@ -563,9 +583,19 @@ function Editor:Open(card, board)
     current.card, current.board = card, board
     frame:ClearAllPoints()
     local boardFrame = ns.Board.frame
-    if boardFrame and boardFrame:IsShown() then
-        frame:SetParent(boardFrame)
-        frame:SetPoint("TOPLEFT", boardFrame, "TOPRIGHT", 4, 0)
+    local trackerFrame = source == "tracker" and ns.Tracker and ns.Tracker:Internals().frame
+    local anchor = trackerFrame and trackerFrame:IsShown() and trackerFrame
+        or boardFrame and boardFrame:IsShown() and boardFrame
+    if anchor then
+        frame:SetParent(anchor)
+        local left, right = anchor:GetLeft(), anchor:GetRight()
+        local rightSpace = right and UIParent:GetWidth() - right or 0
+        local leftSpace = left or 0
+        if rightSpace < WIDTH + 4 and leftSpace > rightSpace then
+            frame:SetPoint("TOPRIGHT", anchor, "TOPLEFT", -4, 0)
+        else
+            frame:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 4, 0)
+        end
     else
         frame:SetParent(UIParent)
         frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)

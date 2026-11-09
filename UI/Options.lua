@@ -99,12 +99,17 @@ function Options:Create()
     local generalScroll, generalContent = W.Scroll(pages.general)
     generalScroll:SetPoint("TOPLEFT", 0, 0)
     generalScroll:SetPoint("BOTTOMRIGHT", -20, 0)
-    generalContent:SetSize(490, #self.ITEMS * 26)
+    generalContent:SetSize(490, #self.ITEMS * 26 + 150)
     for i, item in ipairs(self.ITEMS) do
         local c = W.Check(generalContent, item[2], function(checked) set(item[1], checked) end)
         c:SetPoint("TOPLEFT", 0, -(i - 1) * 26)
         checks[item[1]] = c
     end
+
+    local mailHelp = W.Text(generalContent, "GameFontHighlightSmall")
+    mailHelp:SetPoint("TOPLEFT", 4, -#self.ITEMS * 26 - 8)
+    mailHelp:SetWidth(470); mailHelp:SetWordWrap(true)
+    mailHelp:SetText("Mailbox reminders\nCheck mail, Check mailbox, Open mail and Visit the mailbox automatically use the Mail reminder. You can change it or turn it Off in the task editor.\nOpen each mailbox once to teach Taskboard its location. On later visits, it checks every 3 seconds and reminds within about 35 yards; the nearby pulse ends beyond 50 yards. Unvisited mailboxes cannot remind in advance.\nWith automatic completion enabled, opening a mailbox completes these plain tasks only when they have no goals or subtasks.")
 
     local function label(parent, text, y)
         local fs = W.Text(parent, "GameFontNormal")

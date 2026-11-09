@@ -7,6 +7,50 @@ local function learn(m)
 end
 
 describe("QA checklist regressions", function()
+    it("recognizes plain mailbox errands but preserves explicit destinations", function()
+        local m, ns = T.client()
+        for _, title in ipairs({ "check mail", "Check mailbox!", "open mail", "Visit the mailbox", "Open my mail box" }) do
+            local c = ns.Commands:Add(title); T.eq(c.where.npc, "mail")
+        end
+        T.eq(ns.Commands:Add("check mail @Goldshire").where.zone, "Goldshire")
+        T.eq(ns.Commands:Add("Send items @mailbox").where.npc, "mail")
+        T.eq(ns.Commands:Add("Check email").where, nil)
+        T.eq(ns.Commands:Add("Check mail armor prices").where, nil)
+    end)
+
+    it("keeps mailbox reminder Off after edits and reload", function()
+        local m, ns = T.client()
+        local c = ns.Commands:Add("Open mail")
+        local b = ns.DB:GetActiveBoard()
+        ns.DB:UpdateCard(b, c, { where = false })
+        ns.DB:UpdateCard(b, c, { notes = "later" }); T.eq(c.where, nil)
+        local n, a = T.client(nil, m.Logout())
+        T.eq(a.db.boards[b.id].cards[c.id].where, nil); T.noErrors(a)
+    end)
+
+    it("upgrades an existing plain mailbox task and completes only eligible plain tasks", function()
+        local m, ns = T.client()
+        local c = ns.Commands:Add("Open mail")
+        local b = ns.DB:GetActiveBoard(); c.where = nil
+        local n, a = T.client(nil, m.Logout())
+        local saved = a.db.boards[b.id].cards[c.id]
+        T.eq(saved.where.npc, "mail")
+        local sub = a.Commands:Add("open mailbox; send items")
+        n.Fire("MAIL_SHOW"); T.eq(saved.column, "done"); T.eq(sub.column, "todo")
+    end)
+
+    it("mailbox alias reminds after learning on continent zero and explains diagnostics", function()
+        local m, ns = T.client()
+        m.env.C_Map.GetWorldPosFromMapPos = function(_, pos) return 0, { x = pos.x * 1000 - 9300, y = pos.y * 1000 } end
+        local c = ns.Commands:Add("Send items @mailbox")
+        local count = 0
+        ns:On("REMINDER", function(title) if title == "Near a mailbox" then count = count + 1 end end)
+        learn(m); T.eq(count, 1); T.eq(c.column, "todo")
+        T.contains(ns.Reminders:MailboxStatus(), "1 eligible task(s)")
+        T.contains(ns.Reminders:MailboxStatus(), "20.0 yards")
+        T.noErrors(ns)
+    end)
+
     it("map pins survive reload and can be replaced and cleared", function()
         local m, ns = T.client()
         local c = ns.Commands:Add("Meet friends")

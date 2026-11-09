@@ -138,12 +138,16 @@ function DB.NormalizeCard(c, columnIDs)
             end
         end
     end
+    out.reminderExplicit = c.reminderExplicit == true or c.where == false or nil
     if type(c.where) == "table" then
         if type(c.where.zone) == "string" and Util.Trim(c.where.zone) ~= "" then
             out.where = { zone = Util.Sanitize(c.where.zone, 60) }
         elseif DB.NPCS[c.where.npc] then
             out.where = { npc = c.where.npc }
         end
+    end
+    if not out.where and not out.reminderExplicit and ns.Parser and ns.Parser.IsMailCheck(out.title) then
+        out.where = { npc = "mail" }
     end
     if type(c.pin) == "table" and id(c.pin.mapID, 100000) and tonumber(c.pin.x) and tonumber(c.pin.y) then
         out.pin = { mapID = id(c.pin.mapID, 100000), x = Util.Clamp(tonumber(c.pin.x), 0, 1),

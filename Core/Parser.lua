@@ -5,6 +5,15 @@ local Util = ns.Util
 local Parser = {}
 ns.Parser = Parser
 
+-- Deliberately match whole errands, not arbitrary sentences containing "mail".
+function Parser.IsMailCheck(text)
+    local title = Util.Trim(Util.Lower(text or ""):gsub("[%p%s]+", " "))
+    local verb, rest = title:match("^(%a+)%s+(.+)$")
+    if verb ~= "check" and verb ~= "open" and verb ~= "visit" then return false end
+    rest = rest:gsub("^my ", ""):gsub("^the ", "")
+    return rest == "mail" or rest == "mailbox" or rest == "mail box"
+end
+
 Parser.STANDINGS = { hated = 1, hostile = 2, unfriendly = 3, neutral = 4, friendly = 5, honored = 6, revered = 7, exalted = 8 }
 Parser.STANDING_NAMES = { "Hated", "Hostile", "Unfriendly", "Neutral", "Friendly", "Honored", "Revered", "Exalted" }
 Parser.SKILLS = {

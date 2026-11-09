@@ -99,6 +99,7 @@ function Diag:Report()
         end
     end
     local types = {}
+    add("%s", ns.Reminders:MailboxStatus())
     for t, n in pairs(byType) do types[#types + 1] = t .. "=" .. n end
     table.sort(types)
     add("Data: %d board(s), %d card(s) (%d archived), %d goal(s) [%s], repairs at load: %d",

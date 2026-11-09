@@ -40,7 +40,7 @@ Help.SECTIONS = {
         { "e", "Visit the trainer @Goldshire *weekly" },
         { "e", "Alchemy prep; 20 Peacebloom; 20 Silverleaf; buy vials" },
         { "e", "Alchemy prep #herbs !high @bank *daily; 20 Peacebloom; buy vials" },
-        { "p", "A semicolon starts a subtask. Live goals update their checkboxes; manual subtasks can be checked off. Tags, reminder, repeat and starting-status tokens apply to the whole task, even when entered after a semicolon. See Tracking & reminders for reset rules." },
+        { "p", "A semicolon starts a subtask. Live goals update their checkboxes; manual subtasks can be checked off. Click a subtask's text in the card editor to change it; Enter saves and Escape cancels. Tags, reminder, repeat and starting-status tokens apply to the whole task, even when entered after a semicolon. See Tracking & reminders for reset rules." },
     } },
     { id = "tracking", title = "Tracking & reminders", entries = {
         { "h", "Progress and automatic movement" },

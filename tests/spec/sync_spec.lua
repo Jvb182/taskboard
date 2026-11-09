@@ -63,6 +63,24 @@ describe("Sync wire format", function()
 end)
 
 describe("Sharing between two players", function()
+    it("lets a recipient set a local tracker preference in the editor across owner updates", function()
+        local m, ns = T.client(grouped("Bob"))
+        local source = ns.DB.NormalizeBoard({ id = "remote-qa", name = "Alice board", cards = {
+            c = { id = "c", title = "Shared errand" },
+        } })
+        local received = ns.Sync:Import(source, "Alice-Forever", "PARTY", 1)
+        ns.Editor:Open(received.cards.c, received)
+        local checkbox = ns.Editor:Internals().ui.track
+        checkbox:SetChecked(true) -- the mock Click does not toggle CheckButton state
+        checkbox:Click()
+        T.ok(received.cards.c.track)
+        T.ok(ns.Sync:HandlePayload({ k = "board", v = 2, board = source }, "Alice-Forever", "PARTY"))
+        T.ok(ns.db.boards[received.id].cards.c.track)
+        local _, restored = T.client(grouped("Bob"), m.Logout())
+        T.ok(restored.db.boards[received.id].cards.c.track)
+        T.noErrors(ns); T.noErrors(restored)
+    end)
+
     it("shares a board, accepts it, and syncs member progress back", function()
         local mA, nsA = T.client(grouped("Alice"))
         local mB, nsB = T.client(grouped("Bob"))
@@ -192,4 +210,5 @@ describe("Sharing between two players", function()
         T.contains(why, "not in a party")
     end)
 end)
+
 

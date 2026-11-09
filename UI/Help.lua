@@ -18,7 +18,7 @@ Help.SECTIONS = {
         { "e", "Herbalism 150" },
         { "e", "Honored with Stormwind" },
         { "e", "quest: The Defias Brotherhood" },
-        { "p", "The bracketed item example is a placeholder: insert a real link. Unknown item names can stay pending until matching loot identifies them. A quest goal completes when the quest is turned in, not merely ready to turn in." },
+        { "p", "The bracketed item example is a placeholder: insert a real link. Typed item names work too; unknown names can stay pending until matching loot identifies them. If a pending subtask is not a real item, click its checkbox and confirm to finish it manually. For a whole-card item goal, use Clear in the card editor to remove tracking. A quest goal completes when the quest is turned in, not merely ready to turn in." },
         { "h", "Tags, priority and starting status" },
         { "e", "Organize bags #chores !low" },
         { "e", "Prepare potions #alchemy !med >doing" },
@@ -79,14 +79,14 @@ Help.SECTIONS = {
     } },
     { id = "settings", title = "Settings & sharing", entries = {
         { "h", "Boards, cards and layout" },
-        { "p", "Board > Simple mode (To Do / Done) is saved separately for each character's board. Standard is the default. Switching to Simple moves tasks from In Progress and custom columns to To Do while preserving their progress. The old column names are kept for switching back, but old task positions are not restored. New custom columns require Standard mode." },
-        { "p", "Board > Show completed hides or reveals the Done column without deleting tasks or completion history. Simple mode with Show completed off is a single To Do list. You can still complete tasks through the editor or card menu. Live goals, reminders, subtasks and automatic completion continue working; automatic starting does not move Simple-mode tasks. The tracker includes your open Simple-mode tasks, unless you hide the tracker." },
+        { "p", "Board settings > Simple mode (To Do / Done) is saved separately for each character's board. Standard is the default. Switching to Simple moves tasks from In Progress and custom columns to To Do while preserving their progress. The old column names are kept for switching back, but old task positions are not restored. New custom columns require Standard mode." },
+        { "p", "Board settings > Show completed hides or reveals the Done column without deleting tasks or completion history. Simple mode with Show completed off is a single To Do list. You can still complete tasks through the editor or card menu. Live goals, reminders, subtasks and automatic completion continue working; automatic starting does not move Simple-mode tasks. The tracker includes your open Simple-mode tasks, unless you hide the tracker." },
         { "p", "Closing the main board also closes Settings, Help, the color picker and the card editor. Focused edits are saved before the editor closes. Reopening the board leaves these extra windows closed until you open them again." },
         { "p", "Drag the title or empty top bar to move the main board; use the bottom-right grip to resize it. Its position and size are saved. The card editor follows the board's height as you resize, including when opened from the tracker. Its fields stay scrollable. Scroll the board sideways when extra columns do not fit." },
-        { "p", "Each character has one board, and every character on your account can switch to the others' boards. Existing local boards are merged by card owner when you upgrade; cards and their status are kept. The Board menu switches, renames, exports, imports and deletes boards. Received shared boards remain separate. Search filters text, Tags filters by tag, and Mine hides cards belonging to other characters." },
+        { "p", "Each character has one board, and every character on your account can switch to the others' boards. Click the board name at the top to see and switch between all your character and received shared boards. Board settings beside it handles Simple mode, Show completed, rename, sharing, archive, export, import and deletion for the selected board. Existing local boards are merged by card owner on upgrade; cards and their status are kept. Search filters text, Tags filters by tag, and Mine hides cards belonging to other characters." },
         { "e", "/tb board - list boards; /tb board Name - switch to an existing board" },
         { "p", "Drag cards between columns or reorder them. Right-click a card to edit, move, duplicate, archive or delete it. The editor changes title, notes, goals, subtasks, tags, priority, reminder, repeat, tracker and map pin settings. Shared cards have editing restrictions." },
-        { "p", "Click a column header and choose Move column left or Move column right to rearrange your board. Column order is saved with that character's board, and tasks stay in their columns. Hidden columns keep their saved slots. The same menu renames columns, adds columns or removes empty custom columns. Core To Do/In Progress/Done roles stay intact even when renamed or reordered. Done columns can archive their tasks. Board > Show archived cards lets you restore an archived task; deletion is permanent." },
+        { "p", "Click a column header and choose Move column left or Move column right to rearrange your board. Column order is saved with that character's board, and tasks stay in their columns. Hidden columns keep their saved slots. The same menu renames columns, adds columns or removes empty custom columns. Core To Do/In Progress/Done roles stay intact even when renamed or reordered. Done columns can archive their tasks. Board settings > Show archived cards lets you restore an archived task; deletion is permanent." },
         { "h", "General settings" },
         { "e", "/tb options" },
         { "p", "General controls automatic starting/completion, progress messages, popups, the sound master switch, reminders, smart reminders, bank counting, tracker visibility, hiding in combat, the minimap button, share offers and debug logging." },
@@ -109,7 +109,7 @@ Help.SECTIONS = {
         { "h", "Text export and import" },
         { "e", "/tb export - copy the active board as text" },
         { "e", "/tb import - paste exported board text" },
-        { "p", "Text import adds cards to your character's board and assigns live goals to your current character. The original board is not overwritten. Use the Board menu for the same actions." },
+        { "p", "Text import adds cards to your character's board and assigns live goals to your current character. The original board is not overwritten. Use Board settings for the same actions." },
         { "h", "Commands and troubleshooting" },
         { "e", "/tb list - list open tasks" },
         { "e", "/tb done 1 - finish the first listed task" },
@@ -246,4 +246,3 @@ end
 function Help:Hide()
     if self.frame then self.frame:Hide() end
 end
-

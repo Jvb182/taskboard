@@ -299,6 +299,22 @@ describe("Board window", function()
         T.eq(ns.Board:Internals().columns[3].title:GetText(), "Waiting")
         T.noErrors(ns)
     end)
+
+    it("closes an open editor when switching boards from the menu", function()
+        local m, ns = T.client({ setup = function(mm) mm.state.inGroup = true end })
+        local own = ns.DB:GetActiveBoard()
+        local card = ns.Commands:Add("Own draft")
+        local other = ns.Sync:Import(ns.DB.NormalizeBoard({ id = "remote-qa", name = "Remote QA",
+            cards = { c = { id = "c", title = "Remote task" } } }), "Other-Forever", "PARTY", 1)
+        ns.Board:Show()
+        ns.Editor:Open(card, own)
+        T.ok(ns.Editor:Internals().frame:IsShown())
+        ns.Board:BoardMenu()
+        menuRow(m, "Remote QA"):Click()
+        T.eq(ns.DB:GetActiveBoard(), other)
+        T.no(ns.Editor:Internals().frame:IsShown())
+        T.noErrors(ns)
+    end)
 end)
 
 describe("Card editor", function()
@@ -695,4 +711,5 @@ describe("Tracker, toasts, log, options, minimap", function()
         T.contains(err, "read-only")
     end)
 end)
+
 

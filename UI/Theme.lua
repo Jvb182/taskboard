@@ -100,10 +100,12 @@ end
 function Theme:Decorate(frame, bg, opaque)
     -- Some Blizzard classic textures contain alpha even at backdrop alpha 1.
     if opaque and not frame.taskboardSolid then
-        frame.taskboardSolid = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
+        -- Keep opaque dialogs above the backdrop fill when switching skins.
+        frame.taskboardSolid = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
         frame.taskboardSolid:SetAllPoints()
     end
     if frame.taskboardSolid then
+        frame.taskboardSolid:SetDrawLayer("BACKGROUND", 1)
         frame.taskboardSolid:SetColorTexture(bg[1], bg[2], bg[3], 1)
         frame.taskboardSolid:SetShown(opaque == true)
     end

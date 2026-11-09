@@ -1,164 +1,94 @@
 # Taskboard
 
-Formerly Questboard. Open with `/tb` or `/taskboard`; existing key bindings are retained.
+Taskboard is a personal task board for **World of Warcraft: Forever**. Keep errands, gathering goals, reminders, and recurring work in one place without turning them into game quests.
 
-The board's **Help** button (or `/tb help`) opens a full reference with **Quick Add**, **Tracking & reminders**, and **Settings & sharing** tabs. It covers goal examples, location suggestions, bank counting, recurring item modes, tracker behavior, boards, appearance, sounds, sharing, import/export, commands, and troubleshooting. Each tab scrolls; help never pops up merely from hovering over Quick Add.
+Add `Get 20 Peacebloom` and Taskboard tracks your bags as you gather: `0/20 → 5/20 → 20/20`. You can also keep ordinary manual tasks, such as `Buy vials @Goldshire`.
 
-Type `@` followed by a letter in Quick Add to suggest locations: `@g` narrows to `@go` for Goldshire. Suggestions come from the client's localized area names, indexed in small batches on first use (area IDs 1–30000), including zones and subzones. Click a result or use Up/Down and Tab/Enter; Enter accepts the location first, then a second Enter adds the task. Scroll for more matches. Multiword locations are quoted automatically. Escape dismisses suggestions, and unlisted locations can still be typed manually. `@Goldshire` adds an arrival reminder for an unfinished task; it does not complete the task on arrival.
+**Requires:** WoW Forever, interface `16001` · **Open:** `/tb`, `/taskboard`, or the minimap button · **In-game guide:** `/tb help`
 
-A Kanban to-do board for **World of Warcraft: Forever** (interface `16001`) whose cards track themselves.
+## What it does
 
-Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you loot. It moves to **In Progress** when you start and to **Done** with a sound and a popup when you finish.
+- **Organizes tasks:** use To Do, In Progress, and Done; add and reorder columns; drag cards; search and filter; archive finished work. Each character has one board, and you can view your character boards from your other characters. Simple mode reduces a board to To Do and Done, and you can hide the completed column.
+- **Tracks goals:** items in your bags, optional bank counts, gold, level and XP, profession skill, reputation, and quests. Goals can belong to a card or a subtask. Typed item names work without an item link. If a typed name cannot resolve to an item, you can complete that subtask manually or clear the card's item tracking.
+- **Reminds you:** attach a zone with `@Goldshire` or a supported service with `@mail`, `@bank`, `@vendor`, `@ah`, or `@trainer`. Location suggestions appear as you type `@` in Quick Add and the editor. A location reminder alerts you on arrival; it does not complete the task.
+- **Keeps a compact tracker:** show in-progress and pinned cards, or include every open task. Nearby location tasks can pulse until you leave. The tracker can be hidden independently of the board.
+- **Repeats tasks:** daily or weekly cards reset at server reset. For repeating item goals, choose between collecting additional inventory during the period and tracking current stock.
+- **Fits your UI:** choose a preset or custom colors, adjust board and tracker opacity, and select separate sounds for status changes, completions, subtasks, and reminders. Settings, Help, and editor windows stay opaque.
+- **Shares and exports:** offer a board to party, raid, or guild members who also use Taskboard, or copy a board as text for import elsewhere. Recipients confirm before importing.
 
-Typed item names remain trackable without links. If a quantity such as `Get 2 pots` is not a real item, click the unresolved subtask checkbox and confirm manual completion. For a whole-card item goal, use **Clear** in the card editor to remove tracking.
-
-## Features
-
-- **Board:** To Do → In Progress → Done.
-  - Rename columns or add your own.
-  - Drag and drop cards, or reorder them.
-  - Search, filter by tag, and show only this character's cards.
-  - One board per character, accessible from your other characters. Older local boards merge by card owner on upgrade; received shared boards remain separate.
-  - A horizontal scrollbar keeps extra columns reachable in narrow windows.
-- **Make it yours:** `/tb options` → **Appearance** offers Midnight, Warm leather, Forest, Arcane, High contrast, Classic stone, Classic leather, Quest parchment and Custom. Classic stone uses a dark Blizzard dialog backdrop with light text; Classic leather and Quest parchment use warm parchment with dark text. Sky, Gold, Mint, Rose and Lilac accents, custom RGB/hex colors and 35–100% board/tracker opacity are available. Settings, editor, Help, logs and popup menus stay opaque. Closing the board closes its dependent windows.
-- **Event sounds:** `/tb options` → **Sounds** offers Off, Soft click, Chime, Quest complete, Page turn, Coin, Message and Alert separately for status changes, completions, subtasks and zone/NPC reminders. Each has a Preview button. Optional repeating sound can play every 15, 30 or 60 seconds while a nearby task flashes. Manual and automatic completions both give feedback; reordering and daily/weekly resets are silent. The master Play sounds switch is under General, and volume follows the game settings. Sounds can remain on when popups are off.
-- **Live goals:** each card or subtask can track any of these:
-
-  | Goal | Example |
-  |---|---|
-  | Items (bags, optionally the bank) | `20 Peacebloom`, `[item link] x5` |
-  | Gold | `save 100g` |
-  | Level, with XP progress | `reach level 40` |
-  | Profession skill | `Herbalism 150` |
-  | Reputation | `Honored with Stormwind` |
-  | Quest | `[quest link]` or `quest: The Defias Brotherhood` |
-
-- **Quest-style messages:** "Peacebloom 6/20" appears on screen as you loot, like quest objectives.
-- **Quick add:** type a line or shift-click an item into the box. For example:
-
-  ```
-  /tb add Alchemy prep #herbs !high @bank *daily; 20 Peacebloom; 20 Silverleaf; buy vials
-  ```
-
-  | Token | Meaning |
-  |---|---|
-  | `#tag` | tag |
-  | `!low` `!med` `!high` | priority |
-  | `@Ironforge` / `@"Stormwind City"` | zone reminder |
-  | `@bank` `@vendor` `@mail` `@ah` `@trainer` | NPC reminder |
-  | `*daily` `*weekly` | repeating card |
-  | `>doing` `>done` | starting column |
-  | `;` | separates subtasks |
-
-Only these NPC type tags are recognized: `@bank`, `@vendor`/`@merchant`, `@mail`/`@mailbox`, `@ah`/`@auction`/`@auctionhouse`, and `@trainer`. They trigger when the matching window opens; mail can also remind near a learned mailbox. Other `@words` are treated as locations, not NPC names. For example, `Talk to @innkeeper` will not trigger when you speak to an innkeeper; use `Talk to innkeeper @Goldshire` for a zone reminder or keep it manual.
-
-- **Reminders:** a card pinned to a zone or an NPC pops up when you arrive there or open that NPC.
-  - Plain `Mail`, `Mailbox`, `Check mail`, `Check mailbox`, `Open mail` and `Visit the mailbox` tasks automatically receive a Mail reminder, including existing tasks after reload. Explicit locations win; choosing Off in the editor stays off. `@mail` and `@mailbox` both work for other mail errands.
-  - Mailbox spots are learned when you open them. On later visits, `@mail` tasks remind you within 35 yards and pulse in the tracker while nearby. Taskboard cannot detect an unvisited mailbox's position from the client API.
-  - With automatic completion enabled, opening a mailbox finishes plain `Check mail @mail` tasks (also `Check mailbox` and `Check my mail`, including trailing punctuation). Tasks with goals or subtasks, and other `@mail` tasks, remain open until you finish them.
-  - At the AH: lists the goal items you still need.
-  - At the bank: shows goal items sitting in your bank.
-- **Map pins:** pin a card to where you're standing. "Show on map" sets the game's waypoint arrow.
-- **Repeating cards:** daily and weekly cards reset at server reset, including boards belonging to offline alts. Missing a period breaks the streak; archived cards stay archived.
-  - Repeating item goals default to **extra inventory this period**: net inventory above the amount held when the card/period starts. Spending or selling reduces that net gain; this is not a cumulative loot counter.
-  - Uncheck **Items: collect extra each period (net gain)** in the editor to track current stock instead. After reset, a stock goal must become incomplete before it can automatically complete again.
-  - Baselines survive reloads. An offline character starts a new baseline on their next login; activity while the add-on is disabled cannot be reconstructed. Changing bank-counting options starts a fresh baseline for affected goals.
-- **Tracker:** a compact on-screen list of in-progress and pinned cards with progress bars. Enable **Tracker: include all open tasks** in General settings (or **Show all open tasks** in the tracker header menu) to also include manual To Do tasks and reminders. Scroll to reach additional tasks. Done/archived tasks and tasks belonging to other characters remain excluded. It can hide in combat.
-  - Matching location tasks appear first and gently pulse while you are in their zone/subzone, including To Do tasks. They stop pulsing when you leave. Toggle **Tracker: show and pulse location tasks while nearby** in General to disable this. It is independent of popup reminders and never forces a hidden tracker to appear.
-- **Stats:** completions today and this week, a day streak, and a total.
-- **Sharing:** `/tb share party|raid|guild`.
-  - Members are asked before anything is imported.
-  - Each member's progress on the shared goals shows on the owner's cards.
-  - Everything received is validated and sanitized.
-  - Temporary message throttling is retried with backoff. Terminal failures appear in chat/logs; share again after resolving them.
-  - Boards above the 60 KB transport limit must be shared using text export. Pending offers expire after 60 seconds; unsolicited whispers are ignored.
-- **Export and import:** copy a whole board as text.
-  - Imports add cards to the current character's board and assign their live goals to that character.
-- **Diagnostics:**
-
-  | Command | What it does |
-  |---|---|
-  | `/tb log [n]` | recent log lines in chat |
-  | `/tb log show` | copyable log window |
-  | `/tb debug on` | verbose logging |
-  | `/tb diag` | client build, data counts, engine timings, event counters, API availability, last error with stack |
-  | `/tb selftest` | in-game checks |
-
-  Core event dispatch, timers and action handlers capture errors for the diagnostic log. Enable the game's script-error display during testing as well.
+The **Help** panel explains each feature with examples and has search. See [the manual QA checklist](docs/TESTING.md) for in-game release checks.
 
 ## Install
 
-For CurseForge, use the single-folder `Taskboard-<version>-CurseForge.zip` built with `python tests/tools/package.py --curseforge`; `<version>` comes from `Taskboard.toc`. First-time users need only that file. Existing Questboard users need the optional legacy loader described below. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
+Download the single-folder `Taskboard-<version>-CurseForge.zip` from a release or CurseForge, then extract it so this file exists:
 
-For a new install, extract the CurseForge ZIP so `World of Warcraft/_forever_/Interface/AddOns/Taskboard/Taskboard.toc` exists. Restart the game after installing the newly named add-on.
+```text
+World of Warcraft/_forever_/Interface/AddOns/Taskboard/Taskboard.toc
+```
 
-**Upgrading from Questboard:** with the game closed, back up your old SavedVariables. Install Taskboard, then download the optional `Taskboard-<version>-Legacy-Loader.zip` from the project's CurseForge Files page and extract it into `Interface/AddOns/`, replacing `Questboard/Questboard.toc` if asked. The loader contains only a TOC: it loads the old saved data without running the original Questboard code. Enable Taskboard and **Taskboard - legacy data loader** for one login. Taskboard copies existing boards, settings and logs into `TaskboardDB`/`TaskboardLog`; the old save is left intact. After a logout/reload and verification, disable or remove the loader. CurseForge's app does not install optional additional files automatically, so download this helper manually from the website. Do not run the original Questboard code alongside Taskboard.
+Restart the game after installing. Open the board with `/tb` or its minimap button. You can assign shortcuts for the board, tracker, and Quick Add under **Key Bindings → AddOns → Taskboard**.
 
-For a source checkout, install the runtime folder as `Taskboard` and also copy `compat/Questboard` alongside it if you need legacy migration. `python tests/tools/package.py` builds a combined manual upgrade ZIP; `--legacy-loader` builds the standalone helper.
+If you are upgrading saved data from **Questboard**, use the optional `Taskboard-<version>-Legacy-Loader.zip` for one login. Close the game, back up SavedVariables, install Taskboard, and extract the loader into `Interface/AddOns/`. Enable **Taskboard** and **Taskboard - legacy data loader**. Taskboard copies the old boards and settings without running the old add-on code; the original save remains intact. After a reload and verification, remove or disable the loader. The CurseForge app does not install this optional file automatically. See [the release guide](docs/CURSEFORGE.md) for packaging and upload details.
 
-Open the board with `/tb` or the minimap button, or bind a key under Key Bindings → AddOns.
+## Add tasks
+
+Use the **Add a card** box, `/tb add <text>`, or `/todo <text>`. For example:
+
+```text
+Get 20 Peacebloom
+Buy vials @Goldshire #alchemy !high
+Check mail @mailbox
+Alchemy prep *daily; 20 Peacebloom; 20 Silverleaf; buy vials
+```
+
+| Syntax | Use |
+| --- | --- |
+| `#tag` | Group or filter tasks |
+| `!low`, `!med`, `!high` | Set priority |
+| `@Goldshire`, `@"Stormwind City"` | Remind on entering a location |
+| `@bank`, `@vendor`, `@mail`, `@ah`, `@trainer` | Remind at a supported service |
+| `*daily`, `*weekly` | Repeat after server reset |
+| `>doing`, `>done` | Choose an initial column |
+| `;` | Separate subtasks |
+
+Service aliases include `@merchant`, `@mailbox`, `@auction`, and `@auctionhouse`. Other `@words` are locations, not NPC names. For example, `Talk to innkeeper @Goldshire` reminds you in Goldshire; `@innkeeper` does not detect an innkeeper.
+
+Type `@` followed by letters to search localized locations. Select a suggestion with the mouse or keyboard. Multiword names are quoted for you. You can also type an unlisted location yourself.
+
+### How reminders behave
+
+Tasks can remind you while they are in **To Do** or **In Progress**. Bank, vendor, auction house, trainer, and mailbox service reminders react when the matching window opens. Taskboard also learns mailbox positions when you open them; on a later visit, `@mail` tasks can remind you within about 35 yards. An unvisited mailbox has no known position.
+
+Plain “Check mail,” “Check mailbox,” and similar tasks receive a mail reminder automatically. Opening a mailbox can complete a plain check-mail task when automatic completion is enabled. Other mailbox errands and tasks with goals or subtasks stay open until you finish them.
 
 ## Commands
 
-| Command | |
-|---|---|
-| `/tb` | open or close the board |
-| `/tb add <text>` or `/todo <text>` | add a card |
-| `/tb list`, `/tb done <n or text>` | list open cards, finish one |
-| `/tb tracker` | show or hide the tracker |
-| `/tb board [name]` | list or switch character boards |
-| `/tb share party\|raid\|guild`, `/tb unshare` | sharing |
-| `/tb export`, `/tb import` | copy boards as text |
-| `/tb options` | settings |
-| `/tb log`, `/tb diag`, `/tb selftest`, `/tb debug on\|off` | diagnostics |
+| Command | Action |
+| --- | --- |
+| `/tb` | Open or close the board |
+| `/tb add <text>`, `/todo <text>` | Add a task |
+| `/tb list`, `/tb done <number or text>` | List or finish tasks |
+| `/tb tracker` | Toggle the tracker |
+| `/tb board [name]` | List or switch boards |
+| `/tb share party\|raid\|guild`, `/tb unshare` | Share or stop sharing |
+| `/tb export`, `/tb import` | Copy board data |
+| `/tb options`, `/tb help` | Open settings or Help |
+| `/tb log`, `/tb diag`, `/tb selftest` | Inspect diagnostics |
 
-## Tests
+You can report a bug using the steps in **Help → Settings & sharing → Reporting a bug**. Include the add-on version, what you did, what happened, and relevant `/tb diag` or `/tb log show` output.
 
-The test suite runs without the game. It needs Python with `lupa`, which provides Lua 5.1, the version WoW uses.
+## Development and testing
 
-```
+Taskboard's offline suite uses Lua 5.1 through Python's `lupa` package. It checks the core logic and UI calls against a fixture generated from the Forever client's API documentation.
+
+```bash
 pip install -r tests/requirements.txt
-python tests/run.py              # everything
-python tests/run.py engine_spec  # one spec
-```
-
-`tests/wowmock.lua` is a mock Forever client with simulated bags, bank, money, level, skills, reputations, quests, zones, map, group, addon messages and time. The checks are built from **Blizzard's generated API documentation for the Forever client** (`tests/fixtures/forever_api.lua`), so:
-
-- Every widget method the UI calls must exist on that widget type in the real client. Anything else errors.
-- Every `C_` API, global, event, XML template, font object and `SOUNDKIT` name the code uses must exist in Forever.
-- Every API the mock simulates must exist in Forever too, so a misspelled API can't pass just because it was mocked.
-- A full scripted session is audited for unknown globals, missing APIs and stray global writes.
-
-To refresh the fixture after a client patch, run `tests/tools/gen_api_fixture.py`. Its header lists the steps.
-
-What the offline tests cannot cover: texture paths, real layout and visuals, and real server behavior such as item cache timing and addon-message throttling. Those need an in-game check.
-
-See [the in-game test checklist](docs/TESTING.md) before releasing. CI runs Lua 5.1 tests on Windows and Linux, builds all three ZIP layouts, checks their exact contents, and runs the suite against the extracted CurseForge package:
-
-```
-python tests/tools/package.py
+python tests/run.py
 python tests/tools/package.py --curseforge
 python tests/tools/package.py --legacy-loader
 python tests/tools/check_package.py
 ```
 
-The default archive contains the Taskboard runtime and legacy data loader for a manual upgrade. The CurseForge archive contains only Taskboard; the Legacy Loader archive is an optional manual download. See [architecture](docs/ARCHITECTURE.md) and [coverage](docs/QA-COVERAGE.md) for module boundaries, test evidence and the remaining real-client checks.
+GitHub Actions runs the tests on Windows and Linux, builds the packages, and tests the extracted CurseForge package. Visual layout, real server behavior, and live client timing still need in-game checks.
 
-
-## Board layouts and custom styling (1.3.0)
-
-Click the current board name to list and switch between character and received boards; use the separate **Board settings** button for layout, sharing, archive, import/export, rename and deletion. Click a column header and choose **Move column left/right** to reorder columns without moving their cards. The order persists per board. **Board settings > Show archived cards** shows the archived total and Previous/Next page controls, with 20 tasks per page; click a task to restore it.
-
-Help uses larger 16-pixel body text and 18-pixel headings. Its search box searches all tabs, including examples; Clear or selecting a tab restores normal browsing. Classic stone uses a solid dark Blizzard dialog backdrop with light text. Classic leather and Quest parchment use warm parchment with dark text. Classic skins retain their original window borders.
-
-Use **Board settings > Simple mode (To Do / Done)** to simplify one character's board. Existing In Progress/custom-column tasks move to To Do with their progress intact; the stored columns return when Standard mode is restored. Automatic starting is suspended in Simple mode, while goal tracking, reminders and completion continue. The tracker includes open Simple tasks, but can still be hidden.
-
-**Board settings > Show completed** hides the Done column without deleting tasks or history. Turn it back on to review completed work. With Simple mode enabled and completed hidden, only To Do appears.
-
-**Appearance > Quest parchment** uses the game's quest parchment artwork and dark text. **Custom theme colors** offers RGB sliders and hex input for background, text, borders and accent; Apply saves, Cancel discards, and Reset appearance restores defaults. Help and other dialogs have a solid backing. Closing the board closes Settings, Help, the picker and the editor, committing focused card edits.
-
-**Sounds > Repeat sound while nearby tasks flash** is off by default. It uses the reminder sound every 15, 30 or 60 seconds while an eligible flashing task is visible, at most once per interval. It respects sound/reminder switches and stops when tasks are completed, no longer nearby, or the tracker is hidden/collapsed.
-
-**General > Reset all data** asks for confirmation before clearing every board, task, setting, statistic and diagnostic log on this account. Learned mailbox locations are kept. Cancel keeps the existing data.
-
-Set the board, tracker and Quick Add shortcuts in **WoW Key Bindings > AddOns > Taskboard**; General Settings and Help explain where to find them.
+For maintainers: [architecture](docs/ARCHITECTURE.md) · [test coverage](docs/QA-COVERAGE.md) · [manual QA](docs/TESTING.md) · [CurseForge release guide](docs/CURSEFORGE.md).

@@ -112,7 +112,7 @@ end
 
 Options.ITEMS = {
     { "autoStart", "Move cards to In Progress when progress starts" },
-    { "autoComplete", "Move cards to Done when their goals are complete" },
+    { "autoComplete", "Complete finished goals and mail checks automatically" },
     { "progressMessages", "Show \"Peacebloom 6/20\" messages as you loot" },
     { "toasts", "Show completion and reminder popups" },
     { "sounds", "Play sounds" },
@@ -189,7 +189,7 @@ function Options:Create()
     local mailHelp = W.Text(generalContent, "GameFontHighlightSmall")
     mailHelp:SetPoint("TOPLEFT", 4, -#self.ITEMS * 26 - 8)
     mailHelp:SetWidth(470); mailHelp:SetWordWrap(true)
-    mailHelp:SetText("Mailbox reminders\nCheck mail, Check mailbox, Open mail and Visit the mailbox automatically use the Mail reminder. You can change it or turn it Off in the task editor.\nOpen each mailbox once to teach Taskboard its location. On later visits, it checks every 3 seconds and reminds within about 35 yards; the nearby pulse ends beyond 50 yards. Unvisited mailboxes cannot remind in advance.\nWith automatic completion enabled, opening a mailbox completes these plain tasks only when they have no goals or subtasks.")
+    mailHelp:SetText("Mailbox reminders\nMail, Mailbox, Check mail, Check mailbox, Open mail and Visit the mailbox automatically use the Mail reminder. You can change it or turn it Off in the task editor.\nOpen each mailbox once to teach Taskboard its location. On later visits, it checks every 3 seconds and reminds within about 35 yards; the nearby pulse ends beyond 50 yards. Unvisited mailboxes cannot remind in advance.\nWith automatic completion enabled, opening a mailbox completes these plain tasks only when they have no goals or subtasks.")
 
     local function label(parent, text, y)
         local fs = W.Text(parent, "GameFontNormal")
@@ -273,6 +273,14 @@ function Options:Create()
     selftest:SetPoint("BOTTOMLEFT", 12, 10)
     local diag = W.Button(frame, "Diagnostics", 100, 22, function() ns.Commands:Handle("diag") end)
     diag:SetPoint("LEFT", selftest, "RIGHT", 6, 0)
+    local resetAll = W.Button(frame, "Reset all data", 120, 22, function()
+        W.Confirm("Reset Taskboard completely? This permanently deletes every board, task, setting, learned mailbox, statistic, and diagnostic log on this account. This cannot be undone.", function()
+            ns.DB:ResetAll()
+            if ReloadUI then ReloadUI() end
+        end)
+    end, "Erase all Taskboard data and restore default settings")
+    resetAll:SetPoint("BOTTOMRIGHT", -12, 10)
+    resetAll.label:SetTextColor(1, 0.45, 0.4)
     frame:SetScript("OnShow", function() Options:Refresh() end)
     frame:SetScript("OnHide", function() if Options.picker then Options.picker:Hide() end end)
     self:Page(selectedPage)

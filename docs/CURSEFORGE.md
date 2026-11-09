@@ -4,7 +4,7 @@ This file prepares a CurseForge listing. Uploading is a separate action in the o
 
 ## Upload file
 
-Build with `python tests/tools/package.py --curseforge`. Upload `dist/Taskboard-1.2.2-CurseForge.zip`. It has exactly one top-level folder, `Taskboard`, containing `Taskboard.toc`, Bindings.xml, README, docs/TESTING.md and the runtime Lua files. Do **not** upload `Taskboard-1.2.2.zip`: that manual upgrade package also includes the old Questboard migration loader and has two top-level folders.
+Build with `python tests/tools/package.py --curseforge`. Upload `dist/Taskboard-1.3.0-CurseForge.zip`. It has exactly one top-level folder, `Taskboard`, containing `Taskboard.toc`, Bindings.xml, README, docs/TESTING.md and the runtime Lua files. Do **not** upload `Taskboard-1.3.0.zip`: that manual upgrade package also includes the old Questboard migration loader and has two top-level folders.
 
 The CurseForge build installs Taskboard for new users. Existing Questboard users can migrate their saved data by installing the two-folder upgrade ZIP from the GitHub repository first, enabling **Taskboard - legacy data loader** for one login, and then managing Taskboard through CurseForge. The old SavedVariables are not included in any ZIP.
 
@@ -26,7 +26,7 @@ The CurseForge build installs Taskboard for new users. Existing Questboard users
 
 Type `/tb` or click the minimap button to open the board. Quick Add accepts tasks such as `Get 17 Silverleaf`, `save 10g`, `Herbalism 150`, or `Buy vials @Goldshire`. Shift-click an item or quest link into Quick Add, or use `@` location suggestions to attach an arrival reminder. Combine tags, priorities, daily or weekly repeats, and subtasks. The on-screen tracker can show in-progress cards, all open tasks, and nearby location reminders.
 
-Choose from seven themes, including Classic stone and Classic leather skins using original WoW frame artwork. Change accent colors, adjust board/tracker opacity, and set separate sounds for moves, completions, subtasks, and reminders. Settings, editor, Help, logs, and menus stay opaque. Each character has one board that your other characters can open. Boards can be shared with party/raid/guild members or exported and imported as text.
+Choose from nine theme choices, including Quest parchment, custom RGB/hex colors, and Classic stone/leather skins using original WoW frame artwork. Change accent colors, adjust board/tracker opacity, and set separate sounds for moves, completions, subtasks, and reminders. Settings, editor, Help, logs, and menus stay opaque. Each character has one board that your other characters can open. Choose the standard three-column workflow or Simple To Do/Done mode per board, and optionally hide completed tasks. Boards can be shared with party/raid/guild members or exported and imported as text.
 
 Mail tasks can remind you within 35 yards of a mailbox Taskboard has learned from a previous visit. With automatic completion enabled, opening a mailbox completes a plain `Check mail @mail` task without goals or subtasks; other mail tasks stay open.
 
@@ -34,11 +34,11 @@ Taskboard targets **WoW Forever 1.60.1** (interface `16001`). It is not advertis
 
 ## First file
 
-- Display name: Taskboard 1.2.2 for WoW Forever
+- Display name: Taskboard 1.3.0 for WoW Forever
 - Release type: Release after the owner has completed the in-game checklist; use Beta if gathering broader test feedback first. A Release file is needed for default CurseForge app syncing.
 - Game version type/flavor: **Forever**
 - Supported version: **1.60.1**
-- Changelog: First CurseForge package. Includes live goal tracking, recurring tasks, mailbox proximity reminders, configurable tracker and sounds, seven themes including two classic skins, one board per character, board sharing, and in-game Help. Closing the board closes its settings window.
+- Changelog: First CurseForge package. Includes live goal tracking, recurring tasks, mailbox proximity reminders, configurable tracker and sounds, nine theme choices including Quest parchment and custom colors, one board per character, board sharing, and in-game Help. Closing the board closes Settings, Help and the editor. Optional repeating audio accompanies nearby flashing tasks.
 
 ## Submission steps
 

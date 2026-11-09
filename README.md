@@ -84,7 +84,7 @@ Type `Get 20 Peacebloom` and the card counts `0/20 → 5/20 → 20/20` as you lo
 
 ## Install
 
-For CurseForge, use the single-folder `Taskboard-1.2.2-CurseForge.zip` built with `python tests/tools/package.py --curseforge`. First-time users need only the Taskboard folder. Existing Questboard users should follow the one-time migration instructions below using the two-folder GitHub upgrade ZIP before switching to CurseForge updates. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
+For CurseForge, use the single-folder `Taskboard-1.3.0-CurseForge.zip` built with `python tests/tools/package.py --curseforge`. First-time users need only the Taskboard folder. Existing Questboard users should follow the one-time migration instructions below using the two-folder GitHub upgrade ZIP before switching to CurseForge updates. The [CurseForge submission kit](docs/CURSEFORGE.md) contains the listing copy and upload checklist.
 
 Use the packaged ZIP: extract both included folders into `World of Warcraft/_forever_/Interface/AddOns/`. The main addon is `Taskboard/Taskboard.toc`. The small `Questboard/Questboard.toc` compatibility folder only loads legacy saved data and has no UI or tracking code. Restart the game after installing the newly named add-on.
 
@@ -137,3 +137,19 @@ python tests/tools/package.py
 
 The archive contains the Taskboard runtime and the legacy data loader, ready to extract into `Interface/AddOns/`.
 
+
+## Board layouts and custom styling (1.3.0)
+
+Click a column header and choose **Move column left/right** to reorder columns without moving their cards. The order persists per board. **Board > Show archived cards** shows the archived total and Previous/Next page controls, with 20 tasks per page; click a task to restore it.
+
+Help uses larger 16-pixel body text and 18-pixel headings. Its search box searches all tabs, including examples; Clear or selecting a tab restores normal browsing. Classic stone, Classic leather and Quest parchment all use quest parchment backgrounds with dark text. Classic skins retain their original window borders.
+
+Use **Board > Simple mode (To Do / Done)** to simplify one character's board. Existing In Progress/custom-column tasks move to To Do with their progress intact; the stored columns return when Standard mode is restored. Automatic starting is suspended in Simple mode, while goal tracking, reminders and completion continue. The tracker includes open Simple tasks, but can still be hidden.
+
+**Board > Show completed** hides the Done column without deleting tasks or history. Turn it back on to review completed work. With Simple mode enabled and completed hidden, only To Do appears.
+
+**Appearance > Quest parchment** uses the game's quest parchment artwork and dark text. **Custom theme colors** offers RGB sliders and hex input for background, text, borders and accent; Apply saves, Cancel discards, and Reset appearance restores defaults. Help and other dialogs have a solid backing. Closing the board closes Settings, Help, the picker and the editor, committing focused card edits.
+
+**Sounds > Repeat sound while nearby tasks flash** is off by default. It uses the reminder sound every 15, 30 or 60 seconds while an eligible flashing task is visible, at most once per interval. It respects sound/reminder switches and stops when tasks are completed, no longer nearby, or the tracker is hidden/collapsed.
+
+Set the board, tracker and Quick Add shortcuts in **WoW Key Bindings > AddOns > Taskboard**; General Settings and Help explain where to find them.

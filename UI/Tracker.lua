@@ -7,6 +7,27 @@ local frame, header, rows = nil, nil, {}
 local inCombat = false
 local ROW_H, ROW_GAP = 36, 6
 local offset = 0
+local nextNearbySound
+
+function Tracker:PulseSound(now)
+    local s = ns.db.settings
+    local active = false
+    if s.nearbySounds and s.sounds and s.reminders and s.trackerLocationPulse and s.trackerShown
+        and not (s.trackerHideInCombat and inCombat) and frame and frame:IsVisible() then
+        for _, r in ipairs(rows) do
+            if r:IsVisible() and r.nearby and r.card and not r.card.archived
+                and DB:CardRole(r.board, r.card) ~= "done" and self:IsNearby(r.card) then active = true; break end
+        end
+    end
+    if not active then nextNearbySound = nil; return end
+    local interval = s.nearbySoundInterval
+    if interval ~= 15 and interval ~= 30 and interval ~= 60 then interval = 30 end
+    if not nextNearbySound then nextNearbySound = now + interval; return end
+    if now >= nextNearbySound then
+        ns.Toast:PlaySound("reminder")
+        nextNearbySound = now + interval
+    end
+end
 
 function Tracker:IsNearby(card)
     if not ns.db.settings.trackerLocationPulse or not card.where then return false end
@@ -22,7 +43,7 @@ function Tracker:Entries()
         local role = DB:CardRole(board, card)
         local mine = ns.Engine:Owns(card, board)
         entry.nearby = self:IsNearby(card)
-        if mine and role ~= "done" and (entry.nearby or ns.db.settings.trackerAllOpen or role == "doing" or card.track) then list[#list + 1] = entry end
+        if mine and role ~= "done" and (entry.nearby or entry.board.simpleMode or ns.db.settings.trackerAllOpen or role == "doing" or card.track) then list[#list + 1] = entry end
     end
     table.sort(list, function(a, b)
         if a.nearby ~= b.nearby then return a.nearby end
@@ -179,6 +200,7 @@ function Tracker:Refresh()
 end
 
 function Tracker:OnLogin()
+    ns.Ticker(1, "nearby task sound", function() Tracker:PulseSound(GetTime()) end)
     local pending = false
     local function request()
         if pending then return end

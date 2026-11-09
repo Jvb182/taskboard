@@ -69,18 +69,23 @@ Help.SECTIONS = {
     } },
     { id = "settings", title = "Settings & sharing", entries = {
         { "h", "Boards, cards and layout" },
+        { "p", "Board > Simple mode (To Do / Done) is saved separately for each character's board. Standard is the default. Switching to Simple moves tasks from In Progress and custom columns to To Do while preserving their progress. The old column names are kept for switching back, but old task positions are not restored. New custom columns require Standard mode." },
+        { "p", "Board > Show completed hides or reveals the Done column without deleting tasks or completion history. Simple mode with Show completed off is a single To Do list. You can still complete tasks through the editor or card menu. Live goals, reminders, subtasks and automatic completion continue working; automatic starting does not move Simple-mode tasks. The tracker includes your open Simple-mode tasks, unless you hide the tracker." },
+        { "p", "Closing the main board also closes Settings, Help, the color picker and the card editor. Focused edits are saved before the editor closes. Reopening the board leaves these extra windows closed until you open them again." },
         { "p", "Drag the title or empty top bar to move the main board; use the bottom-right grip to resize it. Its position and size are saved. The card editor follows the board's height as you resize, including when opened from the tracker. Its fields stay scrollable. Scroll the board sideways when extra columns do not fit." },
         { "p", "Each character has one board, and every character on your account can switch to the others' boards. Existing local boards are merged by card owner when you upgrade; cards and their status are kept. The Board menu switches, renames, exports, imports and deletes boards. Received shared boards remain separate. Search filters text, Tags filters by tag, and Mine hides cards belonging to other characters." },
         { "e", "/tb board - list boards; /tb board Name - switch to an existing board" },
         { "p", "Drag cards between columns or reorder them. Right-click a card to edit, move, duplicate, archive or delete it. The editor changes title, notes, goals, subtasks, tags, priority, character, reminder, repeat, tracker and map pin settings. Shared cards have editing restrictions." },
-        { "p", "Right-click column headers to rename them, add columns or remove custom columns. Core To Do/In Progress/Done roles stay intact even when renamed. Done columns can archive their tasks. Board > Show archived cards lets you restore an archived task; deletion is permanent." },
+        { "p", "Click a column header and choose Move column left or Move column right to rearrange your board. Column order is saved with that character's board, and tasks stay in their columns. Hidden columns keep their saved slots. The same menu renames columns, adds columns or removes empty custom columns. Core To Do/In Progress/Done roles stay intact even when renamed or reordered. Done columns can archive their tasks. Board > Show archived cards lets you restore an archived task; deletion is permanent." },
         { "h", "General settings" },
         { "e", "/tb options" },
         { "p", "General controls automatic starting/completion, progress messages, popups, the sound master switch, reminders, smart reminders, bank counting, tracker visibility, hiding in combat, the minimap button, share offers and debug logging." },
         { "p", "Bind Open or close the board, Show or hide the tracker, and Quick add a card in the game's Key Bindings > AddOns. Left-click the minimap button for the board, right-click it for the tracker, or drag it to reposition it." },
         { "h", "Appearance" },
-        { "p", "Choose Midnight, Warm leather, Forest, Arcane, High contrast, Classic stone or Classic leather. The classic skins use original WoW frame artwork. Accent choices are Sky, Gold, Mint, Rose and Lilac. Board and tracker opacity ranges from 35% to 100%; text stays opaque. Settings, editor, Help, logs and popup menus always have solid backgrounds. Changes apply live and are saved." },
+        { "p", "Choose Midnight, Warm leather, Forest, Arcane, High contrast, Classic stone, Classic leather, Quest parchment or Custom. Both Classic skins and Quest parchment use WoW's quest parchment background with dark text; Classic skins also retain the original window borders. Accent choices are Sky, Gold, Mint, Rose and Lilac. Board and tracker opacity ranges from 35% to 100%; text stays opaque. Settings, editor, Help, logs and popup menus have a solid backing, even when classic artwork contains transparency." },
+        { "p", "In Appearance, scroll to Custom theme colors and pick Background, Text, Border or Accent. Use the RGB sliders or type a six-digit hex color such as 4FC3F7. Apply selects the Custom theme and saves the color; Cancel or closing the picker discards the draft. Custom colors survive switching presets and reloading. Reset appearance restores Midnight, default custom colors, Sky accent and 96% panel opacity." },
         { "h", "Sounds" },
+        { "p", "Repeat sound while nearby tasks flash is optional and off by default. Set it on the Sounds page and choose every 15, 30 or 60 seconds. It uses the Zone / NPC reminder sound, with one sound per interval even for several nearby tasks. Repeats stop when no eligible flashing task is visible, including after leaving, completion, hiding/collapsing the tracker or hiding it in combat. Play sounds, Zone/NPC reminders and location flashing must be enabled; setting the reminder sound to Off also silences repeats." },
         { "p", "Choose Off, Soft click, Chime or Quest complete separately for status changes, completed tasks, completed subtasks and reminders. Preview plays a choice without changing any tasks. The General Play sounds switch controls all of them; loudness follows the game's audio settings." },
         { "p", "Sounds can play with visual popups disabled. Reordering within a column and recurring resets are silent. Nearby repeated events may share one sound to avoid a burst of noise." },
         { "h", "Sharing boards" },
@@ -112,15 +117,43 @@ Help.SECTIONS = {
     } },
 }
 
+function Help:SearchEntries(query)
+    query = string.lower((query or ""):match("^%s*(.-)%s*$"))
+    local results = {}
+    for _, section in ipairs(self.SECTIONS) do
+        local group = {}
+        local function flush()
+            local match = string.lower(section.title):find(query, 1, true)
+            for _, entry in ipairs(group) do
+                if string.lower(entry[2]):find(query, 1, true) then match = true end
+            end
+            if match then
+                results[#results + 1] = { "h", section.title .. " / " .. group[1][2] }
+                for i = 2, #group do results[#results + 1] = group[i] end
+            end
+        end
+        for _, entry in ipairs(section.entries) do
+            if entry[1] == "h" and #group > 0 then flush(); group = {} end
+            group[#group + 1] = entry
+        end
+        if #group > 0 then flush() end
+    end
+    if #results == 0 then results[1] = { "p", "No matching help topics. Try a shorter search or clear the search box." } end
+    return results
+end
+
 function Help:Select(id)
     local section
     for _, item in ipairs(self.SECTIONS) do if item.id == id then section = item end end
     if not section then return end
     self.selected = id
-    for key, button in pairs(self.tabs) do button:SetActive(key == id) end
+    local query = self.search and self.search:GetText() or ""
+    local searching = query:find("%S") ~= nil
+    local entries = searching and self:SearchEntries(query) or section.entries
+    for key, button in pairs(self.tabs) do button:SetActive(not searching and key == id) end
     self.scroll:SetVerticalScroll(0)
     local y = 0
-    for i, entry in ipairs(section.entries) do
+    for i, entry in ipairs(entries) do
         local row = self.rows[i]
         if not row then row = W.Text(self.content); self.rows[i] = row end
         row:ClearAllPoints()
@@ -129,14 +162,15 @@ function Help:Select(id)
         row:SetPoint("TOPLEFT", 0, -y)
         row:SetWidth(574)
         row:SetWordWrap(true)
-        local font = heading and "GameFontNormal" or "GameFontHighlightSmall"
+        local font = heading and "GameFontNormalLarge" or "GameFontHighlight"
         row:SetFontObject(font)
+        row:SetFont(STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF", heading and 18 or 16, "")
         Theme.Text(row, font)
         row:SetText(entry[2])
         row:Show()
         y = y + row:GetStringHeight() + (entry[1] == "e" and 8 or 12)
     end
-    for i = #section.entries + 1, #self.rows do self.rows[i]:Hide() end
+    for i = #entries + 1, #self.rows do self.rows[i]:Hide() end
     self.content:SetHeight(math.max(y, 10))
 end
 
@@ -145,8 +179,9 @@ function Help:Show(id)
         local frame = CreateFrame("Frame", "TaskboardHelp", UIParent, "BackdropTemplate")
         self.frame, self.rows, self.tabs = frame, {}, {}
         frame:SetSize(630, 500)
-        frame:SetPoint("CENTER")
+        frame:SetPoint("CENTER", UIParent, "CENTER")
         frame:SetFrameStrata("DIALOG")
+        frame:SetToplevel(true)
         frame:SetClampedToScreen(true)
         frame:EnableMouse(true)
         frame:SetMovable(true)
@@ -162,19 +197,41 @@ function Help:Show(id)
         close:SetPoint("TOPRIGHT", 2, 2)
         for i, section in ipairs(self.SECTIONS) do
             local key = section.id
-            local button = W.Button(frame, section.title, 194, 26, function() Help:Select(key) end)
+            local button = W.Button(frame, section.title, 194, 26, function()
+                Help.search:SetText(""); Help:Select(key)
+            end)
             button:SetPoint("TOPLEFT", 16 + (i - 1) * 200, -42)
             self.tabs[key] = button
         end
         self.scroll, self.content = W.Scroll(frame)
-        self.scroll:SetPoint("TOPLEFT", 16, -82)
+        self.scroll:SetPoint("TOPLEFT", 16, -116)
         self.scroll:SetPoint("BOTTOMRIGHT", -34, 16)
         self.content:SetWidth(574)
+        self.search = W.EditBox(frame, 488, 26, "Search all help and examples...")
+        self.search:SetPoint("TOPLEFT", 16, -78)
+        self.search:HookScript("OnTextChanged", function() Help:Select(Help.selected or "quick") end)
+        self.search:SetScript("OnEscapePressed", function(box) box:SetText(""); box:ClearFocus() end)
+        local clear = W.Button(frame, "Clear", 86, 26, function() Help.search:SetText("") end)
+        clear:SetPoint("TOPLEFT", 514, -78)
+        frame:SetScript("OnHide", function() Help.search:ClearFocus() end)
     end
+    -- Keep board-launched Help in the board's window tree so raising or
+    -- interacting with the board cannot strand its Help dialog behind it.
+    -- Slash-command Help still works independently when the board is closed.
+    local board = ns.Board and ns.Board.frame
+    local parent = board and board:IsShown() and board or UIParent
+    self.frame:SetParent(parent)
+    self.frame:SetFrameStrata("DIALOG")
+    self.frame:SetFrameLevel(parent:GetFrameLevel() + 20)
     self.frame:Show()
+    self.frame:Raise()
     self:Select(id or self.selected or "quick")
 end
 
 function Help:OnLogin()
     ns:On("SHOW_HELP", function() Help:Show() end)
+end
+
+function Help:Hide()
+    if self.frame then self.frame:Hide() end
 end

@@ -60,6 +60,8 @@ The 29 new cases cover mailbox state/completion, destination ordering, board own
 
 ## Prioritized in-game pass
 
+The 1.3.0 update adds automated coverage in `tests/spec/layout_style_spec.lua` for Simple mode, completed-column visibility, saved column ordering, archived-task pagination, parchment/custom styling, opaque dialogs, Help search, dependent-window closing and repeating nearby sounds. These mock-client checks do not replace the new in-game cases in `docs/TESTING.md` or the QA Page. The earlier 1.2.1 audit below is historical.
+
 1. Reload, verify version 1.2.1, run `/tb selftest` and `/tb diag`; preserve the earlier 1.2.0 diagnostic record for comparison.
 2. Create a plain task and a real linked `get 17 Silverleaf`; loot, move, edit, reload and check persistence.
 3. Test learned mailbox approach/exit, a new task while already nearby, reminder-off exit, and check-mail completion with/without subtasks and auto-completion enabled/disabled.

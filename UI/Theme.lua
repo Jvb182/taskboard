@@ -61,6 +61,8 @@ Theme.PRESETS = {
     { id = "contrast", name = "High contrast", tint = { -0.04, -0.04, -0.04 } },
     { id = "classic_stone", name = "Classic stone", tint = { 0.025, 0.015, 0.005 }, classic = true },
     { id = "classic_leather", name = "Classic leather", tint = { 0.085, 0.045, 0.005 }, classic = true },
+    { id = "quest_log", name = "Quest parchment", tint = { 0, 0, 0 } },
+    { id = "custom", name = "Custom", tint = { 0, 0, 0 } },
 }
 Theme.ACCENTS = {
     { id = "sky", name = "Sky", color = { 0.31, 0.76, 0.97 } },
@@ -72,6 +74,56 @@ Theme.ACCENTS = {
 local defaults = ns.Util.DeepCopy(Theme.colors)
 local backgrounds = { window = true, panel = true, card = true, cardHover = true, cardDone = true,
     input = true, button = true, buttonHover = true, buttonActive = true }
+
+Theme.CUSTOM_DEFAULTS = { background = { 0.055, 0.063, 0.082 }, text = { 0.92, 0.93, 0.95 },
+    border = { 0.25, 0.28, 0.36 }, accent = { 0.31, 0.76, 0.97 } }
+
+function Theme:CustomColors()
+    local saved = ns.db.settings.customColors
+    if type(saved) ~= "table" then saved = {}; ns.db.settings.customColors = saved end
+    for key, fallback in pairs(self.CUSTOM_DEFAULTS) do
+        if type(saved[key]) ~= "table" then saved[key] = {} end
+        for i = 1, 3 do
+            local v = tonumber(saved[key][i])
+            if not v or v ~= v or v == math.huge or v == -math.huge then v = fallback[i] end
+            saved[key][i] = ns.Util.Clamp(v, 0, 1)
+        end
+    end
+    return saved
+end
+
+function Theme:IsParchment()
+    local theme = ns.db.settings.theme
+    return theme == "quest_log" or theme == "classic_stone" or theme == "classic_leather"
+end
+
+function Theme:Decorate(frame, bg, opaque)
+    -- Some Blizzard classic textures contain alpha even at backdrop alpha 1.
+    if opaque and not frame.taskboardSolid then
+        frame.taskboardSolid = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
+        frame.taskboardSolid:SetAllPoints()
+    end
+    if frame.taskboardSolid then
+        frame.taskboardSolid:SetColorTexture(bg[1], bg[2], bg[3], 1)
+        frame.taskboardSolid:SetShown(opaque == true)
+    end
+    local quest = self:IsParchment() and (bg == self.colors.window or bg == self.colors.panel)
+    if quest and not frame.taskboardParchment then
+        local art = frame:CreateTexture(nil, "BORDER")
+        art:SetPoint("TOPLEFT", 7, -7); art:SetPoint("BOTTOMRIGHT", -7, 7)
+        frame.taskboardParchment = art
+        local available = not C_Texture or not C_Texture.GetAtlasInfo or C_Texture.GetAtlasInfo("QuestBG-Parchment")
+        frame.taskboardParchmentOK = available and pcall(art.SetAtlas, art, "QuestBG-Parchment")
+        if not frame.taskboardParchmentOK then
+            art:SetTexture("Interface\\QuestFrame\\QuestBG")
+            frame.taskboardParchmentOK = true
+        end
+    end
+    if frame.taskboardParchment then
+        frame.taskboardParchment:SetShown(quest and frame.taskboardParchmentOK)
+        frame.taskboardParchment:SetAlpha(opaque and 1 or ns.db.settings.panelOpacity)
+    end
+end
 
 function Theme.Text(region, font)
     local key = string.find(font or "", "Disable", 1, true) and "muted" or
@@ -109,12 +161,34 @@ function Theme:Apply()
     if preset.id == "contrast" then
         for i = 1, 3 do self.colors.text[i] = 1; self.colors.muted[i] = 0.8; self.colors.panelBorder[i] = 0.55 end
     end
-    self.HEX.accent = string.format("%02x%02x%02x", accent.color[1] * 255, accent.color[2] * 255, accent.color[3] * 255)
+    if preset.id == "custom" or self:IsParchment() then
+        local palette = preset.id == "custom" and self:CustomColors() or {
+            background = { 0.88, 0.79, 0.60 }, text = { 0.18, 0.12, 0.06 },
+            border = { 0.44, 0.31, 0.16 }, accent = { accent.color[1] * 0.42, accent.color[2] * 0.42, accent.color[3] * 0.42 } }
+        for key, color in pairs(self.colors) do
+            if backgrounds[key] then
+                local amount = (key == "cardHover" or key == "buttonHover") and 0.16 or
+                    (key == "window" or key == "panel") and 0 or 0.06
+                for i = 1, 3 do color[i] = palette.background[i] * (1 - amount) + palette.text[i] * amount end
+            elseif key:find("Border", 1, true) then
+                for i = 1, 3 do color[i] = palette.border[i] end
+            end
+        end
+        for i = 1, 3 do
+            self.colors.text[i] = palette.text[i]
+            self.colors.muted[i] = palette.text[i] * 0.75 + palette.background[i] * 0.25
+            self.colors.accent[i], self.colors.dropLine[i] = palette.accent[i], palette.accent[i]
+            self.colors.buttonActive[i] = palette.background[i] * 0.75 + palette.accent[i] * 0.25
+        end
+    end
+    self.HEX.accent = string.format("%02x%02x%02x", self.colors.accent[1] * 255, self.colors.accent[2] * 255, self.colors.accent[3] * 255)
     for f, colors in pairs(panels) do
         local bg = colors[1]
         f:SetBackdrop(preset.classic and (bg == self.colors.window and self.CLASSIC_WINDOW or self.CLASSIC_PANEL) or self.BACKDROP)
-        f:SetBackdropColor(bg[1], bg[2], bg[3], colors[3] and 1 or bg[4])
+        local fill = f.active and bg == self.colors.button and self.colors.buttonActive or bg
+        f:SetBackdropColor(fill[1], fill[2], fill[3], colors[3] and 1 or fill[4])
         f:SetBackdropBorderColor(unpack(colors[2]))
+        self:Decorate(f, bg, colors[3])
     end
     for region, key in pairs(texts) do region:SetTextColor(unpack(self.colors[key])) end
     for region, suffix in pairs(brands) do self.Brand(region, suffix) end
@@ -139,6 +213,7 @@ function Theme.Panel(frame, bg, border, opaque)
     frame:SetBackdropColor(bg[1], bg[2], bg[3], opaque and 1 or bg[4])
     frame:SetBackdropBorderColor(unpack(border or Theme.colors.panelBorder))
     panels[frame] = { bg, border or Theme.colors.panelBorder, opaque }
+    Theme:Decorate(frame, bg, opaque)
 end
 
 function Theme.ProgressColor(frac, done)
@@ -149,6 +224,10 @@ function Theme.ProgressColor(frac, done)
 end
 
 function Theme.RoleColor(role)
+    if Theme:IsParchment() then
+        local c = Theme.ROLE[role or "custom"] or Theme.ROLE.custom
+        return { c[1] * 0.5, c[2] * 0.5, c[3] * 0.5, 1 }
+    end
     return Theme.ROLE[role or "custom"] or Theme.ROLE.custom
 end
 

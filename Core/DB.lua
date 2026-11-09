@@ -19,6 +19,7 @@ DB.defaults = {
         trackerLocked = false, trackerHideInCombat = false, trackerAllOpen = false, trackerLocationPulse = true, trackerMax = 8, onlyMine = false,
         syncAccept = "ask", debug = false, minimap = { angle = 200, hide = false },
         theme = "midnight", accent = "sky", panelOpacity = 0.96,
+        nearbySounds = false, nearbySoundInterval = 30,
         soundEvents = { move = "click", complete = "quest", subtask = "click", reminder = "chime" },
     },
     boards = {},
@@ -161,6 +162,54 @@ function DB.NormalizeCard(c, columnIDs)
     return out
 end
 
+-- Keep the stored core columns so restoring Standard never loses column names.
+function DB:NormalizeSimple(board)
+    if not board.simpleMode then return end
+    local todo = self:ColumnByRole(board, "todo")
+    for _, col in ipairs(board.columns) do
+        if col.role ~= "todo" and col.role ~= "done" then
+            for _, cardID in ipairs(board.order[col.id]) do
+                local card = board.cards[cardID]
+                card.column = todo.id
+                card.auto.started = nil
+                table.insert(board.order[todo.id], cardID)
+            end
+            board.order[col.id] = {}
+        end
+    end
+end
+
+function DB:StatusColumns(board)
+    local columns = {}
+    for _, col in ipairs(board.columns) do
+        if not board.simpleMode or col.role == "todo" or col.role == "done" then columns[#columns + 1] = col end
+    end
+    return columns
+end
+
+function DB:DisplayColumns(board)
+    local columns = {}
+    for _, col in ipairs(self:StatusColumns(board)) do
+        if board.showCompleted ~= false or col.role ~= "done" then columns[#columns + 1] = col end
+    end
+    return columns
+end
+
+function DB:SetSimpleMode(board, enabled)
+    if board.scope ~= "character" or not self:CanEdit(board) then return false end
+    board.simpleMode = enabled == true
+    self:NormalizeSimple(board)
+    ns:Fire("BOARD_CHANGED", board)
+    return true
+end
+
+function DB:SetShowCompleted(board, enabled)
+    if board.scope ~= "character" or not self:CanEdit(board) then return false end
+    board.showCompleted = enabled == true
+    ns:Fire("BOARD_CHANGED", board)
+    return true
+end
+
 function DB.NormalizeBoard(b)
     if type(b) ~= "table" then return nil end
     local L = DB.LIMITS
@@ -171,6 +220,8 @@ function DB.NormalizeBoard(b)
         owner = type(b.owner) == "string" and string.sub(b.owner, 1, 64) or nil,
         created = num(b.created, 0, 4e9) or Util.Now(),
         columns = {}, cards = {}, order = {},
+        simpleMode = b.simpleMode == true,
+        showCompleted = b.showCompleted ~= false,
     }
     if out.name == "" then out.name = "Board" end
     local ids, roles = {}, {}
@@ -228,6 +279,7 @@ function DB.NormalizeBoard(b)
     for id, card in pairs(out.cards) do
         if not placed[id] then table.insert(out.order[card.column], id) end
     end
+    DB:NormalizeSimple(out)
     if out.scope == "shared" and type(b.shared) == "table" then
         out.shared = { from = Util.Sanitize(b.shared.from or "", 64), version = num(b.shared.version, 0, 1e9) or 0,
                        channel = (b.shared.channel == "PARTY" or b.shared.channel == "RAID" or b.shared.channel == "GUILD") and b.shared.channel or nil,
@@ -528,6 +580,7 @@ end
 
 function DB:AddColumn(board, name)
     if not self:CanEdit(board) then return nil, "this board is read-only" end
+    if board.simpleMode then return nil, "switch this board to Standard mode to add columns" end
     if #board.columns >= DB.LIMITS.columns then return nil, "too many columns" end
     name = Util.Sanitize(name, DB.LIMITS.columnName)
     if name == "" then return nil, "empty name" end
@@ -538,6 +591,25 @@ function DB:AddColumn(board, name)
     board.order[col.id] = {}
     ns:Fire("BOARD_CHANGED", board)
     return col
+end
+
+-- Swap neighboring visible columns; hidden statuses keep their saved slots.
+function DB:MoveColumn(board, id, direction)
+    if not self:CanEdit(board) then return false, "this board is read-only" end
+    if direction ~= -1 and direction ~= 1 then return false end
+    local visible = self:DisplayColumns(board)
+    for i, col in ipairs(visible) do
+        if col.id == id then
+            local neighbor = visible[i + direction]
+            if not neighbor then return false end
+            local _, a = self:Column(board, id)
+            local _, b = self:Column(board, neighbor.id)
+            board.columns[a], board.columns[b] = board.columns[b], board.columns[a]
+            ns:Fire("BOARD_CHANGED", board)
+            return true
+        end
+    end
+    return false
 end
 
 function DB:RenameColumn(board, id, name)
@@ -576,6 +648,7 @@ function DB:AddCard(board, spec, columnID, index)
     local card = DB.NormalizeCard(spec, ids)
     if not card then return nil, "a card needs a title" end
     local col = (columnID and self:Column(board, columnID)) or (spec.columnRole and self:ColumnByRole(board, spec.columnRole)) or self:ColumnByRole(board, "todo")
+    if board.simpleMode and col.role ~= "todo" and col.role ~= "done" then col = self:ColumnByRole(board, "todo") end
     card.column = col.id
     if col.role == "done" then card.completedAt = Util.Now() end
     board.cards[card.id] = card
@@ -598,6 +671,7 @@ function DB:MoveCard(board, cardID, columnID, index, reason)
     local card = board.cards[cardID]
     local col = self:Column(board, columnID)
     if not card or not col then return false end
+    if board.simpleMode and col.role ~= "todo" and col.role ~= "done" then col = self:ColumnByRole(board, "todo") end
     local from = board.order[card.column]
     local oldIndex = Util.IndexOf(from, cardID)
     if oldIndex then table.remove(from, oldIndex) end

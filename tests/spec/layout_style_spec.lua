@@ -60,14 +60,21 @@ describe("Board layouts", function()
         ns.Help.tabs.quick:Click(); T.eq(ns.Help.search:GetText(), "")
         T.noErrors(ns)
     end)
-    it("uses parchment and readable text for both classic skins with an atlas fallback", function()
+    it("distinguishes dark Classic stone from parchment Classic leather with an atlas fallback", function()
         local m, ns = T.client(); ns.Board:Show(); ns.Help:Show()
-        for _, theme in ipairs({ "classic_stone", "classic_leather" }) do
-            ns.Options:SetAppearance("theme", theme)
-            T.ok(ns.Help.frame.taskboardParchment:IsShown())
-            T.ok(ns.Theme.colors.text[1] < 0.3)
-            T.eq(ns.Help.frame.taskboardParchment:GetAlpha(), 1)
-        end
+        ns.Options:SetAppearance("theme", "classic_stone")
+        T.ok(not ns.Help.frame.taskboardParchment or not ns.Help.frame.taskboardParchment:IsShown())
+        T.ok(ns.Theme.colors.text[1] > 0.8)
+        T.ok(ns.Board:Internals().frame.taskboardSolid:IsShown())
+        T.eq(ns.Board:Internals().frame.taskboardSolid._color[4], ns.db.settings.panelOpacity)
+        ns.Options:SetAppearance("panelOpacity", 0.35)
+        T.eq(ns.Board:Internals().frame.taskboardSolid._color[4], 0.35)
+        ns.Options:SetAppearance("panelOpacity", 1)
+        ns.Options:SetAppearance("theme", "classic_leather")
+        T.ok(ns.Help.frame.taskboardParchment:IsShown())
+        T.ok(ns.Theme.colors.text[1] < 0.3)
+        T.no(ns.Board:Internals().frame.taskboardSolid:IsShown())
+        T.eq(ns.Help.frame.taskboardParchment:GetAlpha(), 1)
         local oldTexture = m.env.C_Texture
         m.env.C_Texture = { GetAtlasInfo = function() return nil end }
         local panel = m.env.CreateFrame("Frame", nil, m.env.UIParent, "BackdropTemplate")
@@ -82,9 +89,11 @@ describe("Board layouts", function()
             ns.Board:Layout()
             for _, col in ipairs(ns.Board:Internals().columns) do
                 if col:IsShown() then
-                    T.ok(col.headerBackground:IsShown())
-                    T.ok(col.headerBackground._color[4] >= 0.95)
-                    T.ok(col.title._textColor[1] >= 0.9)
+                    T.eq(col.headerBackground:IsShown(), theme ~= "classic_stone")
+                    if theme ~= "classic_stone" then
+                        T.ok(col.headerBackground._color[4] >= 0.95)
+                        T.ok(col.title._textColor[1] >= 0.9)
+                    end
                 end
             end
         end
@@ -217,7 +226,7 @@ describe("Board layouts", function()
         T.noErrors(ns)
     end)
 
-    it("keeps Done available in the editor while hiding its board column", function()
+    it("removes the editor column controls while preserving board status changes", function()
         local m, ns = T.client(); local b = ns.DB:GetActiveBoard()
         local c = ns.Commands:Add("Manual")
         ns.DB:SetSimpleMode(b, true); ns.DB:SetShowCompleted(b, false)
@@ -225,8 +234,8 @@ describe("Board layouts", function()
         local shown = 0
         for _, col in ipairs(ns.Board:Internals().columns) do if col:IsShown() then shown = shown + 1 end end
         T.eq(shown, 1)
-        local buttons = ns.Editor:Internals().ui.columnRow.buttons
-        T.ok(buttons[2]:IsShown()); buttons[2]:Click(); T.eq(c.column, "done")
+        T.eq(ns.Editor:Internals().ui.columnRow, nil)
+        T.ok(ns.DB:MoveCard(b, c.id, "done")); T.eq(c.column, "done")
         T.noErrors(ns)
     end)
 
@@ -294,7 +303,7 @@ describe("Theme and dependent window regressions", function()
         T.eq(ns.Help.frame.taskboardSolid._color[4], 1)
         T.ok(ns.Theme.colors.text[1] < 0.3)
         ns.Options:SetAppearance("theme", "classic_stone")
-        T.ok(ns.Help.frame.taskboardParchment:IsShown()); T.eq(ns.Help.frame.taskboardSolid._color[4], 1)
+        T.no(ns.Help.frame.taskboardParchment:IsShown()); T.eq(ns.Help.frame.taskboardSolid._color[4], 1)
         T.noErrors(ns)
     end)
 
@@ -338,4 +347,3 @@ describe("Theme and dependent window regressions", function()
         ns.Board:Show(); T.no(ns.Help.frame:IsShown()); T.no(ed.frame:IsShown()); T.noErrors(ns)
     end)
 end)
-

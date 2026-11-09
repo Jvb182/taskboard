@@ -187,6 +187,25 @@ describe("Board layouts", function()
         T.noErrors(ns)
     end)
 
+    it("keeps Simple goals in To Do while tracking and reminding until completion", function()
+        local m, ns = T.client(); local b = ns.DB:GetActiveBoard()
+        ns.DB:SetSimpleMode(b, true)
+        local c = ns.Commands:Add("2 Peacebloom @Ironforge")
+        m.Loot(2447, 1); m.Advance(1)
+        T.eq(c.column, "todo"); T.eq(c.progress.cur, 1)
+        local tracked = false
+        for _, entry in ipairs(ns.Tracker:Entries()) do if entry.card == c then tracked = true end end
+        T.ok(tracked)
+        local reminders = 0
+        ns:On("REMINDER", function(_, lines)
+            for _, line in ipairs(lines or {}) do if line.card == c then reminders = reminders + 1 end end
+        end)
+        m.state.zone = "Ironforge"; m.Fire("ZONE_CHANGED_NEW_AREA")
+        T.eq(reminders, 1)
+        m.Loot(2447, 1); m.Advance(1)
+        T.eq(c.column, "done"); T.noErrors(ns)
+    end)
+
     it("shows open Simple tasks in the tracker without forcing the tracker visible", function()
         local m, ns = T.client(); local b = ns.DB:GetActiveBoard()
         local c = ns.Commands:Add("Manual errand")
@@ -319,3 +338,4 @@ describe("Theme and dependent window regressions", function()
         ns.Board:Show(); T.no(ns.Help.frame:IsShown()); T.no(ed.frame:IsShown()); T.noErrors(ns)
     end)
 end)
+

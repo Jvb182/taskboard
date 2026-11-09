@@ -418,7 +418,9 @@ end
 -- welcome task. A non-nil TaskboardDB also prevents legacy Questboard data
 -- from being copied back in after the UI reloads.
 function DB:ResetAll()
+    local learnedMailboxes = type(ns.db.mailboxes) == "table" and Util.DeepCopy(ns.db.mailboxes) or {}
     ns.db = self:Load({})
+    ns.db.mailboxes = learnedMailboxes
     ns.db.taskboardBrandingUpdated = true
     ns.db.oneBoardPerCharacter = true
     TaskboardDB = ns.db

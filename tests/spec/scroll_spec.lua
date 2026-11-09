@@ -1,6 +1,38 @@
 local T, Mock = ...
 
 describe("Scroll panes", function()
+    it("wraps eight editor statuses without overlap and preserves full names and status actions", function()
+        local m, ns = T.client()
+        local board = ns.DB:GetActiveBoard()
+        local card = ns.Commands:Add("Status grid test")
+        for i = 1, 5 do T.ok(ns.DB:AddColumn(board, "QA Review renamed " .. i)) end
+        ns.Editor:Open(card, board)
+        local ui = ns.Editor:Internals().ui
+        local columns = ns.DB:StatusColumns(board)
+        T.eq(#columns, 8)
+        local lastBottom
+        for i, col in ipairs(columns) do
+            local button = ui.columnRow.buttons[i]
+            local _, _, _, x, y = button:GetPoint()
+            T.eq(x, ((i - 1) % 2) * 152)
+            T.eq(y, ui.columnY - math.floor((i - 1) / 2) * 24)
+            T.eq(button:GetWidth(), 148)
+            T.eq(button.label:GetWidth(), 136)
+            T.ok(x + button:GetWidth() <= 300)
+            button:GetScript("OnEnter")(button)
+            T.eq(m.tooltip[1], col.name)
+            lastBottom = y - button:GetHeight()
+        end
+        local _, _, _, _, fieldsY = ui.fields:GetPoint()
+        T.ok(fieldsY < lastBottom)
+        ui.columnRow.buttons[7]:Click(); T.eq(card.column, columns[7].id)
+        ns.DB:SetSimpleMode(board, true); ns.Editor:Refresh()
+        T.eq(#ns.DB:StatusColumns(board), 2)
+        local _, _, _, _, simpleY = ui.fields:GetPoint()
+        T.ok(simpleY > fieldsY)
+        for i = 3, 8 do T.no(ui.columnRow.buttons[i]:IsShown()) end
+        T.noErrors(ns)
+    end)
     it("limits editor dragging to the title strip and gives footer buttons mouse ownership", function()
         local m, ns = T.client()
         local original, mouse, strata = m.env.CreateFrame, {}, {}

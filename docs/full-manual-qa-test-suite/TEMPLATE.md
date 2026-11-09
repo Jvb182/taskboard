@@ -739,6 +739,11 @@ For each issue, record the addon/client versions, character, location, relevant 
 
 - [ ] **SG10** Record the release decision and remaining issues below.
 
+**Release decision:** Pending  
+**Open issues:**  
+**Not run tests and reasons:**  
+**Tester signoff:**
+
 ## Tests that need your participation
 
 - [ ] **GAME01 — Real item and progression events.** Use a disposable item goal with a shift-clicked item link, then loot, spend or sell enough items to change its live count and finish it. Check the target, readable title, one completion, tracker and saved result after reload. As convenient, exercise money, level, profession, reputation and quest events. Reference: QA07–09 and GL.

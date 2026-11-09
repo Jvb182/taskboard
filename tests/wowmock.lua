@@ -219,6 +219,7 @@ function Mock.new(opts)
     end
     impl.SetAlpha = function(self, a) self._alpha = a end
     impl.GetAlpha = function(self) return self._alpha or 1 end
+    impl.SetDrawLayer = function(self, layer, sublevel) self._drawLayer, self._drawSublevel = layer, sublevel end
     impl.CreateTexture = function(self, name) return Widget.new("Texture", name, self) end
     impl.CreateFontString = function(self, name, layer, font)
         local fs = Widget.new("FontString", name, self)

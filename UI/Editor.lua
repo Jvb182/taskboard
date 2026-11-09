@@ -3,7 +3,7 @@ local _, ns = ...
 local Util, DB, Theme, W, Parser = ns.Util, ns.DB, ns.Theme, ns.Widgets, ns.Parser
 
 local Editor = ns:NewModule("Editor")
-local frame, content
+local frame, content, scrollContent
 local ui = {}
 local current = { card = nil, board = nil }
 local WIDTH, INNER = 340, 300
@@ -90,6 +90,7 @@ function Editor:Create()
     scroll:SetPoint("TOPLEFT", 12, -32)
     scroll:SetPoint("BOTTOMRIGHT", -30, 40)
     content:SetWidth(INNER)
+    scrollContent = content
 
     local y = 0
     section("Title", y); y = y - 14
@@ -103,7 +104,11 @@ function Editor:Create()
     section("Column", y); y = y - 14
     ui.columnRow = { buttons = {} }
     ui.columnY = y
-    y = y - 28
+    -- The remaining fields move as a group when the status grid gains rows.
+    ui.fields = CreateFrame("Frame", nil, scrollContent)
+    ui.fields:SetWidth(INNER)
+    content = ui.fields
+    y = 0
 
     section("Priority", y); y = y - 14
     ui.priority = choiceRow(y, { { 0, "None" }, { 1, "Low" }, { 2, "Medium" }, { 3, "High" } }, 71, function(v) apply({ priority = v }) end)
@@ -354,16 +359,24 @@ function Editor:Refresh()
     for _, b in ipairs(ui.columnRow.buttons) do b:Hide() end
     local statusColumns = DB:StatusColumns(board)
     local n = #statusColumns
-    local bw = math.floor((INNER - 4 * (n - 1)) / n)
+    local perRow = math.min(2, math.max(1, n))
+    local bw = math.floor((INNER - 4 * (perRow - 1)) / perRow)
+    local fieldOffset = -ui.columnY + math.ceil(n / perRow) * 24 + 4
+    ui.fields:ClearAllPoints()
+    ui.fields:SetPoint("TOPLEFT", scrollContent, "TOPLEFT", 0, -fieldOffset)
     for i, col in ipairs(statusColumns) do
         local b = ui.columnRow.buttons[i]
         if not b then
-            b = W.Button(content, "", bw, 20)
+            b = W.Button(scrollContent, "", bw, 20)
+            W.Tooltip(b, function(self) return self.columnName end)
             ui.columnRow.buttons[i] = b
         end
         b:SetWidth(bw)
         b:ClearAllPoints()
-        b:SetPoint("TOPLEFT", (i - 1) * (bw + 4), ui.columnY)
+        b:SetPoint("TOPLEFT", ((i - 1) % perRow) * (bw + 4), ui.columnY - math.floor((i - 1) / perRow) * 24)
+        b.columnName = col.name
+        b.label:SetWidth(bw - 12)
+        b.label:SetWordWrap(false)
         b:SetLabel(col.name)
         b:SetActive(col.id == card.column)
         b:SetScript("OnClick", ns.Wrap("editor column", function()
@@ -444,7 +457,9 @@ function Editor:Refresh()
     local owner = card.char and ("Belongs to " .. card.char .. ". ") or ""
     ui.info:SetText(owner .. "Created " .. Util.Ago(card.created) .. (card.completedAt and (", completed " .. Util.Ago(card.completedAt)) or "") .. ".")
 
-    content:SetHeight(-y + ui.lowerHeight + (#memberLines * 14))
+    local fieldsHeight = -y + ui.lowerHeight + (#memberLines * 14)
+    content:SetHeight(fieldsHeight)
+    scrollContent:SetHeight(fieldOffset + fieldsHeight)
     for _, box in ipairs({ ui.title, ui.tags, ui.goal, ui.zone, ui.notes }) do box:EnableMouse(not ro) end
     ui.delete:SetShown(not ro)
     ui.archive:SetShown(not ro)

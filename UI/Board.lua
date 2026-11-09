@@ -24,10 +24,10 @@ local function activeBoard()
     return DB:GetActiveBoard()
 end
 
-local function matchesFilter(card)
+local function matchesFilter(card, ignoreTag)
     local f = Board.filter
     if ns.db.settings.onlyMine and card.char and card.char ~= ns.CharKey() then return false end
-    if f.tag and not Util.IndexOf(card.tags, f.tag) then return false end
+    if not ignoreTag and f.tag and not Util.IndexOf(card.tags, f.tag) then return false end
     if f.text ~= "" then
         local hay = Util.Lower(card.title .. " " .. (card.notes or "") .. " #" .. table.concat(card.tags, " #"))
         if not string.find(hay, f.text, 1, true) then return false end
@@ -590,8 +590,12 @@ function Board:TagMenu()
     local board = activeBoard()
     if not board then return end
     local tags = {}
-    for _, card in pairs(board.cards) do
-        for _, t in ipairs(card.tags) do tags[t] = (tags[t] or 0) + 1 end
+    -- Count the cards each tag would reveal under the current view. Ignore the
+    -- selected tag itself so users can still switch to a different tag.
+    for _, column in ipairs(DB:DisplayColumns(board)) do
+        for _, card in ipairs(DB:CardsIn(board, column.id, function(c) return matchesFilter(c, true) end)) do
+            for _, t in ipairs(card.tags) do tags[t] = (tags[t] or 0) + 1 end
+        end
     end
     local items = { { text = "Filter by tag", title = true }, { text = "All cards", checked = Board.filter.tag == nil, func = function() Board:SetTag(nil) end } }
     local sorted = {}

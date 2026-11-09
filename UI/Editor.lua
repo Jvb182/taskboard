@@ -205,6 +205,9 @@ function Editor:Create()
         apply({ where = zone ~= "" and { zone = zone } or false })
         self:ClearFocus()
     end))
+    W.LocationSuggestions(ui.zone, { plain = true, onChoose = function(name)
+        apply({ where = { zone = name } })
+    end })
     ui.here = W.Button(L, "Here", 56, 22, function()
         local zone = GetRealZoneText and GetRealZoneText() or ""
         if zone ~= "" then apply({ where = { zone = zone } }) end

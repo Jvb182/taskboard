@@ -23,6 +23,20 @@ Copy this template to `YYYY-MM-DD-taskboard-qa.md` for each run. Fill in the run
 
 - [ ] **UI1305** Open Appearance after a UI reload and confirm the taller Options window shows Background, Text, Border, Accent, and Reset appearance without scrolling.
 
+## Mail completion, reset, and sound choices
+
+- [ ] **MAIL1303** Turn Automatic completion off and open a mailbox with To Do and Daily In Progress check-mail tasks. Both stay open. Turn it on, close and reopen mail; both move to Done once.
+
+- [ ] **MAIL1304** With Automatic completion on, opening mail completes a plain `Mail @mail` task without goals or subtasks. `Send items @mail` remains open.
+
+- [ ] **SET1301** Click Reset all data, read the warning, then Cancel. Existing boards, tasks, settings, learned mailbox spots, statistics, and log remain unchanged.
+
+- [ ] **SET1302** On disposable data, confirm Reset all data. After reload, one empty character board exists, all settings are defaults, and learned mailbox spots, statistics, and diagnostic history are cleared. Old Questboard data is not reimported.
+
+- [ ] **SND1305** Assign and preview Soft click, Chime, Quest complete, Page turn, Coin, Message, and Alert for each event. Each choice plays; Off is silent.
+
+- [ ] **SND1306** In WoW, compare the seven sounds for clarity and volume during real status moves, completions, and reminders.
+
 ## Board layouts
 
 - [ ] **LAY01** Enable Simple mode on a populated board. Confirm the warning; In Progress/custom-column tasks move to To Do with progress, notes and subtasks intact.

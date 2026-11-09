@@ -118,6 +118,12 @@ function Log:Clear()
     self:Info("log", "Log cleared")
 end
 
+function Log:Reset()
+    entries, seenErrors = {}, {}
+    self.errorCount, self.lastError = 0, nil
+    TaskboardLog = { entries = entries, sessions = 0 }
+end
+
 function Log:Count()
     return #entries
 end

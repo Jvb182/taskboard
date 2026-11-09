@@ -414,6 +414,22 @@ function DB:OnLogout()
     clean(ns.db)
 end
 
+-- Keep a real, empty character board so the next login does not recreate the
+-- welcome task. A non-nil TaskboardDB also prevents legacy Questboard data
+-- from being copied back in after the UI reloads.
+function DB:ResetAll()
+    ns.db = self:Load({})
+    ns.db.taskboardBrandingUpdated = true
+    ns.db.oneBoardPerCharacter = true
+    TaskboardDB = ns.db
+    local board = self:CreateBoard("My Tasks", "character")
+    ns.db.ui.activeBoard = board and board.id or nil
+    ns.Log:SetDebug(false)
+    ns.Log:Reset()
+    ns:Fire("SETTINGS_CHANGED")
+    ns:Fire("TRACKER_SETTINGS")
+end
+
 -------------------------------------------------------------------------------
 -- Boards
 -------------------------------------------------------------------------------

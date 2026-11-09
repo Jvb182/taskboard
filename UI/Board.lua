@@ -533,7 +533,10 @@ function Board:BoardMenu()
     local current = activeBoard()
     for _, b in ipairs(DB:VisibleBoards()) do
         local label = b.name .. (b.scope == "character" and (" (" .. shortChar(b.owner) .. ")") or b.scope == "shared" and (" (from " .. shortChar(b.shared and b.shared.from) .. ")") or "")
-        items[#items + 1] = { text = label, checked = b == current, func = function() DB:SetActiveBoard(b) end }
+        items[#items + 1] = { text = label, checked = b == current, func = function()
+            if b ~= current and ns.Editor then ns.Editor:Hide() end
+            DB:SetActiveBoard(b)
+        end }
     end
     if current then
         if current.scope == "character" then

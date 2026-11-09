@@ -1,6 +1,13 @@
 local T, Mock = ...
 
 describe("Board layouts", function()
+    it("shows all Appearance controls in the Options viewport", function()
+        local _, ns = T.client(); ns.Options:Show(); ns.Options:Page("style")
+        local options = ns.Options:Internals().frame
+        T.eq(options:GetHeight(), 570)
+        T.ok(options:GetHeight() - 68 - 44 >= 442)
+        T.noErrors(ns)
+    end)
     it("counts tags only in available columns and excludes archived cards", function()
         local m, ns = T.client(); local board = ns.DB:GetActiveBoard(); ns.Board:Show()
         local active = ns.Commands:Add("Visible #qa")
@@ -60,14 +67,21 @@ describe("Board layouts", function()
         ns.Help.tabs.quick:Click(); T.eq(ns.Help.search:GetText(), "")
         T.noErrors(ns)
     end)
-    it("uses parchment and readable text for both classic skins with an atlas fallback", function()
+    it("distinguishes dark Classic stone from parchment Classic leather with an atlas fallback", function()
         local m, ns = T.client(); ns.Board:Show(); ns.Help:Show()
-        for _, theme in ipairs({ "classic_stone", "classic_leather" }) do
-            ns.Options:SetAppearance("theme", theme)
-            T.ok(ns.Help.frame.taskboardParchment:IsShown())
-            T.ok(ns.Theme.colors.text[1] < 0.3)
-            T.eq(ns.Help.frame.taskboardParchment:GetAlpha(), 1)
-        end
+        ns.Options:SetAppearance("theme", "classic_stone")
+        T.ok(not ns.Help.frame.taskboardParchment or not ns.Help.frame.taskboardParchment:IsShown())
+        T.ok(ns.Theme.colors.text[1] > 0.8)
+        T.ok(ns.Board:Internals().frame.taskboardSolid:IsShown())
+        T.eq(ns.Board:Internals().frame.taskboardSolid._color[4], ns.db.settings.panelOpacity)
+        ns.Options:SetAppearance("panelOpacity", 0.35)
+        T.eq(ns.Board:Internals().frame.taskboardSolid._color[4], 0.35)
+        ns.Options:SetAppearance("panelOpacity", 1)
+        ns.Options:SetAppearance("theme", "classic_leather")
+        T.ok(ns.Help.frame.taskboardParchment:IsShown())
+        T.ok(ns.Theme.colors.text[1] < 0.3)
+        T.no(ns.Board:Internals().frame.taskboardSolid:IsShown())
+        T.eq(ns.Help.frame.taskboardParchment:GetAlpha(), 1)
         local oldTexture = m.env.C_Texture
         m.env.C_Texture = { GetAtlasInfo = function() return nil end }
         local panel = m.env.CreateFrame("Frame", nil, m.env.UIParent, "BackdropTemplate")
@@ -82,9 +96,11 @@ describe("Board layouts", function()
             ns.Board:Layout()
             for _, col in ipairs(ns.Board:Internals().columns) do
                 if col:IsShown() then
-                    T.ok(col.headerBackground:IsShown())
-                    T.ok(col.headerBackground._color[4] >= 0.95)
-                    T.ok(col.title._textColor[1] >= 0.9)
+                    T.eq(col.headerBackground:IsShown(), theme ~= "classic_stone")
+                    if theme ~= "classic_stone" then
+                        T.ok(col.headerBackground._color[4] >= 0.95)
+                        T.ok(col.title._textColor[1] >= 0.9)
+                    end
                 end
             end
         end
@@ -187,6 +203,25 @@ describe("Board layouts", function()
         T.noErrors(ns)
     end)
 
+    it("keeps Simple goals in To Do while tracking and reminding until completion", function()
+        local m, ns = T.client(); local b = ns.DB:GetActiveBoard()
+        ns.DB:SetSimpleMode(b, true)
+        local c = ns.Commands:Add("2 Peacebloom @Ironforge")
+        m.Loot(2447, 1); m.Advance(1)
+        T.eq(c.column, "todo"); T.eq(c.progress.cur, 1)
+        local tracked = false
+        for _, entry in ipairs(ns.Tracker:Entries()) do if entry.card == c then tracked = true end end
+        T.ok(tracked)
+        local reminders = 0
+        ns:On("REMINDER", function(_, lines)
+            for _, line in ipairs(lines or {}) do if line.card == c then reminders = reminders + 1 end end
+        end)
+        m.state.zone = "Ironforge"; m.Fire("ZONE_CHANGED_NEW_AREA")
+        T.eq(reminders, 1)
+        m.Loot(2447, 1); m.Advance(1)
+        T.eq(c.column, "done"); T.noErrors(ns)
+    end)
+
     it("shows open Simple tasks in the tracker without forcing the tracker visible", function()
         local m, ns = T.client(); local b = ns.DB:GetActiveBoard()
         local c = ns.Commands:Add("Manual errand")
@@ -198,7 +233,7 @@ describe("Board layouts", function()
         T.noErrors(ns)
     end)
 
-    it("keeps Done available in the editor while hiding its board column", function()
+    it("removes the editor column controls while preserving board status changes", function()
         local m, ns = T.client(); local b = ns.DB:GetActiveBoard()
         local c = ns.Commands:Add("Manual")
         ns.DB:SetSimpleMode(b, true); ns.DB:SetShowCompleted(b, false)
@@ -206,8 +241,8 @@ describe("Board layouts", function()
         local shown = 0
         for _, col in ipairs(ns.Board:Internals().columns) do if col:IsShown() then shown = shown + 1 end end
         T.eq(shown, 1)
-        local buttons = ns.Editor:Internals().ui.columnRow.buttons
-        T.ok(buttons[2]:IsShown()); buttons[2]:Click(); T.eq(c.column, "done")
+        T.eq(ns.Editor:Internals().ui.columnRow, nil)
+        T.ok(ns.DB:MoveCard(b, c.id, "done")); T.eq(c.column, "done")
         T.noErrors(ns)
     end)
 
@@ -275,7 +310,7 @@ describe("Theme and dependent window regressions", function()
         T.eq(ns.Help.frame.taskboardSolid._color[4], 1)
         T.ok(ns.Theme.colors.text[1] < 0.3)
         ns.Options:SetAppearance("theme", "classic_stone")
-        T.ok(ns.Help.frame.taskboardParchment:IsShown()); T.eq(ns.Help.frame.taskboardSolid._color[4], 1)
+        T.no(ns.Help.frame.taskboardParchment:IsShown()); T.eq(ns.Help.frame.taskboardSolid._color[4], 1)
         T.noErrors(ns)
     end)
 
@@ -286,6 +321,9 @@ describe("Theme and dependent window regressions", function()
         ns.Options:SetCustomColor("border", -1, 2, 0/0)
         ns.Options:SetAppearance("panelOpacity", 0.35)
         T.eq(ns.Options:Internals().frame._bg[4], 1)
+        T.eq(ns.Options:Internals().frame.taskboardSolid._drawLayer, "BACKGROUND")
+        T.eq(ns.Options:Internals().frame.taskboardSolid._drawSublevel, 1,
+            "opaque dialog fill draws above the translucent backdrop")
         local n, a = T.client(nil, m.Logout())
         T.eq(a.db.settings.theme, "custom"); T.near(a.Theme.colors.window[1], 0.2)
         T.near(a.Theme.colors.text[1], 0.9); T.eq(a.Theme:CustomColors().border[1], 0)

@@ -15,8 +15,15 @@ local SOUNDS = {
     quest = "IG_QUEST_LIST_COMPLETE",
     click = "IG_MAINMENU_OPTION_CHECKBOX_ON",
     chime = "IG_CHAT_EMOTE_BUTTON",
+    page = "IG_ABILITY_PAGE_TURN",
+    coin = "IG_BACKPACK_COIN_OK",
+    message = "TELL_MESSAGE",
+    alert = "ALARM_CLOCK_WARNING_1",
 }
-Toast.SOUND_CHOICES = { { "off", "Off" }, { "click", "Soft click" }, { "chime", "Chime" }, { "quest", "Quest complete" } }
+Toast.SOUND_CHOICES = {
+    { "off", "Off" }, { "click", "Soft click" }, { "chime", "Chime" }, { "quest", "Quest complete" },
+    { "page", "Page turn" }, { "coin", "Coin" }, { "message", "Message" }, { "alert", "Alert" },
+}
 local lastSound = {}
 
 function Toast:PlaySound(kind, preview)

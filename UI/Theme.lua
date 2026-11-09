@@ -94,20 +94,21 @@ end
 
 function Theme:IsParchment()
     local theme = ns.db.settings.theme
-    return theme == "quest_log" or theme == "classic_stone" or theme == "classic_leather"
+    return theme == "quest_log" or theme == "classic_leather"
 end
 
 function Theme:Decorate(frame, bg, opaque)
     -- Some Blizzard classic textures contain alpha even at backdrop alpha 1.
-    if opaque and not frame.taskboardSolid then
-        -- Keep opaque dialogs above the backdrop fill when switching skins.
+    local stone = ns.db.settings.theme == "classic_stone"
+    if (opaque or stone) and not frame.taskboardSolid then
+        -- Back the classic art so board and tracker text stay legible over the world.
         frame.taskboardSolid = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
         frame.taskboardSolid:SetAllPoints()
     end
     if frame.taskboardSolid then
         frame.taskboardSolid:SetDrawLayer("BACKGROUND", 1)
-        frame.taskboardSolid:SetColorTexture(bg[1], bg[2], bg[3], 1)
-        frame.taskboardSolid:SetShown(opaque == true)
+        frame.taskboardSolid:SetColorTexture(bg[1], bg[2], bg[3], opaque and 1 or ns.db.settings.panelOpacity)
+        frame.taskboardSolid:SetShown(opaque == true or stone)
     end
     local quest = self:IsParchment() and (bg == self.colors.window or bg == self.colors.panel)
     if quest and not frame.taskboardParchment then

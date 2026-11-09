@@ -20,7 +20,7 @@ The **Help** panel explains each feature with examples and has search. See [the 
 
 ## Install
 
-Download the single-folder `Taskboard-<version>-CurseForge.zip` from a release or CurseForge, then extract it so this file exists:
+Until the first published release, build the install ZIP from this source checkout with `python tests/tools/package.py --curseforge`. When a release is available, download its single-folder `Taskboard-<version>-CurseForge.zip`. Extract it so this file exists:
 
 ```text
 World of Warcraft/_forever_/Interface/AddOns/Taskboard/Taskboard.toc

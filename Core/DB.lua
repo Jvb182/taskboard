@@ -380,14 +380,26 @@ function DB:OnInit()
     ns.Log:Info("db", "Loaded %d board(s)", Util.Count(ns.db.boards))
 end
 
+function DB:WelcomeSpec()
+    return {
+        title = "Welcome to Taskboard - start here",
+        notes = "Taskboard gives each character one personal board. Use the Boards button to view another character's board.\n\n" ..
+            "Add a task in Quick Add at the top of the board. Try: Get 20 Peacebloom. Taskboard counts it as you collect it; shift-clicking an item into Quick Add identifies it exactly.\n\n" ..
+            "Drag cards between To Do, In Progress, and Done. Settings can switch to a simpler To Do / Done layout.\n\n" ..
+            "Open the board with /tb or the minimap button. Open Help for examples of reminders, repeating tasks, and sharing.",
+        subtasks = {
+            { text = "Add your first task in Quick Add" },
+            { text = "Move a task between columns" },
+            { text = "Open Help to explore more examples" },
+        },
+    }
+end
+
 function DB:OnLogin()
     local me = ns.CharKey()
     if Util.Count(ns.db.boards) == 0 then
         local board = self:CreateBoard("My Tasks", "character")
-        self:AddCard(board, { title = "Welcome to Taskboard! Right-click me", notes =
-            "Add cards with /tb add, or type in the box at the top of the board.\n\n" ..
-            "Try: Get 20 Peacebloom #herbs !high\nShift-click an item link into the box to track it live.",
-            subtasks = { { text = "Open the board with /tb" }, { text = "Add a card that tracks an item" }, { text = "Drag a card to In Progress" } } })
+        self:AddCard(board, self:WelcomeSpec())
         ns.Log:Info("db", "Created the default board for %s", me)
     end
     if not ns.db.oneBoardPerCharacter then
@@ -788,4 +800,3 @@ function DB:AllCards(includeArchived, includeHidden)
     end
     return out
 end
-

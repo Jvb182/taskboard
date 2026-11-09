@@ -4,7 +4,7 @@ Source: [live Taskboard QA page](https://chatgpt.com/space/page_765a50b302b88191
 
 # Taskboard 1.3.0 — new in-game checks
 
-**QA status, 9 November 2026:** The Lua 5.1 suite passed 277/277 tests. WoW Forever's in-game self-test passed 17/17. Live checks on Apollo and Verthius covered board layouts, column ordering, archived views, Quick Add, editor actions, Help search and scrolling, opaque dialogs, tracker behavior, and dependent-window closing. All nine theme presets were captured in WoW Forever; Classic Stone's see-through backdrop was fixed and retested in-game, while Classic Leather and Quest Parchment remain legible and distinct. The taller Options window was reloaded and verified in-game with all Custom controls visible without scrolling. The board-switch and received-card tracker fixes on [PR #4](https://github.com/Jvb182/taskboard/pull/4) still need live retesting. Real gameplay, combat, audible feedback, server resets, multiplayer, and an isolated legacy migration still need verification before CurseForge release.
+**QA status, 9 November 2026:** The Lua 5.1 suite passed 278/278 tests. WoW Forever's in-game self-test passed 17/17. Live checks on Apollo and Verthius covered board layouts, column ordering, archived views, Quick Add, editor actions, Help search and scrolling, opaque dialogs, tracker behavior, and dependent-window closing. All nine theme presets were captured in WoW Forever; Classic Stone's see-through backdrop was fixed and retested in-game, while Classic Leather and Quest Parchment remain legible and distinct. The taller Options window was reloaded and verified in-game with all Custom controls visible without scrolling. The board-switch and received-card tracker fixes on [PR #4](https://github.com/Jvb182/taskboard/pull/4) still need live retesting. Real gameplay, combat, audible feedback, server resets, multiplayer, and an isolated legacy migration still need verification before CurseForge release.
 
 ## Latest Taskboard UI changes
 
@@ -17,6 +17,20 @@ Source: [live Taskboard QA page](https://chatgpt.com/space/page_765a50b302b88191
 - [x] **UI1304** Capture and inspect all nine themes with the board, tracker, cards, and Options open. Midnight, Warm Leather, Forest, Arcane, High Contrast, Classic Stone, Classic Leather, Quest Parchment, and Custom were captured in WoW Forever. The Stone backdrop defect was fixed and recaptured.
 
 - [x] **UI1305** Open Appearance after a UI reload and confirm the taller Options window shows Background, Text, Border, Accent, and Reset appearance without scrolling. Verified in WoW Forever on Verthius at 3440×1440; the Background button also opened the RGB and hex color picker.
+
+## Follow-up controls and mailbox checks
+
+- [x] **MAIL1303** With Automatic completion off, opening a mailbox leaves plain check-mail tasks open. Turn it on and open the mailbox again: a To Do check-mail card and a Daily In Progress check-mail card both move to Done once. Verified live on Apollo on 9 November; the separate plain Mail title needs retesting after the updated addon loads.
+
+- [ ] **MAIL1304** After a UI reload, open a mailbox with a plain `Mail @mail` task and Automatic completion on. It moves to Done; a Send items task stays open.
+
+- [x] **SET1301** Reset all data shows a warning; Cancel keeps the old task and settings. Confirm clears cards, settings, learned mailbox spots, statistics, and diagnostic log, then an empty board survives reload. Passed in the mocked client; live UI action remains untested.
+
+- [ ] **SET1302** On disposable data in WoW, cancel Reset all data once and check that the data remains. Then confirm and reload: the board is empty, settings are defaults, and learned mailbox spots are cleared.
+
+- [x] **SND1305** All seven selectable sounds play through Preview in the mocked client; Off remains silent. The new choices are Page turn, Coin, Message, and Alert.
+
+- [ ] **SND1306** In WoW, preview the seven sounds for each event, compare volume and clarity, and verify Off remains silent.
 
 ## Board layouts
 

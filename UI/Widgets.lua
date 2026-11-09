@@ -161,6 +161,7 @@ function W.Check(parent, label, onToggle, tooltip)
     if c.Text then
         c.Text:SetText(label or "")
         c.Text:SetFontObject("GameFontHighlightSmall")
+        Theme.Text(c.Text, "GameFontHighlightSmall")
     end
     c:SetScript("OnClick", ns.Wrap("check " .. tostring(label), function(self)
         if onToggle then onToggle(self:GetChecked() and true or false, self) end
@@ -171,9 +172,67 @@ end
 
 function W.Scroll(parent)
     local scroll = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
+    scroll:SetClipsChildren(true)
+    -- The template places its scrollbar outside the viewport, but parents it to
+    -- the viewport. Keep it outside the clipped subtree and preserve its link
+    -- to this scroll frame rather than the template's GetParent() assumption.
+    local bar = scroll.ScrollBar
+    if bar then
+        bar:SetParent(parent)
+        bar:SetFrameLevel(scroll:GetFrameLevel() + 2)
+        bar:ClearAllPoints()
+        bar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 6, -16)
+        bar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", 6, 16)
+        bar:SetScript("OnValueChanged", function(_, value) scroll:SetVerticalScroll(value) end)
+        scroll:HookScript("OnHide", function() bar:Hide() end)
+        scroll:HookScript("OnShow", function() bar:Show() end)
+    end
     local content = CreateFrame("Frame", nil, scroll)
     content:SetSize(10, 10)
     scroll:SetScrollChild(content)
+    -- The Forever template supplies a scrollbar, but does not reliably consume
+    -- wheel input over the child. Capture it on both surfaces, including at the
+    -- ends of the document, so it cannot zoom the game camera underneath.
+    local function refreshButtons()
+        local limit = math.max(0, scroll:GetVerticalScrollRange())
+        local value = scroll:GetVerticalScroll()
+        if bar and bar.ScrollUpButton then bar.ScrollUpButton:SetEnabled(value > 0) end
+        if bar and bar.ScrollDownButton then bar.ScrollDownButton:SetEnabled(value < limit) end
+    end
+    local function wheel(_, delta)
+        local limit = math.max(0, scroll:GetVerticalScrollRange())
+        local value = ns.Util.Clamp(scroll:GetVerticalScroll() - delta * 40, 0, limit)
+        scroll:SetVerticalScroll(value)
+        if scroll.ScrollBar then
+            scroll.ScrollBar:SetMinMaxValues(0, limit)
+            scroll.ScrollBar:SetValue(value)
+        end
+        refreshButtons()
+    end
+    scroll:EnableMouse(true)
+    content:EnableMouse(true)
+    scroll:EnableMouseWheel(true)
+    content:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", ns.Wrap("scroll pane", wheel))
+    content:SetScript("OnMouseWheel", ns.Wrap("scroll content", wheel))
+    -- A mouse-enabled host (for example a draggable Help dialog) can be the
+    -- wheel target on this client. It belongs to this pane, not the game world.
+    parent:EnableMouseWheel(true)
+    parent:HookScript("OnMouseWheel", ns.Wrap("scroll host", wheel))
+    if bar then
+        bar:EnableMouse(true)
+        for _, entry in ipairs({ { bar.ScrollUpButton, 1 }, { bar.ScrollDownButton, -1 } }) do
+            local button, direction = entry[1], entry[2]
+            if button then
+                button:EnableMouse(true)
+                button:SetFrameLevel(bar:GetFrameLevel() + 1)
+                button:SetScript("OnClick", ns.Wrap("scroll arrow", function() wheel(nil, direction) end))
+            end
+        end
+    end
+    scroll:HookScript("OnScrollRangeChanged", refreshButtons)
+    scroll:HookScript("OnVerticalScroll", refreshButtons)
+    scroll:HookScript("OnShow", refreshButtons)
     return scroll, content
 end
 
@@ -373,6 +432,17 @@ end
 -- Yes/No confirmation using a StaticPopup.
 StaticPopupDialogs["TASKBOARD_CONFIRM"] = {
     text = "%s", button1 = YES or "Yes", button2 = NO or "No",
+    OnShow = function(self)
+        self.taskboardPreviousStrata = self.taskboardPreviousStrata or self:GetFrameStrata()
+        self:SetFrameStrata("FULLSCREEN_DIALOG")
+        self:Raise()
+    end,
+    OnHide = function(self)
+        if self.taskboardPreviousStrata then
+            self:SetFrameStrata(self.taskboardPreviousStrata)
+            self.taskboardPreviousStrata = nil
+        end
+    end,
     OnAccept = function(_, data) if data and data.func then ns.Safe("confirm", data.func) end end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }

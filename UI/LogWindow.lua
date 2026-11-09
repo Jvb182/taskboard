@@ -82,7 +82,7 @@ function LogWindow:Create()
     buttons.import:SetPoint("RIGHT", buttons.select, "LEFT", -6, 0)
 
     ns:On("LOG_ADDED", function()
-        if frame:IsShown() and mode == "log" and not box:HasFocus() then LogWindow:ShowLog() end
+        if frame:IsShown() and mode == "log" and not box:HasFocus() then LogWindow:ShowLog(true) end
     end)
 end
 
@@ -99,7 +99,18 @@ local function setMode(m)
     buttons.diag:SetActive(m == "diag")
 end
 
-function LogWindow:ShowLog()
+local function showWindow(keepStack)
+    if not keepStack then
+        local board = ns.Board and ns.Board.frame
+        local level = board and board:IsShown() and board:GetFrameLevel() or UIParent:GetFrameLevel()
+        frame:SetFrameStrata("DIALOG")
+        frame:SetFrameLevel(level + 20)
+    end
+    frame:Show()
+    if not keepStack then frame:Raise() end
+end
+
+function LogWindow:ShowLog(keepStack)
     self:Create()
     setMode("log")
     titleText:SetText("Taskboard log")
@@ -108,7 +119,7 @@ function LogWindow:ShowLog()
     for _, e in ipairs(ns.Log:GetEntries(minLevel)) do lines[#lines + 1] = ns.Log:FormatEntry(e) end
     if #lines == 0 then lines[1] = "(empty)" end
     setText(table.concat(lines, "\n"), false)
-    frame:Show()
+    showWindow(keepStack)
     -- Newest lines at the bottom: scroll there.
     ns.After(0, "log scroll", function() scroll:SetVerticalScroll(scroll:GetVerticalScrollRange()) end)
 end
@@ -122,7 +133,7 @@ function LogWindow:ShowDiag(lines)
     for _, e in ipairs(ns.Log:GetEntries(3, 20)) do recent[#recent + 1] = ns.Log:FormatEntry(e) end
     local text = table.concat(lines, "\n") .. "\n\nRecent warnings and errors:\n" .. (#recent > 0 and table.concat(recent, "\n") or "(none)")
     setText(text, false)
-    frame:Show()
+    showWindow()
 end
 
 function LogWindow:ShowExport()
@@ -135,7 +146,7 @@ function LogWindow:ShowExport()
     for _, card in pairs(copy.cards) do card.progress = nil end
     local text, err = ns.Serialize.Export(copy)
     setText(text or ("Export failed: " .. tostring(err)), false)
-    frame:Show()
+    showWindow()
     box:SetFocus()
     box:HighlightText()
 end
@@ -145,7 +156,7 @@ function LogWindow:ShowImport()
     setMode("import")
     titleText:SetText("Import a board: paste the export text, then click Import")
     setText("", true)
-    frame:Show()
+    showWindow()
     box:SetFocus()
 end
 

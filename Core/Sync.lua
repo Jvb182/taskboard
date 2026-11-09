@@ -272,6 +272,8 @@ end
 
 function Sync:Import(board, sender, channel, version, existing)
     board.scope = "shared"
+    -- Completed visibility is a personal-board preference, not an owner-imposed filter.
+    board.showCompleted = true
     board.owner = nil
     board.shared = { from = sender, version = version, channel = channel,
                      members = existing and existing.shared and existing.shared.members or {} }

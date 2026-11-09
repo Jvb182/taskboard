@@ -108,7 +108,7 @@ function Engine:ApplyTransitions(card, board, summary)
         card.completedAt = Util.Now()
         self.stats.autoCompleted = self.stats.autoCompleted + 1
         ns:Fire("CARD_COMPLETED", card, board)
-    elseif hasGoals and summary.any and not summary.done and role == "todo" and settings.autoStart and not card.auto.started then
+    elseif not board.simpleMode and hasGoals and summary.any and not summary.done and role == "todo" and settings.autoStart and not card.auto.started then
         local doing = DB:ColumnByRole(board, "doing")
         card.auto.started = true
         DB:MoveCard(board, card.id, doing.id, nil, "started")

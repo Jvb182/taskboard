@@ -1,4 +1,4 @@
-# Taskboard 1.2.2 in-game test checklist
+# Taskboard 1.3.0 in-game test checklist
 
 Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), interface 16001. They cannot certify real rendering, client event order or server delivery. Record `/tb diag` and the actual client build with each test report.
 
@@ -49,3 +49,20 @@ Test narrow/wide windows, UI scaling, long titles and notes, a full board, eight
 ## Bug reports
 
 Include the version, client build, exact steps, expected and observed result, `/tb diag`, and `/tb log show`. Include screenshots for layout problems. Keep the SavedVariables backup until migration and reset behavior have been checked.
+
+## 1.3.0 focused in-game checks
+
+- [ ] Add populated custom columns, move them left/right through their header menus, and reload. Cards and status roles stay intact. Boundary actions are disabled; hidden columns keep their saved slots.
+- [ ] Archive more than 25 tasks. Browse Previous/Next pages through all tasks, restore one on the last page, and verify the total drops by one.
+- [ ] Check parchment artwork and dark text in Classic stone and Classic leather, as well as Quest parchment. Check narrow columns, different window sizes and UI scales.
+- [ ] Read Help with its larger body text/headings; check wrapping and scrolling. Search across tabs for mailbox, sound and columns, including mixed case and no results. Clear or select a tab to restore normal browsing.
+
+- [ ] Switch one character board to Simple; confirm In Progress/custom tasks move to To Do with progress preserved. Other characters retain their own layout. Reload and switch back.
+- [ ] Hide completed in Standard and Simple modes. Complete a task in the editor and via a live goal, then reveal Done; cards and history remain intact.
+- [ ] Check Simple tasks in the tracker and verify hiding the tracker still works.
+- [ ] Select Quest parchment. Confirm the quest artwork loads and dark text is readable on board, tracker, editor, Help and Settings.
+- [ ] Open all dialogs at 35% opacity under each classic skin; Help and other dialog backgrounds must be solid.
+- [ ] Use RGB sliders and hex input for each custom color. Test Apply, Cancel, Escape, preset switching, reload and Reset appearance.
+- [ ] Close the board via X, Escape, slash command, minimap and key binding, including in combat. Settings, Help, picker and editor close. Focused edits survive; reopening the board does not reopen dialogs.
+- [ ] Open a disposable card in the editor. Its footer Close responds; Delete opens a visible confirmation, Cancel keeps the card, and Yes removes only that card. Archive also responds and the card appears under archived tasks.
+- [ ] Enable repeating nearby sound and test 15/30/60 seconds with two nearby tasks. Confirm one sound per interval and silence after leaving, completion, collapsing/hiding the tracker, sound Off, reminders Off and master sound Off.

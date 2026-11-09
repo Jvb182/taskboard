@@ -60,19 +60,26 @@ function Editor:Create()
     if frame then return end
     frame = CreateFrame("Frame", "TaskboardEditor", UIParent, "BackdropTemplate")
     frame:SetSize(WIDTH, 560)
-    frame:SetFrameStrata("HIGH")
+    frame:SetFrameStrata("DIALOG")
     frame:SetToplevel(true)
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
     frame:EnableMouse(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
-    frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     frame:Hide()
     Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder, true)
     table.insert(UISpecialFrames, "TaskboardEditor")
 
-    ui.heading = W.Text(frame, "GameFontNormal")
+    -- Only the title strip starts a drag; controls must retain their own
+    -- mouse press/release sequence, including buttons outside the scroll pane.
+    ui.titleBar = CreateFrame("Frame", nil, frame)
+    ui.titleBar:SetPoint("TOPLEFT", 0, 0)
+    ui.titleBar:SetPoint("TOPRIGHT", 0, 0)
+    ui.titleBar:SetHeight(28)
+    ui.titleBar:EnableMouse(true)
+    ui.titleBar:RegisterForDrag("LeftButton")
+    ui.titleBar:SetScript("OnDragStart", function() frame:StartMoving() end)
+    ui.titleBar:SetScript("OnDragStop", function() frame:StopMovingOrSizing() end)
+    ui.heading = W.Text(ui.titleBar, "GameFontNormal")
     ui.heading:SetPoint("TOPLEFT", 12, -10)
     ui.heading:SetText("Edit card")
     local close = W.CloseButton(frame)
@@ -260,7 +267,15 @@ function Editor:Create()
     ui.lowerHeight = -ly + 60
 
     -- Footer buttons
-    ui.delete = W.Button(frame, "|cffff5a5aDelete|r", 70, 22, function()
+    -- Keep controls above the mouse-enabled scroll child as well as its paint
+    -- clip: some clients still hit-test that child's overflowing bounds.
+    ui.footer = CreateFrame("Frame", nil, frame)
+    ui.footer:SetPoint("BOTTOMLEFT", 0, 0)
+    ui.footer:SetPoint("BOTTOMRIGHT", 0, 0)
+    ui.footer:SetHeight(36)
+    ui.footer:EnableMouse(true)
+    ui.footer:SetFrameLevel(scroll:GetFrameLevel() + 5)
+    ui.delete = W.Button(ui.footer, "|cffff5a5aDelete|r", 70, 22, function()
         local card, board = current.card, current.board
         W.Confirm("Delete \"" .. card.title .. "\"?", function()
             DB:DeleteCard(board, card.id)
@@ -268,12 +283,15 @@ function Editor:Create()
         end)
     end)
     ui.delete:SetPoint("BOTTOMLEFT", 12, 10)
-    ui.archive = W.Button(frame, "Archive", 70, 22, function()
+    ui.archive = W.Button(ui.footer, "Archive", 70, 22, function()
         apply({ archived = true })
         frame:Hide()
     end, "Hide the card without deleting it (restore from the board menu)")
     ui.archive:SetPoint("LEFT", ui.delete, "RIGHT", 6, 0)
-    ui.done = W.Button(frame, "Close", 70, 22, function() frame:Hide() end)
+    ui.done = W.Button(ui.footer, "Close", 70, 22, function() frame:Hide() end)
+    for _, button in ipairs({ ui.delete, ui.archive, ui.done }) do
+        button:EnableMouse(true)
+    end
     ui.done:SetPoint("BOTTOMRIGHT", -12, 10)
 
     frame:SetScript("OnHide", function()
@@ -334,9 +352,10 @@ function Editor:Refresh()
 
     -- Column buttons are rebuilt because boards can have custom columns.
     for _, b in ipairs(ui.columnRow.buttons) do b:Hide() end
-    local n = #board.columns
+    local statusColumns = DB:StatusColumns(board)
+    local n = #statusColumns
     local bw = math.floor((INNER - 4 * (n - 1)) / n)
-    for i, col in ipairs(board.columns) do
+    for i, col in ipairs(statusColumns) do
         local b = ui.columnRow.buttons[i]
         if not b then
             b = W.Button(content, "", bw, 20)
@@ -487,17 +506,35 @@ function Editor:Open(card, board)
     frame:ClearAllPoints()
     local boardFrame = ns.Board.frame
     if boardFrame and boardFrame:IsShown() then
+        frame:SetParent(boardFrame)
         frame:SetPoint("TOPLEFT", boardFrame, "TOPRIGHT", 4, 0)
     else
-        frame:SetPoint("CENTER", 0, 0)
+        frame:SetParent(UIParent)
+        frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     end
+    frame:SetFrameStrata("DIALOG")
+    frame:SetFrameLevel(frame:GetParent():GetFrameLevel() + 20)
+    for _, control in ipairs({ ui.footer, ui.titleBar, frame.closeButton, ui.delete, ui.archive, ui.done }) do
+        control:SetFrameStrata("DIALOG")
+    end
+    ui.footer:SetFrameLevel(frame:GetFrameLevel() + 10)
+    ui.titleBar:SetFrameLevel(frame:GetFrameLevel() + 10)
+    frame.closeButton:SetFrameLevel(frame:GetFrameLevel() + 12)
     self:SyncHeight()
     frame:Show()
+    frame:Raise()
     self:Refresh()
 end
 
 function Editor:Current()
     return current.card, current.board
+end
+
+function Editor:Hide()
+    if not frame then return end
+    for _, box in ipairs({ ui.title, ui.tags, ui.goal, ui.subAdd, ui.zone, ui.notes }) do box:ClearFocus() end
+    frame:Hide()
+    current.card, current.board = nil, nil
 end
 
 function Editor:OnLogin()

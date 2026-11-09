@@ -30,7 +30,7 @@ describe("Appearance", function()
             T.eq(ns.db.settings.theme, preset.id)
             for _, accent in ipairs(ns.Theme.ACCENTS) do
                 ns.Options:SetAppearance("accent", accent.id)
-                T.eq(ns.Theme.colors.accent[1], accent.color[1])
+                T.near(ns.Theme.colors.accent[1], accent.color[1] * (ns.Theme:IsParchment() and 0.42 or 1))
                 local panel = m.env.CreateFrame("Frame", nil, m.env.UIParent, "BackdropTemplate")
                 ns.Theme.Panel(panel)
                 T.eq(panel._bg[1], ns.Theme.colors.panel[1])

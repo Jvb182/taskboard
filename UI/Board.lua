@@ -85,7 +85,7 @@ function Board:CardMenu(card, board)
     local items = { { text = card.title, title = true } }
     items[#items + 1] = { text = readOnly and "View" or "Edit", func = function() ns.Editor:Open(card, board) end }
     if not readOnly then
-        for _, col in ipairs(board.columns) do
+        for _, col in ipairs(DB:StatusColumns(board)) do
             if col.id ~= card.column then
                 items[#items + 1] = { text = "Move to " .. col.name, func = function() DB:MoveCard(board, card.id, col.id) end }
             end
@@ -254,6 +254,9 @@ local function createColumn()
     col.header:SetPoint("TOPRIGHT", 0, 0)
     col.header:SetHeight(24)
     col.header:RegisterForClicks("RightButtonUp")
+    col.headerBackground = col.header:CreateTexture(nil, "BACKGROUND")
+    col.headerBackground:SetAllPoints()
+    col.headerBackground:SetColorTexture(0.18, 0.11, 0.06, 0.96)
     col.title = W.Text(col.header, "GameFontNormal")
     col.title:SetPoint("LEFT", 8, -1)
     col.count = W.Text(col.header, "GameFontDisableSmall", "RIGHT")
@@ -274,10 +277,17 @@ end
 function Board:ColumnMenu(column)
     local board = activeBoard()
     if not board or not column or DB:IsReadOnly(board) then return end
+    local visible = DB:DisplayColumns(board)
+    local index
+    for i, col in ipairs(visible) do if col.id == column.id then index = i end end
     W.Menu(nil, {
         { text = column.name, title = true },
+        { text = "Move column left", disabled = not index or index == 1,
+          func = function() DB:MoveColumn(board, column.id, -1) end },
+        { text = "Move column right", disabled = not index or index == #visible,
+          func = function() DB:MoveColumn(board, column.id, 1) end },
         { text = "Rename", func = function() Board:Prompt("Rename column", column.name, function(text) DB:RenameColumn(board, column.id, text) end) end },
-        { text = "Add column", func = function() Board:Prompt("New column name", "", function(text)
+        { text = "Add column", disabled = board.simpleMode, func = function() Board:Prompt("New column name", "", function(text)
             local _, err = DB:AddColumn(board, text)
             if err then ns.Print("|cffff5555%s|r", err) end
         end) end },
@@ -309,7 +319,8 @@ function Board:Layout()
         return
     end
     boardButton:SetLabel(board.name .. (DB:IsReadOnly(board) and " (shared)" or ""))
-    local n = #board.columns
+    local visibleColumns = DB:DisplayColumns(board)
+    local n = #visibleColumns
     local gap = 8
     local viewportW = math.max(1, frame:GetWidth() - 24)
     local hostW = math.max(viewportW, n * 140 + gap * (n - 1))
@@ -321,7 +332,7 @@ function Board:Layout()
     horizontalScroll:GetThumbTexture():SetVertexColor(unpack(Theme.colors.accent))
     columnsViewport:SetHorizontalScroll(horizontalScroll:GetValue() or 0)
     local colW = math.max(140, math.floor((hostW - gap * (n - 1)) / n))
-    for i, column in ipairs(board.columns) do
+    for i, column in ipairs(visibleColumns) do
         local col = columnFrames[i] or createColumn()
         columnFrames[i] = col
         col.column = column
@@ -333,7 +344,15 @@ function Board:Layout()
         local color = Theme.RoleColor(column.role)
         col.band:SetColorTexture(unpack(color))
         col.title:SetText(column.name)
-        col.title:SetTextColor(color[1], color[2], color[3])
+        local parchment = Theme:IsParchment()
+        col.headerBackground:SetShown(parchment)
+        if parchment then
+            col.title:SetTextColor(1, 0.90, 0.70)
+            col.count:SetTextColor(0.90, 0.82, 0.68)
+        else
+            col.title:SetTextColor(color[1], color[2], color[3])
+            col.count:SetTextColor(unpack(Theme.colors.muted))
+        end
         local cards = DB:CardsIn(board, column.id, matchesFilter)
         col.count:SetText(#cards)
         col.cards = cards
@@ -517,6 +536,16 @@ function Board:BoardMenu()
         items[#items + 1] = { text = label, checked = b == current, func = function() DB:SetActiveBoard(b) end }
     end
     if current then
+        if current.scope == "character" then
+            items[#items + 1] = { text = "Simple mode (To Do / Done)", checked = current.simpleMode, func = function()
+                if not current.simpleMode then
+                    W.Confirm("Use Simple mode? Tasks in In Progress or custom columns move to To Do. Their progress is kept. Switching back restores the columns, not the old task positions.", function() DB:SetSimpleMode(current, true) end)
+                else DB:SetSimpleMode(current, false) end
+            end }
+            items[#items + 1] = { text = "Show completed", checked = current.showCompleted ~= false, func = function()
+                DB:SetShowCompleted(current, current.showCompleted == false)
+            end }
+        end
         items[#items + 1] = { text = "Rename this board", disabled = DB:IsReadOnly(current), func = function()
             Board:Prompt("Rename board", current.name, function(text) DB:RenameBoard(current, text) end)
         end }
@@ -535,15 +564,25 @@ function Board:BoardMenu()
     W.Menu(nil, items)
 end
 
-function Board:ArchiveMenu(board)
-    local items = { { text = "Archived (click to restore)", title = true } }
+function Board:ArchiveMenu(board, page)
+    local archived = {}
     for _, card in pairs(board.cards) do
-        if card.archived then
-            items[#items + 1] = { text = card.title, func = function() DB:UpdateCard(board, card, { archived = false }) end }
-        end
-        if #items > 25 then break end
+        if card.archived then archived[#archived + 1] = card end
+    end
+    table.sort(archived, function(a, b)
+        if a.title == b.title then return a.id < b.id end
+        return a.title < b.title
+    end)
+    local pages = math.max(1, math.ceil(#archived / 20))
+    page = ns.Util.Clamp(page or 1, 1, pages)
+    local items = { { text = "Archived: " .. #archived .. " (" .. page .. "/" .. pages .. ") - click to restore", title = true } }
+    for i = (page - 1) * 20 + 1, math.min(page * 20, #archived) do
+        local card = archived[i]
+        items[#items + 1] = { text = card.title, func = function() DB:UpdateCard(board, card, { archived = false }) end }
     end
     if #items == 1 then items[#items + 1] = { text = "Nothing archived", disabled = true } end
+    if page > 1 then items[#items + 1] = { text = "Previous page", func = function() Board:ArchiveMenu(board, page - 1) end } end
+    if page < pages then items[#items + 1] = { text = "Next page", func = function() Board:ArchiveMenu(board, page + 1) end } end
     W.Menu(nil, items)
 end
 
@@ -613,7 +652,7 @@ function Board:Create()
     title:SetPoint("TOPLEFT", 12, -8)
     Theme.Brand(title)
 
-    boardButton = W.Button(frame, "Board", 150, 20, function() Board:BoardMenu() end, "Switch, create, share or export boards")
+    boardButton = W.Button(frame, "Board", 150, 20, function() Board:BoardMenu() end, "Switch boards, choose Simple mode, show completed, share or export")
     boardButton:SetPoint("LEFT", title, "RIGHT", 12, 0)
 
     local close = W.CloseButton(frame)
@@ -701,6 +740,8 @@ function Board:Create()
         if drag then Board:EndDrag() end
         W.HideMenu()
         if ns.Options then ns.Options:Hide() end
+        if ns.Help then ns.Help:Hide() end
+        if ns.Editor then ns.Editor:Hide() end
     end)
     return frame
 end

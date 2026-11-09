@@ -316,6 +316,7 @@ function Mock.new(opts)
     impl.SetHorizontalScroll = function(self, value) self._horizontalScroll = value end
     impl.GetHorizontalScroll = function(self) return self._horizontalScroll or 0 end
     impl.SetTexture = function(self, tex) self._texture = tex end
+    impl.SetAtlas = function(self, atlas) self._atlas = atlas end
     impl.GetTexture = function(self) return self._texture end
     impl.SetColorTexture = function(self, r, g, b, a) self._color = { r, g, b, a } end
     impl.SetVertexColor = function(self, r, g, b, a) self._vertex = { r, g, b, a } end

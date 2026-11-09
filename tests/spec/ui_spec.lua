@@ -102,7 +102,7 @@ describe("Board window", function()
         T.ok(m.env.TaskboardHelp:IsShown())
         T.ok(#m.FindByText('Buy supplies @"Stormwind City"') > 0)
         ns.Board:Toggle()
-        T.ok(m.env.TaskboardHelp:IsVisible(), "help stays available independently of board")
+        T.no(m.env.TaskboardHelp:IsVisible(), "help closes with the board")
         T.noErrors(ns)
     end)
 

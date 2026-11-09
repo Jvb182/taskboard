@@ -1,6 +1,13 @@
 local T, Mock = ...
 
 describe("Board layouts", function()
+    it("shows all Appearance controls in the Options viewport", function()
+        local _, ns = T.client(); ns.Options:Show(); ns.Options:Page("style")
+        local options = ns.Options:Internals().frame
+        T.eq(options:GetHeight(), 570)
+        T.ok(options:GetHeight() - 68 - 44 >= 442)
+        T.noErrors(ns)
+    end)
     it("counts tags only in available columns and excludes archived cards", function()
         local m, ns = T.client(); local board = ns.DB:GetActiveBoard(); ns.Board:Show()
         local active = ns.Commands:Add("Visible #qa")

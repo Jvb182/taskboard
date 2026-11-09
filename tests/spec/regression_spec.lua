@@ -56,6 +56,10 @@ describe("Review regressions: editor and ownership", function()
     it("text imports reassign goals and clear foreign progress", function()
         local ma, a = T.client({ name = "Alice" })
         local card = a.Commands:Add("20 Peacebloom")
+        card.progress = { cur = 12, target = 20, text = "Peacebloom 12/20" }
+        card.goal.baseline = 9
+        card.goal.baselineBank = true
+        card.auto = { started = true, completed = true }
         local text = assert(a.Serialize.Export(a.DB:GetActiveBoard()))
         local mb, b = T.client({ name = "Bob" })
         b.LogWindow:ShowImport()
@@ -68,8 +72,37 @@ describe("Review regressions: editor and ownership", function()
         end
         T.ok(imported)
         T.eq(imported.char, "Bob-Forever")
+        T.eq(imported.progress.cur, 0)
+        T.eq(imported.goal.baseline, nil)
+        T.eq(imported.goal.baselineBank, nil)
+        T.eq(imported.auto.started, nil)
         mb.Loot(2447, 20); mb.Advance(1)
         T.eq(imported.column, "done")
+        T.noErrors(b)
+    end)
+
+    it("round-trips item-link text, punctuation and notes without markup injection", function()
+        local ma, a = T.client({ name = "Alice" })
+        local link = "|cnIQ1:|Hitem:765:::::::::|h[Silverleaf]|h|r"
+        local card = a.Commands:Add("get 17 " .. link .. " - 'QA' [test]")
+        local board = a.DB:GetActiveBoard()
+        a.DB:UpdateCard(board, card, { notes = "Line one\n|TInterface/Icons/INV_Misc_QuestionMark:16|t\nLine three" })
+        local export = assert(a.Serialize.Export(board))
+        local mb, b = T.client({ name = "Bob" })
+        b.LogWindow:ShowImport()
+        b.LogWindow:Internals().box:SetText(export)
+        b.LogWindow:DoImport()
+        local found
+        for _, candidate in pairs(b.DB:GetActiveBoard().cards) do
+            if candidate.title == card.title then found = candidate end
+        end
+        T.ok(found)
+        T.eq(found.title, "get 17 [Silverleaf] - 'QA' [test]")
+        T.eq(found.goal.itemID, 765)
+        T.eq(found.goal.target, 17)
+        T.contains(found.notes, "Line one")
+        T.contains(found.notes, "Line three")
+        T.no(found.notes:find("|T", 1, true))
         T.noErrors(b)
     end)
 
@@ -399,3 +432,4 @@ describe("Release usability", function()
         T.eq(c.progress.cur, 2)
     end)
 end)
+

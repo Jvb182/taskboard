@@ -62,7 +62,7 @@ Paths below are relative to `tests/spec/`. Each row identifies automated evidenc
 
 | Manual case IDs | Automated evidence | What still needs the game |
 | --- | --- | --- |
-| IN03/04/06, BD11–16 | `coverage_regression_spec` checks rich legacy board consolidation, column overflow, shared-board isolation, an edit and two reloads. `db_spec` separately checks copying `QuestboardDB`. | Upgrade an actual older SavedVariables file and inspect the result in WoW. |
+| IN03/04, BD11–16; partial IN06 | `coverage_regression_spec` checks rich older Taskboard board consolidation, column overflow, shared-board isolation, an edit and two reloads. `personalization_spec` separately checks copying `QuestboardDB` without changing the old save. | Upgrade an actual Questboard save, disable its legacy loader after verification, and confirm the edited card still persists in WoW (IN06). |
 | TR11/17 | `coverage_regression_spec` invokes drag/lock handlers and checks saved coordinates and visibility after reload. | Drag with a real mouse and check the displayed location. |
 | RC16 | `coverage_regression_spec` completes a daily mail task, resets it and completes it again without duplicate statistics. | Observe a real server reset and mailbox visit. |
 | MB08/19 | `coverage_regression_spec` checks two maps, absent coordinates and recovery. | Approach real mailboxes on different maps and test indoor positioning. |

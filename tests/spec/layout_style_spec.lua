@@ -1,6 +1,39 @@
 local T, Mock = ...
 
 describe("Board layouts", function()
+    it("counts tags only in available columns and excludes archived cards", function()
+        local m, ns = T.client(); local board = ns.DB:GetActiveBoard(); ns.Board:Show()
+        local active = ns.Commands:Add("Visible #qa")
+        local archived = ns.Commands:Add("Archived #qa #archivedonly"); archived.archived = true
+        local done = ns.Commands:Add("Completed #qa #doneonly")
+        ns.DB:MoveCard(board, done.id, ns.DB:ColumnByRole(board, "done").id)
+        ns.DB:SetShowCompleted(board, false)
+        local entries
+        ns.Widgets.Menu = function(_, items) entries = items end
+        ns.Board:TagMenu()
+        T.eq(#entries, 3); T.eq(entries[3].text, "#qa (1)")
+        entries[3].func(); T.ok(ns.Board.MatchesFilter(active))
+        ns.DB:SetShowCompleted(board, true); ns.Board:TagMenu()
+        T.eq(entries[3].text, "#doneonly (1)"); T.eq(entries[4].text, "#qa (2)")
+        T.noErrors(ns)
+    end)
+    it("keeps tag alternatives while honoring Mine and search filters", function()
+        local m, ns = T.client(); local board = ns.DB:GetActiveBoard(); ns.Board:Show()
+        local qa = ns.Commands:Add("Match #qa")
+        local herb = ns.Commands:Add("Match #herb")
+        local other = ns.Commands:Add("Match #other"); other.char = "Other-Realm"
+        ns.Commands:Add("Unrelated #hidden")
+        ns.db.settings.onlyMine = true
+        ns.Board.filter.text = "match"
+        ns.Board:SetTag("qa")
+        local entries
+        ns.Widgets.Menu = function(_, items) entries = items end
+        ns.Board:TagMenu()
+        T.eq(#entries, 4); T.eq(entries[3].text, "#herb (1)"); T.eq(entries[4].text, "#qa (1)")
+        entries[3].func()
+        T.ok(ns.Board.MatchesFilter(herb)); T.no(ns.Board.MatchesFilter(qa))
+        T.no(ns.Board.MatchesFilter(other)); T.noErrors(ns)
+    end)
     it("pages through every archived task and restores a task from a later page", function()
         local m, ns = T.client(); local b = ns.DB:GetActiveBoard()
         for i = 1, 45 do local c = ns.Commands:Add(string.format("Archived %02d", i)); c.archived = true end

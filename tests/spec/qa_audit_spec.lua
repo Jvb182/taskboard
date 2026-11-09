@@ -488,10 +488,19 @@ describe("Remaining agent-run QA checks", function()
         end
         ns.Board:Show(); ns.Board:Layout()
         T.eq(ns.Util.Count(board.cards), 201)
-        ns.Board.filter.text = "performance task 179"
-        ns.Board:Layout()
-        T.eq(ns.Board:Internals().columns[1].count:GetText(), "0")
+        local ui = ns.Board:Internals()
+        T.ok(ui.horizontalScroll:IsShown(), "eight columns need horizontal scrolling")
+        ui.searchBox:SetText("performance task 179")
+        m.Advance(0.05)
+        local visible = {}
+        for _, widget in ipairs(ns.Board:Internals().cards) do
+            if widget:IsShown() then visible[#visible + 1] = widget.card.title end
+        end
+        T.eq(#visible, 1, "filter must keep exactly its matching card")
+        T.contains(visible[1], "179")
+        ui.searchBox:SetText("performance task")
+        m.Advance(0.05)
+        T.eq(#ns.Board:Internals().cards, 200, "broadening the filter restores all test cards")
         T.noErrors(ns)
     end)
 end)
-

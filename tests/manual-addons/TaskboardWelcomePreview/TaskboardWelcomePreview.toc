@@ -1,0 +1,9 @@
+## Interface: 16001
+## Title: Taskboard Welcome Preview
+## Notes: Opens the Taskboard first-run welcome card once for local QA.
+## Author: John
+## Version: 1.0
+## Dependencies: Taskboard
+## SavedVariables: TaskboardWelcomePreviewDB
+
+Preview.lua

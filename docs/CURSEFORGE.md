@@ -4,9 +4,9 @@ This file prepares a CurseForge listing. Uploading is a separate action in the o
 
 ## Upload file
 
-Build with `python tests/tools/package.py --curseforge`. Upload `dist/Taskboard-1.3.0-CurseForge.zip`. It has exactly one top-level folder, `Taskboard`, containing `Taskboard.toc`, Bindings.xml, README, docs/TESTING.md and the runtime Lua files. Do **not** upload `Taskboard-1.3.0.zip`: that manual upgrade package also includes the old Questboard migration loader and has two top-level folders.
+Read the current version from `Taskboard.toc`. Run `python tests/tools/package.py --curseforge` and upload `dist/Taskboard-<version>-CurseForge.zip` as the default file. It has exactly one top-level folder, `Taskboard`, containing the TOC, Bindings.xml, README, docs/TESTING.md and runtime Lua files. Do **not** make the two-folder `Taskboard-<version>.zip` the default file; that is a manual upgrade package.
 
-The CurseForge build installs Taskboard for new users. Existing Questboard users can migrate their saved data by installing the two-folder upgrade ZIP from the GitHub repository first, enabling **Taskboard - legacy data loader** for one login, and then managing Taskboard through CurseForge. The old SavedVariables are not included in any ZIP.
+Build `dist/Taskboard-<version>-Legacy-Loader.zip` with `python tests/tools/package.py --legacy-loader`. It contains only `Questboard/Questboard.toc`, which loads old saved data without running the old addon code. Attach it to the main release as an **Additional File** and label it "Legacy Questboard data loader — manual download". CurseForge [does not install Additional Files through its app](https://support.curseforge.com/support/solutions/articles/9000197242-file-types-and-additional-fields), so link to the helper on the project page and explain the manual step. An existing Questboard user installs the main Taskboard file, extracts this helper over the old Questboard TOC while WoW is closed, enables both Taskboard and the loader for one login, checks migrated data after a reload, then disables/removes the loader. Do not direct public users to the private GitHub repository or tell them to run the original Questboard code beside Taskboard. No SavedVariables are included in any ZIP.
 
 ## Project fields
 
@@ -17,7 +17,7 @@ The CurseForge build installs Taskboard for new users. Existing Questboard users
 - Main category: Miscellaneous (or the closest task/planning category the form offers)
 - Additional categories: Quests & Leveling, Map & Minimap, Professions, if available; only choose relevant ones.
 - License: All Rights Reserved unless a different license is deliberately selected.
-- Source link: https://github.com/Jvb182/taskboard (private; public visitors cannot browse it). A public source link is optional if the owner wants to make it public later.
+- Source link: leave blank while the repository is private. Add a source link only when public visitors can actually open it.
 - Logo: upload the approved `assets/Taskboard-logo-400.png` (400 × 400 PNG). It is separate from the addon ZIP. Preview screenshots are optional for a WoW addon; genuine in-game screenshots will make the listing clearer.
 
 ## Suggested description
@@ -30,11 +30,11 @@ Choose from nine theme choices, including Quest parchment, custom RGB/hex colors
 
 Mail tasks can remind you within 35 yards of a mailbox Taskboard has learned from a previous visit. With automatic completion enabled, opening a mailbox completes a plain `Check mail @mail` task without goals or subtasks; other mail tasks stay open.
 
-Taskboard targets **WoW Forever 1.60.1** (interface `16001`). It is not advertised for Retail or other Classic versions. Type `/tb help` for the guide and `/tb options` for settings. Report problems with your client build, steps to reproduce, and `/tb diag` output.
+Taskboard targets **WoW Forever 1.60.1** (interface `16001`). It is not advertised for Retail or other Classic versions. Type `/tb help` for the guide and `/tb options` for settings. Report problems through the project's Issues tab (or Comments if unavailable) with your client build, steps to reproduce, and `/tb diag` output.
 
 ## First file
 
-- Display name: Taskboard 1.3.0 for WoW Forever
+- Display name: Taskboard <version> for WoW Forever (match `Taskboard.toc`)
 - Release type: Release after the owner has completed the in-game checklist; use Beta if gathering broader test feedback first. A Release file is needed for default CurseForge app syncing.
 - Game version type/flavor: **Forever**
 - Supported version: **1.60.1**
@@ -45,6 +45,7 @@ Taskboard targets **WoW Forever 1.60.1** (interface `16001`). It is not advertis
 1. Sign in at https://authors.curseforge.com/#/projects/create/choose-game and create a World of Warcraft addon project.
 2. Fill the English title, summary, description, category, license and logo. Do not select Retail or a different Classic flavor for this build.
 3. On the project's Files tab upload the **CurseForge ZIP**, enter the changelog, choose Forever / 1.60.1 and the release type.
-4. CurseForge reviews the project/file. After approval, check that it appears under the Forever flavor and that the app installs `AddOns/Taskboard/Taskboard.toc`.
+4. Attach the **Legacy Loader ZIP** to that file as an Additional File. Check that a public visitor can download it manually and that the description links to it before announcing Questboard migration support.
+5. CurseForge reviews the project/file. After approval, check that it appears under the Forever flavor and that the app installs `AddOns/Taskboard/Taskboard.toc`.
 
 The release should follow the real-game checks in [TESTING.md](TESTING.md). Offline CI validates Lua 5.1 behavior and package layout; it cannot verify real UI layout or server delivery.

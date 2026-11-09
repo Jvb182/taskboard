@@ -1,5 +1,7 @@
 # Taskboard: design plan
 
+This is the original design plan. For current behavior, use [README](../README.md), the in-game Help panel, and [TESTING](TESTING.md). The implementation has evolved since this plan was written.
+
 An in-game Kanban board for WoW: Forever (interface `16001`, client 1.60.1) with cards that track themselves.
 
 ## Goals
@@ -183,4 +185,3 @@ A **Goal** looks like this:
   - Every widget method called on a mock frame exists for that widget type. Unknown methods raise errors.
   - Every SOUNDKIT used exists.
 - **Static checks:** a `luac`-style syntax check of every file, and no accidental globals (a test enforces that only whitelisted globals are written).
-

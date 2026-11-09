@@ -83,7 +83,7 @@ end
 
 local SPECS = {
     "static_spec", "util_spec", "serialize_spec", "db_spec", "parser_spec", "items_spec", "engine_spec",
-    "goals_spec", "reminders_spec", "recurring_spec", "sync_spec", "ui_spec", "persistence_spec", "conformance_spec", "regression_spec", "personalization_spec", "qa_audit_spec", "layout_style_spec", "scroll_spec",
+    "goals_spec", "reminders_spec", "recurring_spec", "sync_spec", "ui_spec", "persistence_spec", "conformance_spec", "regression_spec", "personalization_spec", "qa_audit_spec", "layout_style_spec", "scroll_spec", "coverage_regression_spec",
 }
 
 local only = QB_ONLY
@@ -110,4 +110,3 @@ for _, f in ipairs(T.failures) do
 end
 QB_RESULT = { passed = T.passed, failed = T.failed, tests = T.results }
 return T.failed
-

@@ -106,6 +106,32 @@ describe("Review regressions: editor and ownership", function()
         T.noErrors(b)
     end)
 
+    it("imports every original status including Done and archived cards", function()
+        local ma, a = T.client({ name = "Alice" })
+        local source = a.DB:GetActiveBoard()
+        local cards = {
+            a.Commands:Add("QA import todo"), a.Commands:Add("QA import working"),
+            a.Commands:Add("QA import finished"), a.Commands:Add("QA import archived"),
+        }
+        a.DB:MoveCard(source, cards[2].id, "doing")
+        a.DB:MoveCard(source, cards[3].id, "done")
+        cards[4].archived = true
+        a.DB:UpdateCard(source, cards[4], { notes = "Keep this note" })
+        local export = assert(a.Serialize.Export(source))
+        local mb, b = T.client({ name = "Bob" })
+        b.LogWindow:ShowImport(); b.LogWindow:Internals().box:SetText(export); b.LogWindow:DoImport()
+        local imported = b.DB:GetActiveBoard()
+        local found = {}
+        for _, card in pairs(imported.cards) do found[card.title] = card end
+        for _, card in ipairs(cards) do T.ok(found[card.title], card.title) end
+        T.eq(imported.cards[found[cards[1].title].id].column, "todo")
+        T.eq(found[cards[2].title].column, "doing")
+        T.eq(found[cards[3].title].column, "done")
+        T.ok(found[cards[4].title].archived)
+        T.eq(found[cards[4].title].notes, "Keep this note")
+        T.noErrors(b)
+    end)
+
     it("guards all shared-board mutations, including slash completion", function()
         local m, ns = grouped()
         local b = shared(ns)

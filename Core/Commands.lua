@@ -173,6 +173,7 @@ function Commands:Handle(msg)
 end
 
 function Commands:OnInit()
+    ns.Widgets.InstallChatLocations()
     SLASH_TASKBOARD1, SLASH_TASKBOARD2 = "/tb", "/taskboard"
     SlashCmdList.TASKBOARD = function(msg) ns.Safe("slash /tb", Commands.Handle, Commands, msg) end
     SLASH_TASKBOARDTODO1 = "/todo"

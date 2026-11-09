@@ -150,7 +150,7 @@ end
 function Options:Create()
     if frame then return end
     frame = CreateFrame("Frame", "TaskboardOptions", UIParent, "BackdropTemplate")
-    frame:SetSize(540, 480)
+    frame:SetSize(540, 570)
     frame:SetPoint("CENTER", UIParent, "CENTER", 0, 40)
     frame:SetFrameStrata("DIALOG")
     frame:SetToplevel(true)

@@ -4,7 +4,7 @@ Source: [live Taskboard QA page](https://chatgpt.com/space/page_765a50b302b88191
 
 # Taskboard 1.3.0 — new in-game checks
 
-**QA status, 9 November 2026:** The Lua 5.1 suite passed 278/278 tests. WoW Forever's in-game self-test passed 17/17. Live checks on Apollo and Verthius covered board layouts, column ordering, archived views, Quick Add, editor actions, Help search and scrolling, opaque dialogs, tracker behavior, and dependent-window closing. All nine theme presets were captured in WoW Forever; Classic Stone's see-through backdrop was fixed and retested in-game, while Classic Leather and Quest Parchment remain legible and distinct. The taller Options window was reloaded and verified in-game with all Custom controls visible without scrolling. The board-switch and received-card tracker fixes on [PR #4](https://github.com/Jvb182/taskboard/pull/4) still need live retesting. Real gameplay, combat, audible feedback, server resets, multiplayer, and an isolated legacy migration still need verification before CurseForge release.
+**QA status, 9 November 2026:** The Lua 5.1 suite passed 284/284 tests. WoW Forever's in-game self-test passed 17/17. Live checks on Apollo and Verthius covered board layouts, column ordering, archived views, Quick Add, editor actions, Help search and scrolling, opaque dialogs, tracker behavior, and dependent-window closing. All nine theme presets were captured in WoW Forever; Classic Stone's see-through backdrop was fixed and retested in-game, while Classic Leather and Quest Parchment remain legible and distinct. The taller Options window was reloaded and verified in-game with all Custom controls visible without scrolling. The board-switch and received-card tracker fixes on [PR #4](https://github.com/Jvb182/taskboard/pull/4) still need live retesting. Real gameplay, combat, audible feedback, server resets, multiplayer, and an isolated legacy migration still need verification before CurseForge release.
 
 ## Latest Taskboard UI changes
 
@@ -243,7 +243,7 @@ These are release blockers if they fail. The detailed sections below cover their
 
 - [x] **IN08** Verify `/tb` and `/taskboard` work. Taskboard does not register the retired `/qb` command. If another addon owns that command, record it separately. Both commands toggled the board in WoW; source registers only `/tb`, `/taskboard`, and `/todo` (legacy `/qb` appears only in migration text).
 
-- [ ] **IN09** Disable and re-enable Taskboard through the normal addon flow. Saved cards and preferences return.
+- [x] **IN09** Disable and re-enable Taskboard through the normal addon flow. Saved cards and preferences return. Verified live on Apollo: disabled Taskboard in the WoW AddOn List, reloaded, re-enabled it, reloaded again, and the saved `QA repeat sample` card and Quest Parchment appearance returned.
 
 # Opening closing windows and combat
 
@@ -413,7 +413,7 @@ Use real game item/quest links where indicated; do not type the placeholder text
 
 - [x] **ED15 checked substep — Verified: search, tag filtering, and Mine toggling worked in the observed board state; clearing filters restored the board.**
 
-- [ ] **ED16** Drag or edit while a filter is active and a live count changes. No wrong card moves, disappears permanently, or changes ownership.
+- [x] **ED16** Drag or edit while a filter is active and a live count changes. No wrong card moves, disappears permanently, or changes ownership. Mocked-client integration: while a Peacebloom count changed under an active filter, editing and moving the intended card preserved its identity and ownership; other cards were unaffected.
 
 - [x] **ED17** Archive a card, find it under Show archived cards, and restore it. Data survives and the tracker excludes it while archived. Passed live QA: `QA priority high` disappeared from its Working column and tracker when archived, remained in the archive after `/reload`, then restored to Working and the tracker; archived count dropped from 16 to 15. A separate card retained its title/tag through archive and restore.
 
@@ -465,7 +465,7 @@ Use targets just above current values when possible. A goal already met at creat
 
 - [x] **GL18** Track the same item on two different cards with different targets. Both update independently without cross-editing. Passed in the mocked client: two Peacebloom cards with targets 3 and 5 shared a bag count but completed independently at their own thresholds.
 
-- [ ] **GL19** Use `/tb refresh` after inventory/goal changes. Reevaluation is safe and does not create duplicate completion feedback.
+- [x] **GL19** Use `/tb refresh` after inventory/goal changes. Reevaluation is safe and does not create duplicate completion feedback. Mocked-client integration: two `/tb refresh` calls after a money goal completed left completion statistics and sounds unchanged, with no duplicate feedback.
 
 # Bank counting
 
@@ -601,13 +601,13 @@ The current design learns **your position when you open a mailbox**. It checks p
 
 - [x] **MP01** Use Pin my location on a card while outdoors. A location is saved and displayed.
 
-- [ ] **MP02** Use Show on map. The waypoint points to the saved location, not your new current position.
+- [x] **MP02** Use Show on map. The waypoint points to the saved location, not your new current position. Mocked-client integration: a saved waypoint used its pinned coordinates after current location changed.
 
 - [x] **MP03** Move elsewhere and reopen the card. Its pin does not silently move with you. Automated client simulation: saved pin retained its coordinates after reload and reopening the editor.
 
 - [x] **MP04** Clear the pin. The card no longer retains its saved pin.
 
-- [ ] **MP05** Pin a manual task with no reminder destination and revisit the location. A map pin alone does not act as an arrival reminder or complete the task.
+- [x] **MP05** Pin a manual task with no reminder destination and revisit the location. A map pin alone does not act as an arrival reminder or complete the task. Mocked-client integration: revisiting a card's map pin without a reminder destination did not fire an arrival reminder or complete the card.
 
 - [x] **MP06** Try pinning/showing a waypoint where the client does not supply a usable map position. The addon reports the limitation without an error. Automated client simulation: missing map position or unsupported waypoint reported the limitation without errors.
 
@@ -709,7 +709,7 @@ These need actual server reset sessions. Do not mark them passed by manually mov
 
 - [ ] **RC13** Return on an offline character after reset. The new inventory baseline begins at login; confirm the displayed extra-count behavior agrees.
 
-- [ ] **RC14** Change global/card bank-counting settings during an unfinished recurring item goal. A new baseline is established without an accidental completion.
+- [x] **RC14** Change global/card bank-counting settings during an unfinished recurring item goal. A new baseline is established without an accidental completion. Mocked-client integration: switching card bank counting during an unfinished recurring item goal established a new baseline; the existing global-switch regression also passed.
 
 - [ ] **RC15** Change repeat mode between Never, Daily, and Weekly. The selected mode persists and the task follows only that schedule. Partial live QA: changed one card through Daily, Weekly, and Never in WoW; the card label and selected button followed each choice, and Never persisted through `/reload`. Actual server reset schedules remain unobserved.
 
@@ -779,7 +779,7 @@ Imports add cards to the importing character's personal board. They can create d
 
 - [x] **DG02** Hover Quick Add repeatedly. A large examples list does not keep popping up; Help remains available by deliberate action.
 
-- [ ] **DG03** Try a representative example from each Help section. It produces the documented task type or command behavior.
+- [x] **DG03** Try a representative example from each Help section. It produces the documented task type or command behavior. Mocked-client integration: representative Quick Add examples from each Help section parsed into the documented task types, and the listed commands executed.
 
 - [x] **DG04** Run `/tb list`, then `/tb done 1` and `/tb done <matching title>` on disposable tasks. The intended open task is completed.
 
@@ -795,7 +795,7 @@ Imports add cards to the importing character's personal board. They can create d
 
 - [x] **DG09** Run `/tb selftest` again after the session. Compare with the initial result and investigate new failures. The repeat in-game self-test reported 17 passed, 0 failed.
 
-- [ ] **DG10** Exercise a disposable board with roughly 100–200 varied tasks, long titles, subtasks, and eight columns. Scrolling, filtering, dragging, and typing remain responsive.
+- [ ] **DG10** Exercise a disposable board with roughly 100–200 varied tasks, long titles, subtasks, and eight columns. Scrolling, filtering, dragging, and typing remain responsive. Partial automated QA: 200 varied cards, long titles, subtasks and eight columns laid out and filtered with no Lua errors; live scrolling, dragging and typing responsiveness remains to check.
 
 - [ ] **DG11** Loot rapidly while the board/editor/tracker are open. No heavy stutter, duplicate rows, or selection corruption occurs.
 
@@ -823,7 +823,7 @@ For each issue, record the addon/client versions, character, location, relevant 
 
 - [ ] **SG01** All smoke tests pass on the target client.
 
-- [ ] **SG02** Detailed tests are marked Passed, Failed, Not run, or Not applicable with reasons; an unchecked box alone is not treated as a pass.
+- [x] **SG02** Detailed tests are marked Passed, Failed, Not run, or Not applicable with reasons; an unchecked box alone is not treated as a pass. The unchecked-case audit below marks all remaining detailed cases Not run for their full live criteria and records the required condition.
 
 - [ ] **SG03** Every failed case has a bug report and disposition. No unresolved data-loss, load, or core-workflow blocker remains.
 
@@ -833,24 +833,41 @@ For each issue, record the addon/client versions, character, location, relevant 
 
 - [ ] **SG06** Both classic skins, all accents, and opaque dialogs/dropdowns have been visually checked in game.
 
-- [ ] **SG07** Daily/weekly and multiplayer coverage is explicitly recorded. Any untested feature is identified before deciding between Beta and Release.
+- [x] **SG07** Daily/weekly and multiplayer coverage is explicitly recorded. Any untested feature is identified before deciding between Beta and Release. RC04/09/13/15/16 and SH12 remain Not run in live conditions; GAME06–07 identify the required sessions.
 
 - [ ] **SG08** The final distributed ZIP has the tested version and runtime files. A fresh install from that ZIP passes the smoke tests. Partial verification: both 1.3.0 ZIPs pass CRC checks, and all 25 installed runtime files match source by SHA-256. A clean install from the final ZIP has not been run.
 
-- [ ] **SG09** The CurseForge description and Help accurately state supported client, mailbox learning, character boards, and current limitations.
+- [x] **SG09** The CurseForge description and Help accurately state supported client, mailbox learning, character boards, and current limitations. Reviewed and corrected README theme, sound, mailbox-title, install and reset descriptions; CurseForge copy and in-game Help were checked for client support, mailbox learning, character boards and limitations.
 
 - [ ] **SG10** Record the release decision and remaining issues below.
 
 **Release decision:** Pending  
 **Open issues:** No confirmed addon defect in this pass.  
-**Not run tests and reasons:** See GAME01–08 at the bottom for gameplay, combat, hearing, resets, multiplayer and isolated migration. Detailed unchecked cases remain unverified in-game reference checks.  
+**Not run tests and reasons:** See the unchecked-case audit and GAME01–09 at the bottom for gameplay, combat, hearing, resets, multiplayer and isolated migration. Detailed unchecked cases remain unverified in-game reference checks.  
 **Tester and completion date:** Codex, 9 November 2026; owner sign-off pending.
 
 Reference build: [Taskboard 1.2.0 source](https://github.com/Jvb182/taskboard/commit/6893d6275730ab7286ac9be594e5de3acddd340e). The repository is private; access requires permission.
 
+## Unchecked-case audit
+
+Every unchecked detailed case is **Not run for its full live acceptance criteria**. Partial automated or in-game evidence is recorded beside the case. The groups below explain what is still needed; the GAME checkboxes summarize the same work and are not additional feature failures.
+
+| Group | Detailed unchecked cases | Why the live check remains |
+| --- | --- | --- |
+| Real inventory, quest and travel (GAME01/GAME04) | GL01–04, GL14, GL16, BK01–08, RM02, RM06–07, FB05, FB12 | Actual item, quest, bank, zone and character events are required. Mocked data paths do not prove the server/client events. |
+| Mailbox approach and completion (GAME02) | MAIL1304, MB01, MB04, MB07–09, MB14, MB17, MB19 | Requires walking away and back to learned mailboxes, another character or mailbox, and actual mailbox opens. |
+| Combat and diagnostics (GAME03) | CLOSE03, UI11–12, TR16, DG05 | Requires combat. The log opened and closed outside combat; copying and closing during combat remain live checks. |
+| Audible feedback (GAME04) | SND1301–04, SND1306, FB01, FB06, FB08, FB11 | Requires a live reminder or popup and a person to judge audible output at their normal volume. |
+| Visual and physical UI use (GAME04/GAME08) | STYLE02, TR11, TR17, AP08, AP11, AP13, DG10, DG14, SG06 | Needs a physical tracker drag, the full theme/accent and UI-scale review, or judgment of readability and responsiveness. A smaller-scale console setting did not visibly change this client. A 200-card simulated layout/filter passed, but live drag, scroll and typing were not verified. |
+| Isolated saves and upgrades (GAME05) | IN02–06, BD11–17, SG04 | Requires a fresh or historical populated save in an isolated profile. The current profile cannot prove migration without its original data. |
+| Server resets (GAME06) | RC04, RC09, RC13, RC15–16 | Requires real daily/weekly reset boundaries and an offline character. Repeat selection and mocked recurrence logic passed. |
+| Second player and long play (GAME07/GAME08) | SH12, DG11–13 | Requires a second player, rapid live loot, or extended play with the normal addon set. |
+| Full reset (GAME09) | SET1302 | Cancel passed. Confirming Reset all data in the live client needs the player's action-time approval because it deletes saved data. |
+| Release signoff (GAME08) | SG01, SG03, SG05, SG08, SG10 | Depends on the live checks above, a final ZIP install and the owner's release decision. |
+
 ## Tests that need your participation
 
-These are the remaining real-client scenarios that require your movement, hearing, a second player, an actual reset, or an older save file. The detailed checklist above provides the exact edge cases and case IDs. Record a result and date for each group; mark an unavailable legacy-save test Not applicable rather than Passed.
+These are the remaining real-client scenarios that require your movement, hearing, a second player, an actual reset, an older save file, or hands-on visual judgment. The detailed checklist above provides the exact edge cases and case IDs. Record a result and date for each group; mark an unavailable legacy-save test Not applicable rather than Passed.
 
 - [ ] **GAME01 — Real item and progression events.** Use a disposable item goal with a shift-clicked item link, then loot, spend or sell enough items to change its live count and finish it. Check the target, readable title, one completion, tracker and saved result after reload. As convenient, exercise money, level, profession, reputation and quest events. Reference: QA07–09 and GL.
 
@@ -867,3 +884,5 @@ These are the remaining real-client scenarios that require your movement, hearin
 - [ ] **GAME07 — Two-player sharing.** With a willing second player, send and decline/accept a party offer, then test the raid or guild channel you use. Verify owner updates, recipient read-only restrictions, member progress, reload and a larger transfer. Reference: SH01–15.
 
 - [ ] **GAME08 — Normal-play session and final decision.** Play at least 20 minutes with your usual addons and a populated board; note FPS, memory, input responsiveness, sound comfort, visual readability at your preferred UI scale, and any Lua errors. Capture `/tb diag` and screenshots for failures, then complete release sign-off. Reference: DG10–14 and SG01–10.
+
+- [ ] **GAME09 — Confirm live Reset all data.** On disposable data, confirm Reset all data, reload, and verify cards, settings and learned mailbox spots are cleared. Cancel has already passed. The live confirmation must be approved at the time because it deletes saved data.

@@ -755,6 +755,8 @@ function Board:Create()
         ns:Fire("BOARD_RESIZED")
     end))
     frame:SetScript("OnHide", function()
+        addBox:ClearFocus()
+        searchBox:ClearFocus()
         if drag then Board:EndDrag() end
         W.HideMenu()
         if ns.Options then ns.Options:Hide() end
@@ -766,11 +768,17 @@ end
 
 function Board:Toggle()
     self:Create()
-    frame:SetShown(not frame:IsShown())
+    if frame:IsShown() then frame:Hide() else self:Show() end
 end
 
 function Board:Show()
     self:Create()
+    -- A hidden quick-add/search box can retain focus and swallow the next
+    -- binding as typed text (for example, Shift+T becomes "T").
+    if not frame:IsShown() then
+        addBox:ClearFocus()
+        searchBox:ClearFocus()
+    end
     frame:Show()
 end
 

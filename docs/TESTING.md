@@ -1,4 +1,4 @@
-# Taskboard 1.3.2 in-game test checklist
+# Taskboard 1.3.3 in-game test checklist
 
 Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), interface 16001. They cannot certify real rendering, client event order or server delivery. Record `/tb diag` and the actual client build with each test report.
 
@@ -8,6 +8,7 @@ Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), i
 2. Extract the ZIP into `World of Warcraft/_forever_/Interface/AddOns/`. Confirm `Taskboard/Taskboard.toc` is one folder below AddOns, not nested twice.
 3. Enable Lua error display with `/console scriptErrors 1`. Log in and run `/tb selftest` and `/tb diag`.
 4. Check `/tb`, the minimap button and all three key bindings. Reload with a populated board and verify cards, order, settings, position and recurring progress survive.
+   Close and reopen the board several times with its binding, including after Quick Add and Search have had focus. Press Escape to leave a field before using a printable-key binding.
 5. Upgrade from an actual Questboard installation using the packaged legacy loader. Verify old boards/settings/logs appear in Taskboard, legacy bindings still work, and a second login does not overwrite new edits with the old save.
 6. Check the ZIP layouts: the default CurseForge ZIP contains only `Taskboard/`, and the optional Legacy Loader ZIP contains only `Questboard/Questboard.toc`. Neither includes `tests/manual-addons/`.
 

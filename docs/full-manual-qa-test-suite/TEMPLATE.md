@@ -183,7 +183,7 @@ These are release blockers if they fail. The detailed sections below cover their
 
 - [ ] **UI03** Drag the minimap button, reload, and check its position. Hide it in General settings and restore it through `/tb options`.
 
-- [ ] **UI04** Assign and test all three key bindings: board toggle, tracker toggle, and Quick Add. Quick Add opens the board and focuses the input.
+- [ ] **UI04** Assign and test all three key bindings: board toggle, tracker toggle, and Quick Add. Quick Add opens the board and focuses the input. After leaving Quick Add or Search with Escape, the board key closes and reopens the board repeatedly without the input retaining focus.
 
 - [ ] **UI05** Drag the title or empty top strip of the main board. It moves; header buttons remain clickable.
 

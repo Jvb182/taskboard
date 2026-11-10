@@ -170,7 +170,8 @@ function W.Check(parent, label, onToggle, tooltip)
     return c
 end
 
-function W.Scroll(parent)
+function W.Scroll(parent, opts)
+    opts = opts or {}
     local scroll = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
     scroll:SetClipsChildren(true)
     -- The template places its scrollbar outside the viewport, but parents it to
@@ -190,17 +191,25 @@ function W.Scroll(parent)
     local content = CreateFrame("Frame", nil, scroll)
     content:SetSize(10, 10)
     scroll:SetScrollChild(content)
+    local function scrollLimit()
+        local reported = math.max(0, scroll:GetVerticalScrollRange())
+        -- Notes opt in because this client can briefly report zero after text grows.
+        if opts.contentRangeFallback then
+            return math.max(reported, content:GetHeight() - scroll:GetHeight())
+        end
+        return reported
+    end
     -- The Forever template supplies a scrollbar, but does not reliably consume
     -- wheel input over the child. Capture it on both surfaces, including at the
     -- ends of the document, so it cannot zoom the game camera underneath.
     local function refreshButtons()
-        local limit = math.max(0, scroll:GetVerticalScrollRange())
+        local limit = scrollLimit()
         local value = scroll:GetVerticalScroll()
         if bar and bar.ScrollUpButton then bar.ScrollUpButton:SetEnabled(value > 0) end
         if bar and bar.ScrollDownButton then bar.ScrollDownButton:SetEnabled(value < limit) end
     end
     local function wheel(_, delta)
-        local limit = math.max(0, scroll:GetVerticalScrollRange())
+        local limit = scrollLimit()
         local value = ns.Util.Clamp(scroll:GetVerticalScroll() - delta * 40, 0, limit)
         scroll:SetVerticalScroll(value)
         if scroll.ScrollBar then

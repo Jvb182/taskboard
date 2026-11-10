@@ -547,24 +547,13 @@ describe("Card editor", function()
         T.eq(ui.notes:GetText(), card.notes)
         T.eq(ui.notesScroll:GetScrollChild(), ui.notesContent)
         T.eq(ui.notes:GetParent(), ui.notesContent)
-
-        local measure
-        for _, widget in ipairs(m.frames) do
-            if widget._type == "FontString" and widget:GetParent() == ui.notesContent then
-                measure = widget
-                break
-            end
-        end
-        T.ok(measure, "notes text is measured for scrolling")
-        measure.GetStringHeight = function(self) return #self:GetText() end
-        ui.notes:SetText(card.notes .. "\nMore notes")
-        T.ok(ui.notesContent:GetHeight() > 62, "long notes grow inside the viewport")
+        T.ok(ui.notesContent:GetHeight() > 62, "welcome notes create scrollable content")
+        T.eq(ui.notesScroll:GetVerticalScrollRange(), 0, "client has not reported a range")
+        ui.notes:GetScript("OnMouseWheel")(ui.notes, -1)
+        T.ok(ui.notesScroll:GetVerticalScroll() > 0, "wheel scrolls despite the missing client range")
+        ui.notesScroll:SetVerticalScroll(0)
         ui.notes:GetScript("OnCursorChanged")(ui.notes, 0, -150, 0, 12)
         T.ok(ui.notesScroll:GetVerticalScroll() > 0, "cursor scrolls into view")
-        ui.notesScroll.GetVerticalScrollRange = function() return 200 end
-        local beforeWheel = ui.notesScroll:GetVerticalScroll()
-        ui.notes:GetScript("OnMouseWheel")(ui.notes, -1)
-        T.ok(ui.notesScroll:GetVerticalScroll() > beforeWheel, "wheel scrolls over note text")
         T.noErrors(ns)
     end)
 

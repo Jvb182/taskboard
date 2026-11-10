@@ -86,7 +86,8 @@ function Editor:Create()
     close:SetPoint("TOPRIGHT", 2, 2)
 
     local scroll
-    scroll, content = W.Scroll(frame)
+    scroll, content = W.Scroll(frame, { contentRangeFallback = true })
+    ui.scroll = scroll
     scroll:SetPoint("TOPLEFT", 12, -32)
     scroll:SetPoint("BOTTOMRIGHT", -30, 40)
     content:SetWidth(INNER)
@@ -176,67 +177,6 @@ function Editor:Create()
         fs:SetText(text)
     end
     local ly = 0
-    lsection("Notes", ly); ly = ly - 14
-    local notesBg = CreateFrame("Frame", nil, L, "BackdropTemplate")
-    notesBg:SetPoint("TOPLEFT", 0, ly)
-    notesBg:SetSize(INNER, 70)
-    Theme.Panel(notesBg, Theme.colors.input, Theme.colors.inputBorder)
-    ui.notesScroll, ui.notesContent = W.Scroll(notesBg, { contentRangeFallback = true })
-    ui.notesScroll:SetPoint("TOPLEFT", 6, -4)
-    ui.notesScroll:SetPoint("BOTTOMRIGHT", -22, 4)
-    ui.notesContent:SetWidth(INNER - 30)
-    local notesMeasure = ui.notesContent:CreateFontString(nil, "ARTWORK", "ChatFontNormal")
-    notesMeasure:SetPoint("TOPLEFT", ui.notesContent, "TOPLEFT", 0, 0)
-    notesMeasure:SetWidth(INNER - 30)
-    notesMeasure:SetWordWrap(true)
-    notesMeasure:SetAlpha(0)
-    ui.notes = CreateFrame("EditBox", nil, ui.notesContent)
-    ui.notes:SetMultiLine(true)
-    ui.notes:SetAutoFocus(false)
-    ui.notes:SetFontObject("ChatFontNormal")
-    Theme.Text(ui.notes, "ChatFontNormal")
-    ui.notes:SetPoint("TOPLEFT", 0, 0)
-    ui.notes:SetWidth(INNER - 30)
-    ui.notes:SetHeight(62)
-    ui.notes:SetMaxLetters(DB.LIMITS.notes)
-    ui.notes:EnableMouseWheel(true)
-    ui.notes:SetScript("OnMouseWheel", ns.Wrap("notes wheel", function(_, delta)
-        local wheel = ui.notesScroll:GetScript("OnMouseWheel")
-        if wheel then wheel(ui.notesScroll, delta) end
-    end))
-    ui.notes:SetScript("OnTextChanged", ns.Wrap("notes text", function(self)
-        local text = self:GetText()
-        notesMeasure:SetText(text)
-        -- Reserve wrapped lines even when the client has not measured the text yet.
-        local lines = 0
-        for line in (text .. "\n"):gmatch("(.-)\n") do
-            lines = lines + math.max(1, math.ceil(#line / 36))
-        end
-        local lineHeight = math.max(14, notesMeasure:GetLineHeight() or 0)
-        local height = math.max(62, notesMeasure:GetStringHeight() + 12, lines * lineHeight + 12)
-        self:SetHeight(height)
-        ui.notesContent:SetHeight(height)
-        ui.notesScroll:UpdateScrollChildRect()
-        if not self:HasFocus() then ui.notesScroll:SetVerticalScroll(0) end
-    end))
-    ui.notes:SetScript("OnCursorChanged", ns.Wrap("notes cursor", function(_, _, y, _, cursorHeight)
-        if not y then return end
-        local top = -y
-        local bottom = top + (cursorHeight or 0)
-        local scroll = ui.notesScroll:GetVerticalScroll()
-        if top < scroll then ui.notesScroll:SetVerticalScroll(top)
-        elseif bottom > scroll + ui.notesScroll:GetHeight() then
-            ui.notesScroll:SetVerticalScroll(bottom - ui.notesScroll:GetHeight())
-        end
-    end))
-    ui.notes:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-    ui.notes:SetScript("OnEditFocusLost", ns.Wrap("notes", function(self)
-        if current.card and self:GetText() ~= current.card.notes then apply({ notes = self:GetText() }) end
-    end))
-    notesBg:EnableMouse(true)
-    notesBg:SetScript("OnMouseDown", function() if not readOnly() then ui.notes:SetFocus() end end)
-    ly = ly - 78
-
     lsection("Remind me", ly); ly = ly - 14
     ui.zone = W.EditBox(L, INNER - 60, 22, "Zone name, e.g. Ironforge")
     ui.zone:SetPoint("TOPLEFT", 0, ly)
@@ -327,7 +267,66 @@ function Editor:Create()
     ui.info:SetPoint("TOPLEFT", ui.members, "BOTTOMLEFT", 0, -6)
     ui.info:SetWidth(INNER)
     ui.info:SetWordWrap(true)
-    ui.lowerHeight = -ly + 60
+
+    -- Notes are the last field. Their edit box grows with the text, so the
+    -- editor's existing scroll pane handles long notes as part of the page.
+    ui.notesLabel = W.Text(L, "GameFontNormalSmall")
+    ui.notesLabel:SetText("Notes")
+    ui.notesLabel:SetPoint("TOPLEFT", ui.info, "BOTTOMLEFT", 0, -16)
+    ui.notesBg = CreateFrame("Frame", nil, L, "BackdropTemplate")
+    ui.notesBg:SetPoint("TOPLEFT", ui.notesLabel, "BOTTOMLEFT", 0, -6)
+    ui.notesBg:SetSize(INNER, 70)
+    Theme.Panel(ui.notesBg, Theme.colors.input, Theme.colors.inputBorder)
+    local notesMeasure = ui.notesBg:CreateFontString(nil, "ARTWORK", "ChatFontNormal")
+    notesMeasure:SetPoint("TOPLEFT", 6, -4)
+    notesMeasure:SetWidth(INNER - 12)
+    notesMeasure:SetWordWrap(true)
+    notesMeasure:SetAlpha(0)
+    ui.notes = CreateFrame("EditBox", nil, ui.notesBg)
+    ui.notes:SetMultiLine(true)
+    ui.notes:SetAutoFocus(false)
+    ui.notes:SetFontObject("ChatFontNormal")
+    Theme.Text(ui.notes, "ChatFontNormal")
+    ui.notes:SetPoint("TOPLEFT", 6, -4)
+    ui.notes:SetWidth(INNER - 12)
+    ui.notes:SetHeight(62)
+    ui.notes:SetMaxLetters(DB.LIMITS.notes)
+    ui.notesHeight = 62
+    local function notesWheel(_, delta)
+        local wheel = scroll:GetScript("OnMouseWheel")
+        if wheel then wheel(scroll, delta) end
+    end
+    ui.notes:EnableMouseWheel(true)
+    ui.notes:SetScript("OnMouseWheel", ns.Wrap("notes wheel", notesWheel))
+    ui.notesBg:EnableMouseWheel(true)
+    ui.notesBg:SetScript("OnMouseWheel", ns.Wrap("notes background wheel", notesWheel))
+    ui.notes:SetScript("OnTextChanged", ns.Wrap("notes text", function(self)
+        local text = self:GetText()
+        notesMeasure:SetText(text)
+        local lines = 0
+        for line in (text .. "\n"):gmatch("(.-)\n") do
+            lines = lines + math.max(1, math.ceil(#line / 36))
+        end
+        local lineHeight = math.max(14, notesMeasure:GetLineHeight() or 0)
+        local height = math.max(62, notesMeasure:GetStringHeight() + 12, lines * lineHeight + 12)
+        ui.notesHeight = height
+        self:SetHeight(height)
+        ui.notesBg:SetHeight(height + 8)
+        if ui.fieldsBaseHeight then
+            local fieldsHeight = ui.fieldsBaseHeight + height - 62
+            ui.lower:SetHeight(ui.lowerHeight + (ui.memberLineCount or 0) * 14 + height - 62)
+            content:SetHeight(fieldsHeight)
+            scrollContent:SetHeight(-ui.fieldsY + fieldsHeight)
+            scroll:UpdateScrollChildRect()
+        end
+    end))
+    ui.notes:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    ui.notes:SetScript("OnEditFocusLost", ns.Wrap("notes", function(self)
+        if current.card and self:GetText() ~= current.card.notes then apply({ notes = self:GetText() }) end
+    end))
+    ui.notesBg:EnableMouse(true)
+    ui.notesBg:SetScript("OnMouseDown", function() if not readOnly() then ui.notes:SetFocus() end end)
+    ui.lowerHeight = -ly + 170
 
     -- Footer buttons
     -- Keep controls above the mouse-enabled scroll child as well as its paint
@@ -563,9 +562,13 @@ function Editor:Refresh()
     local owner = card.char and ("Belongs to " .. card.char .. ". ") or ""
     ui.info:SetText(owner .. "Created " .. Util.Ago(card.created) .. (card.completedAt and (", completed " .. Util.Ago(card.completedAt)) or "") .. ".")
 
-    local fieldsHeight = -y + ui.lowerHeight + (#memberLines * 14)
+    ui.memberLineCount = #memberLines
+    ui.fieldsBaseHeight = -y + ui.lowerHeight + (#memberLines * 14)
+    local fieldsHeight = ui.fieldsBaseHeight + ui.notesHeight - 62
+    ui.lower:SetHeight(ui.lowerHeight + (#memberLines * 14) + ui.notesHeight - 62)
     content:SetHeight(fieldsHeight)
     scrollContent:SetHeight(fieldOffset + fieldsHeight)
+    ui.scroll:UpdateScrollChildRect()
     for _, box in ipairs({ ui.title, ui.tags, ui.goal, ui.zone, ui.notes }) do box:EnableMouse(not ro) end
     ui.delete:SetShown(not ro)
     ui.archive:SetShown(not ro)

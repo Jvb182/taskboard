@@ -193,7 +193,6 @@ function W.Scroll(parent, opts)
     scroll:SetScrollChild(content)
     local function scrollLimit()
         local reported = math.max(0, scroll:GetVerticalScrollRange())
-        -- Notes opt in because this client can briefly report zero after text grows.
         if opts.contentRangeFallback then
             return math.max(reported, content:GetHeight() - scroll:GetHeight())
         end

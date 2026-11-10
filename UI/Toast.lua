@@ -4,6 +4,7 @@ local Util, Theme, W = ns.Util, ns.Theme, ns.Widgets
 
 local Toast = ns:NewModule("Toast")
 Toast.LIFETIME = 5
+Toast.REMINDER_LIFETIME = 8
 Toast.FADE = 1
 Toast.MAX = 4
 Toast.stats = { shown = 0 }
@@ -84,20 +85,38 @@ function Toast:Show(opts)
     if not ns.db.settings.toasts then return end
     if #active >= self.MAX then release(active[1]) end
     local t = table.remove(pool) or create()
+    local reminder = opts.reminder == true
     t.card, t.board = opts.card, opts.board
+    t.lifetime = reminder and self.REMINDER_LIFETIME or self.LIFETIME
+    t:SetWidth(reminder and 390 or 340)
+    t.icon:SetSize(reminder and 44 or 38, reminder and 44 or 38)
+    t.icon:ClearAllPoints()
+    t.icon:SetPoint("LEFT", reminder and 11 or 10, 0)
+    t.title:SetFontObject(reminder and "GameFontNormalLarge" or "GameFontNormal")
+    t.title:ClearAllPoints()
+    t.title:SetPoint("TOPLEFT", reminder and 66 or 56, reminder and -10 or -9)
+    t.title:SetPoint("RIGHT", reminder and -12 or -10, 0)
+    t.body:SetFontObject(reminder and "GameFontHighlight" or "GameFontHighlightSmall")
+    t.body:ClearAllPoints()
+    t.body:SetPoint("TOPLEFT", reminder and 66 or 56, reminder and -34 or -28)
+    t.body:SetPoint("RIGHT", reminder and -12 or -10, 0)
     t.icon:SetTexture(opts.icon or "Interface\\Icons\\INV_Misc_Note_01")
     t.title:SetText(opts.title or "")
     t.body:SetText(opts.body or "")
     local lines = select(2, string.gsub(opts.body or "", "\n", "\n")) + 1
-    t:SetHeight(math.max(58, 40 + lines * 13))
+    if reminder then
+        t:SetHeight(math.max(70, 48 + math.max(t.body:GetStringHeight(), lines * 17)))
+    else
+        t:SetHeight(math.max(58, 40 + lines * 13))
+    end
     t:SetBackdropBorderColor(unpack(opts.color or Theme.colors.accent))
     t:SetAlpha(1)
     t.age = 0
     t:SetScript("OnUpdate", function(self, elapsed)
         self.age = self.age + elapsed
-        if self:IsMouseOver() then self.age = math.min(self.age, Toast.LIFETIME - 0.5) end
-        if self.age > Toast.LIFETIME then
-            local a = 1 - (self.age - Toast.LIFETIME) / Toast.FADE
+        if self:IsMouseOver() then self.age = math.min(self.age, self.lifetime - 0.5) end
+        if self.age > self.lifetime then
+            local a = 1 - (self.age - self.lifetime) / Toast.FADE
             if a <= 0 then release(self) else self:SetAlpha(a) end
         end
     end)
@@ -149,7 +168,7 @@ function Toast:OnLogin()
         for i = 1, math.min(6, #lines) do body[#body + 1] = "- " .. lines[i].text end
         if #lines > 6 then body[#body + 1] = "...and " .. (#lines - 6) .. " more" end
         Toast:Show({ title = "Reminder: " .. title, body = table.concat(body, "\n"), icon = "Interface\\Icons\\INV_Misc_Note_02",
-                     color = Theme.colors.warn, card = lines[1].card, board = lines[1].board, sound = "reminder" })
+                     color = Theme.colors.warn, card = lines[1].card, board = lines[1].board, sound = "reminder", reminder = true })
         for _, line in ipairs(lines) do ns.Print("|cffffb84dReminder:|r %s", line.text) end
     end)
     ns:On("SHARE_OFFER", function(offerID, offer)

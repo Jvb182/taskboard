@@ -75,7 +75,7 @@ Help.SECTIONS = {
         { "p", "To include manual To Do tasks such as Buy vials @Goldshire, enable Tracker: include all open tasks in General settings, or right-click the tracker header and choose Show all open tasks. Done, archived and other characters' tasks remain excluded. Scroll the tracker to reach tasks beyond its visible rows; the header shows your position." },
         { "p", "You can hide the tracker and still open the board with /tb or the minimap. Click the tracker header to collapse it; drag it to move. Right-click its header to open the board, lock its position or hide it. Right-click a tracker task for its card menu. General settings can hide it in combat. Preferences persist across reloads." },
         { "h", "Progress feedback and statistics" },
-        { "p", "Progress messages show counts as goals advance. Completion/reminder popups and sounds have separate controls. The board footer summarizes completions today and this week, your day streak and total completions." },
+        { "p", "Progress messages show counts as goals advance. Completion/reminder popups and sounds have separate controls. Reminder popups stay visible for eight seconds; completion popups stay for five. The board footer summarizes completions today and this week, your day streak and total completions." },
     } },
     { id = "settings", title = "Settings & sharing", entries = {
         { "h", "Boards, cards and layout" },

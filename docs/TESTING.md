@@ -1,4 +1,4 @@
-# Taskboard 1.3.1 in-game test checklist
+# Taskboard 1.3.2 in-game test checklist
 
 Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), interface 16001. They cannot certify real rendering, client event order or server delivery. Record `/tb diag` and the actual client build with each test report.
 
@@ -56,6 +56,7 @@ Include the version, client build, exact steps, expected and observed result, `/
 ## 1.3.x focused in-game checks
 
 - [ ] For a zone task such as `Train in @Stormwind City`, enter Stormwind and confirm a popup appears. Leave until the tracker stops flashing, then return within five minutes. Confirm a second popup appears; moving among Stormwind subzones must not repeat it.
+- [ ] Confirm reminder popups use larger text and stay visible for about eight seconds. Completion popups retain their usual size and fade after about five seconds.
 
 - [ ] Add populated custom columns, move them left/right through their header menus, and reload. Cards and status roles stay intact. Boundary actions are disabled; hidden columns keep their saved slots.
 - [ ] Archive more than 25 tasks. Browse Previous/Next pages through all tasks, restore one on the last page, and verify the total drops by one.

@@ -583,7 +583,7 @@ For each theme, inspect the main board, a card/editor, tracker, Settings, Help, 
 
 - [ ] **FB09** Disable visual popups but keep sounds on. Completion/reminder sounds still work without the popup.
 
-- [ ] **FB10** Enable popups and trigger several events. Toasts stack/fade without obstructing interaction indefinitely.
+- [ ] **FB10** Enable popups and trigger several events. Reminder popups are larger and stay for about eight seconds; completion popups stay for about five. Toasts stack/fade without obstructing interaction indefinitely.
 
 - [ ] **FB11** Click a completion/reminder popup. It opens the intended card/board; an expired/deleted target does not open an unrelated card.
 

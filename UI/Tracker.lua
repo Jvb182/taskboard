@@ -9,12 +9,6 @@ local ROW_H, ROW_GAP = 36, 6
 local offset = 0
 local nextNearbySound
 
-local function displayTitle(card)
-    local where = card.where
-    local place = where and (where.zone or DB.NPCS[where.npc])
-    return place and (card.title .. " @" .. place) or card.title
-end
-
 function Tracker:PulseSound(now)
     local s = ns.db.settings
     local active = false
@@ -212,7 +206,7 @@ function Tracker:Refresh()
         r.title:ClearAllPoints()
         r.title:SetPoint("TOPLEFT", 8, -4)
         r.title:SetPoint("RIGHT", (hasPriority and -50 or -4) - (repeatText and 43 or 0), 0)
-        r.title:SetText(displayTitle(card))
+        r.title:SetText(DB:DisplayTitle(card))
         local summary = card._summary
         if summary and summary.total > 0 then
             local text = card.progress and card.progress.text or (math.floor(summary.frac * 100 + 0.5) .. "%")

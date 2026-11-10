@@ -11,6 +11,13 @@ DB.LIMITS = { boards = 30, columns = 8, cards = 12000, title = 200, notes = 2000
 DB.PRIORITIES = { [0] = "None", "Low", "Medium", "High" }
 DB.NPCS = { bank = "Bank", vendor = "Vendor", mail = "Mailbox", ah = "Auction House", trainer = "Trainer" }
 
+-- Keep the saved title separate from its reminder target, but show both to players.
+function DB:DisplayTitle(card)
+    local where = card.where
+    local place = where and (where.zone or self.NPCS[where.npc])
+    return place and (card.title .. " @" .. place) or card.title
+end
+
 DB.defaults = {
     schema = DB.SCHEMA,
     settings = {

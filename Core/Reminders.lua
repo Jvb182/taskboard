@@ -52,7 +52,7 @@ function Reminders:ForZone(zone, subzone, now)
         local where = entry.card.where
         if where and where.zone and Reminders.ZoneMatches(where.zone, zone, subzone)
             and ready(entry.card.id .. ":zone", now) then
-            lines[#lines + 1] = { card = entry.card, board = entry.board, text = entry.card.title }
+            lines[#lines + 1] = { card = entry.card, board = entry.board, text = DB:DisplayTitle(entry.card) }
         end
     end
     return lines
@@ -65,7 +65,7 @@ function Reminders:ForNPC(npc, now, context, seen)
         if where and where.npc == npc and (not seen or not seen[entry.card.id]) then
             if seen then seen[entry.card.id] = true end
             if ready(entry.card.id .. ":" .. (context or npc), now) then
-                lines[#lines + 1] = { card = entry.card, board = entry.board, text = entry.card.title }
+                lines[#lines + 1] = { card = entry.card, board = entry.board, text = DB:DisplayTitle(entry.card) }
             end
         end
     end

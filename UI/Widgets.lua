@@ -261,7 +261,11 @@ end
 function W.LocationSuggestions(box, opts)
     opts = opts or {}
     local panel = CreateFrame("Frame", nil, opts.chat and UIParent or box, "BackdropTemplate")
-    panel:SetPoint("TOPLEFT", box, "BOTTOMLEFT", 0, -2)
+    if opts.chat then
+        panel:SetPoint("BOTTOMLEFT", box, "TOPLEFT", 0, 6)
+    else
+        panel:SetPoint("TOPLEFT", box, "BOTTOMLEFT", 0, -2)
+    end
     panel:SetSize(300, 200)
     panel:SetFrameStrata("DIALOG")
     panel:SetClampedToScreen(true)

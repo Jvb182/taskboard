@@ -201,6 +201,24 @@ describe("Board window", function()
         T.noErrors(ns)
     end)
 
+    it("places chat suggestions above the typing box", function()
+        local m, ns = T.client()
+        local box = m.env.ChatFrame1EditBox
+        local chatPanel = ns.Widgets.LocationSuggestions(box, { chat = true })
+        local point, relative, relativePoint, _, gap = chatPanel:GetPoint()
+        T.eq(point, "BOTTOMLEFT")
+        T.eq(relative, box)
+        T.eq(relativePoint, "TOPLEFT")
+        T.ok(gap > 0, "gap above chat input")
+
+        local quickPanel = ns.Widgets.LocationSuggestions(box)
+        point, relative, relativePoint = quickPanel:GetPoint()
+        T.eq(point, "TOPLEFT")
+        T.eq(relative, box)
+        T.eq(relativePoint, "BOTTOMLEFT")
+        T.noErrors(ns)
+    end)
+
     it("names the selected location in the chat add confirmation", function()
         local m, ns = T.client()
         m.state.areas = { [89] = "Stormwind City" }
@@ -219,7 +237,10 @@ describe("Board window", function()
         T.ok(card, "chat command saved the task")
         T.eq(card.title, "train in")
         T.eq(card.where.zone, "Stormwind City")
-        T.contains(m.chat[#m.chat], "reminder: Stormwind City")
+        T.contains(m.chat[#m.chat], "train in Stormwind City")
+
+        m.Slash("/tb Buy vials @Goldshire")
+        T.contains(m.chat[#m.chat], "reminder: Goldshire")
 
         m.Slash("/tb Train new spells")
         T.no(m.chat[#m.chat]:find("reminder:", 1, true))
@@ -514,6 +535,36 @@ describe("Card editor", function()
         T.eq(card.subtasks[1].goal, nil)
         T.eq(card.subtasks[1].done, true)
         T.eq(ns.DB:CardRole(board, card), "done")
+        T.noErrors(ns)
+    end)
+
+    it("keeps long welcome notes inside a scrollable editor field", function()
+        local m, ns = T.client()
+        local board = ns.DB:GetActiveBoard()
+        local card = ns.DB:AllCards(false)[1].card
+        ns.Editor:Open(card, board)
+        local ui = ns.Editor:Internals().ui
+        T.eq(ui.notes:GetText(), card.notes)
+        T.eq(ui.notesScroll:GetScrollChild(), ui.notesContent)
+        T.eq(ui.notes:GetParent(), ui.notesContent)
+
+        local measure
+        for _, widget in ipairs(m.frames) do
+            if widget._type == "FontString" and widget:GetParent() == ui.notesContent then
+                measure = widget
+                break
+            end
+        end
+        T.ok(measure, "notes text is measured for scrolling")
+        measure.GetStringHeight = function(self) return #self:GetText() end
+        ui.notes:SetText(card.notes .. "\nMore notes")
+        T.ok(ui.notesContent:GetHeight() > 62, "long notes grow inside the viewport")
+        ui.notes:GetScript("OnCursorChanged")(ui.notes, 0, -150, 0, 12)
+        T.ok(ui.notesScroll:GetVerticalScroll() > 0, "cursor scrolls into view")
+        ui.notesScroll.GetVerticalScrollRange = function() return 200 end
+        local beforeWheel = ui.notesScroll:GetVerticalScroll()
+        ui.notes:GetScript("OnMouseWheel")(ui.notes, -1)
+        T.ok(ui.notesScroll:GetVerticalScroll() > beforeWheel, "wheel scrolls over note text")
         T.noErrors(ns)
     end)
 

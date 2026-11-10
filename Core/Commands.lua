@@ -3,6 +3,7 @@ local _, ns = ...
 local Util, DB = ns.Util, ns.DB
 
 local Commands = ns:NewModule("Commands")
+local LOCATION_PREPOSITIONS = { ["in"] = true, at = true, near = true, by = true, to = true, from = true, around = true }
 
 local HELP = {
     "|cff4fc3f7Taskboard|r commands:",
@@ -33,9 +34,15 @@ function Commands:Add(text)
     local card, err = DB:AddCard(board, spec)
     if not card then return nil, err end
     local goalText = card.goal and (" - tracking: " .. ns.Parser.Describe(card.goal)) or ""
+    local displayTitle = card.title
     local reminder = card.where and (card.where.zone or card.where.npc)
     local reminderText = reminder and (" - reminder: " .. reminder) or ""
-    ns.Print("Added |cffffffff%s|r%s%s", card.title, goalText, reminderText)
+    local lastWord = Util.Lower(card.title):match("(%a+)$")
+    if card.where and card.where.zone and LOCATION_PREPOSITIONS[lastWord] then
+        displayTitle = card.title .. " " .. card.where.zone
+        reminderText = ""
+    end
+    ns.Print("Added |cffffffff%s|r%s%s", displayTitle, goalText, reminderText)
     for _, w in ipairs(warnings) do ns.Print("|cffffc04d%s|r", w) end
     return card
 end

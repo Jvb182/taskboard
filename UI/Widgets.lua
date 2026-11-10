@@ -294,7 +294,7 @@ function W.LocationSuggestions(box, opts)
             rows[i]:SetActive(offset + i == selected)
         end
         hint:SetText(#matches == 0 and (scanning and "Loading locations..." or "No matches; you can type a location.")
-            or "Up/Down, Tab or Enter to choose; scroll for more")
+            or (opts.chat and "Click a location to insert it" or "Up/Down, Tab or Enter to choose; scroll for more"))
         panel:SetHeight(math.min(8, #matches) * 22 + 30)
     end
     local function choose(index)
@@ -365,25 +365,30 @@ function W.LocationSuggestions(box, opts)
     box:HookScript("OnEditFocusLost", function() ns.After(0.1, "hide locations", function()
         if not box:HasFocus() then panel:Hide() end
     end) end)
-    local enter, tab = box:GetScript("OnEnterPressed"), box:GetScript("OnTabPressed")
-    local escape, arrow = box:GetScript("OnEscapePressed"), box:GetScript("OnArrowPressed")
-    box:SetScript("OnEnterPressed", ns.Wrap("choose location", function(self)
-        if panel:IsShown() and matches[selected] then choose(selected) elseif enter then panel:Hide(); enter(self) end
-    end))
-    box:SetScript("OnTabPressed", ns.Wrap("choose location", function(self)
-        if panel:IsShown() and matches[selected] then choose(selected) elseif tab then tab(self) end
-    end))
-    box:SetScript("OnEscapePressed", function(self)
-        if panel:IsShown() then panel:Hide() elseif escape then escape(self) end
-    end)
-    box:SetScript("OnArrowPressed", ns.Wrap("location navigation", function(self, key)
-        if not panel:IsShown() or #matches == 0 then if arrow then arrow(self, key) end; return end
-        if key == "UP" then selected = math.max(1, selected - 1)
-        elseif key == "DOWN" then selected = math.min(#matches, selected + 1) else return end
-        offset = math.max(0, math.min(offset, selected - 1))
-        if selected > offset + 8 then offset = selected - 8 end
-        draw()
-    end))
+    -- Blizzard's chat Enter handler runs protected commands such as /logout.
+    -- Replacing it taints that path, even when we call the original handler.
+    -- Chat suggestions remain clickable; keyboard selection is for our own boxes.
+    if not opts.chat then
+        local enter, tab = box:GetScript("OnEnterPressed"), box:GetScript("OnTabPressed")
+        local escape, arrow = box:GetScript("OnEscapePressed"), box:GetScript("OnArrowPressed")
+        box:SetScript("OnEnterPressed", ns.Wrap("choose location", function(self)
+            if panel:IsShown() and matches[selected] then choose(selected) elseif enter then panel:Hide(); enter(self) end
+        end))
+        box:SetScript("OnTabPressed", ns.Wrap("choose location", function(self)
+            if panel:IsShown() and matches[selected] then choose(selected) elseif tab then tab(self) end
+        end))
+        box:SetScript("OnEscapePressed", function(self)
+            if panel:IsShown() then panel:Hide() elseif escape then escape(self) end
+        end)
+        box:SetScript("OnArrowPressed", ns.Wrap("location navigation", function(self, key)
+            if not panel:IsShown() or #matches == 0 then if arrow then arrow(self, key) end; return end
+            if key == "UP" then selected = math.max(1, selected - 1)
+            elseif key == "DOWN" then selected = math.min(#matches, selected + 1) else return end
+            offset = math.max(0, math.min(offset, selected - 1))
+            if selected > offset + 8 then offset = selected - 8 end
+            draw()
+        end))
+    end
     panel:SetScript("OnMouseWheel", function(_, delta)
         offset = math.max(0, math.min(math.max(0, #matches - 8), offset - delta))
         draw()

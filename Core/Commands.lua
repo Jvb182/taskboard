@@ -33,7 +33,9 @@ function Commands:Add(text)
     local card, err = DB:AddCard(board, spec)
     if not card then return nil, err end
     local goalText = card.goal and (" - tracking: " .. ns.Parser.Describe(card.goal)) or ""
-    ns.Print("Added |cffffffff%s|r%s", card.title, goalText)
+    local reminder = card.where and (card.where.zone or card.where.npc)
+    local reminderText = reminder and (" - reminder: " .. reminder) or ""
+    ns.Print("Added |cffffffff%s|r%s%s", card.title, goalText, reminderText)
     for _, w in ipairs(warnings) do ns.Print("|cffffc04d%s|r", w) end
     return card
 end

@@ -201,6 +201,31 @@ describe("Board window", function()
         T.noErrors(ns)
     end)
 
+    it("names the selected location in the chat add confirmation", function()
+        local m, ns = T.client()
+        m.state.areas = { [89] = "Stormwind City" }
+        local box = m.env.ChatFrame1EditBox
+        m.env.ChatEdit_ActivateChat(box)
+        box:SetText("/tb train in @storm")
+        m.Advance(2)
+        box:GetScript("OnEnterPressed")(box)
+        T.eq(box:GetText(), '/tb train in @"Stormwind City" ')
+
+        m.Slash(box:GetText())
+        local card
+        for _, entry in ipairs(ns.DB:AllCards(false)) do
+            if entry.card.title == "train in" then card = entry.card; break end
+        end
+        T.ok(card, "chat command saved the task")
+        T.eq(card.title, "train in")
+        T.eq(card.where.zone, "Stormwind City")
+        T.contains(m.chat[#m.chat], "reminder: Stormwind City")
+
+        m.Slash("/tb Train new spells")
+        T.no(m.chat[#m.chat]:find("reminder:", 1, true))
+        T.noErrors(ns)
+    end)
+
     it("opens with /tb and shows three columns with counts", function()
         local m, ns = T.client()
         m.Slash("/tb")

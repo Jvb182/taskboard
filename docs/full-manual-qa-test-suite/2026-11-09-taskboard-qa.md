@@ -767,7 +767,7 @@ For each issue, record the addon/client versions, character, location, relevant 
 **Not run tests and reasons:** See the single owner checklist at the bottom for gameplay, combat, hearing, resets, multiplayer and isolated migration. Detailed unchecked cases remain unverified in-game reference checks.  
 **Tester and completion date:** Codex, 9 November 2026; owner sign-off pending.
 
-Reference build: [Taskboard 1.2.0 source](https://github.com/Jvb182/taskboard/commit/6893d6275730ab7286ac9be594e5de3acddd340e). The repository is private; access requires permission.
+Reference build: [Taskboard 1.2.0 source](https://github.com/Jvb182/taskboard/commit/6893d6275730ab7286ac9be594e5de3acddd340e).
 
 ## Tests I need you to run
 

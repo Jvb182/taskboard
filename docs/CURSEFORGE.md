@@ -6,7 +6,7 @@ This file prepares a CurseForge listing. Uploading is a separate action in the o
 
 Read the current version from `Taskboard.toc`. Run `python tests/tools/package.py --curseforge` and upload `dist/Taskboard-<version>-CurseForge.zip` as the default file. It has exactly one top-level folder, `Taskboard`, containing the TOC, Bindings.xml, README, docs/TESTING.md and runtime Lua files. Do **not** make the two-folder `Taskboard-<version>.zip` the default file; that is a manual upgrade package.
 
-Build `dist/Taskboard-<version>-Legacy-Loader.zip` with `python tests/tools/package.py --legacy-loader`. It contains only `Questboard/Questboard.toc`, which loads old saved data without running the old addon code. Attach it to the main release as an **Additional File** and label it "Legacy Questboard data loader — manual download". CurseForge [does not install Additional Files through its app](https://support.curseforge.com/support/solutions/articles/9000197242-file-types-and-additional-fields), so link to the helper on the project page and explain the manual step. An existing Questboard user installs the main Taskboard file, extracts this helper over the old Questboard TOC while WoW is closed, enables both Taskboard and the loader for one login, checks migrated data after a reload, then disables/removes the loader. Do not direct public users to the private GitHub repository or tell them to run the original Questboard code beside Taskboard. No SavedVariables are included in any ZIP.
+Build `dist/Taskboard-<version>-Legacy-Loader.zip` with `python tests/tools/package.py --legacy-loader`. It contains only `Questboard/Questboard.toc`, which loads old saved data without running the old addon code. Attach it to the main release as an **Additional File** and label it "Legacy Questboard data loader — manual download". CurseForge [does not install Additional Files through its app](https://support.curseforge.com/support/solutions/articles/9000197242-file-types-and-additional-fields), so link to the helper on the project page and explain the manual step. An existing Questboard user installs the main Taskboard file, extracts this helper over the old Questboard TOC while WoW is closed, enables both Taskboard and the loader for one login, checks migrated data after a reload, then disables/removes the loader. Do not tell users to run the original Questboard code beside Taskboard. No SavedVariables are included in any ZIP.
 
 ## Project fields
 
@@ -17,7 +17,7 @@ Build `dist/Taskboard-<version>-Legacy-Loader.zip` with `python tests/tools/pack
 - Main category: Miscellaneous (or the closest task/planning category the form offers)
 - Additional categories: Quests & Leveling, Map & Minimap, Professions, if available; only choose relevant ones.
 - License: All Rights Reserved unless a different license is deliberately selected.
-- Source link: leave blank while the repository is private. Add a source link only when public visitors can actually open it.
+- Source link: https://github.com/Jvb182/taskboard (the repository is public).
 - Logo: upload the approved `assets/Taskboard-logo-400.png` (400 × 400 PNG). It is separate from the addon ZIP. Preview screenshots are optional for a WoW addon; genuine in-game screenshots will make the listing clearer.
 
 ## Suggested description

@@ -1,7 +1,7 @@
 local T, Mock = ...
 
 describe("Reminders", function()
-    it("fires when entering a matching zone, once per cooldown", function()
+    it("reminds on each arrival, but ignores duplicate events while inside", function()
         local m, ns = T.client()
         ns.Commands:Add("Buy reagents @Ironforge")
         local count = 0
@@ -12,9 +12,16 @@ describe("Reminders", function()
         T.ok(m.ChatContains("Reminder:"))
         T.ok(m.ChatContains("Buy reagents @Ironforge"))
         m.Fire("ZONE_CHANGED")
-        T.eq(count, 1, "cooldown prevents repeats")
-        m.AdvanceTime(301)
+        T.eq(count, 1, "duplicate events do not repeat an arrival")
+        m.state.zone, m.state.subzone = "Elwynn Forest", ""
         m.Fire("ZONE_CHANGED_NEW_AREA")
+        T.eq(count, 1)
+        m.state.zone, m.state.subzone = "Ironforge", "The Commons"
+        m.Fire("ZONE_CHANGED_NEW_AREA")
+        T.eq(count, 2, "returning immediately is a new arrival")
+        T.eq(ns.Reminders.stats.shown, 2)
+        T.ok(#ns.Toast:Active() > 0, "arrival displays a popup")
+        m.Fire("ZONE_CHANGED_INDOORS")
         T.eq(count, 2)
     end)
 
@@ -25,6 +32,20 @@ describe("Reminders", function()
         T.ok(R.ZoneMatches("Trade Dis", "Stormwind City", "Trade District"))
         T.no(R.ZoneMatches("Orgrimmar", "Ironforge", "The Commons"))
         T.no(R.ZoneMatches("", "Ironforge", ""))
+    end)
+
+    it("rearms a town reminder after leaving its subzone", function()
+        local m, ns = T.client()
+        ns.Commands:Add("Buy supplies @Goldshire")
+        m.state.zone, m.state.subzone = "Elwynn Forest", "Goldshire"
+        m.Fire("ZONE_CHANGED")
+        T.eq(ns.Reminders.stats.shown, 1)
+        m.state.subzone = "Northshire"
+        m.Fire("ZONE_CHANGED")
+        m.state.subzone = "Goldshire"
+        m.Fire("ZONE_CHANGED")
+        T.eq(ns.Reminders.stats.shown, 2)
+        T.noErrors(ns)
     end)
 
     it("fires for NPC reminders and skips done cards", function()

@@ -415,7 +415,7 @@ Taskboard uses the client's item counts; it does not maintain its own bank cache
 
 - [ ] **RM04** Remain in the destination and move around. The task does not repeatedly spam reminders.
 
-- [ ] **RM05** Leave and reenter within five minutes. The same task/context is suppressed; after the cooldown, a new entry can remind again.
+- [ ] **RM05** Leave the matching zone or subzone and reenter within five minutes. The task reminds again on reentry; duplicate zone events while inside do not repeat the popup.
 
 - [ ] **RM06** Enter a matching location on the wrong assigned character. That character does not receive another character's task reminder.
 
@@ -429,7 +429,7 @@ Taskboard uses the client's item counts; it does not maintain its own bank cache
 
 - [ ] **RM11** Open a trainer with `Learn new skills @trainer #qa`. The trainer reminder appears.
 
-- [ ] **RM12** Turn General reminders off and repeat location/NPC triggers. Reminder popups/sounds stop; turn them back on and test again after a fresh entry/cooldown.
+- [ ] **RM12** Turn General reminders off and repeat location/NPC triggers. Reminder popups/sounds stop; turn them back on and test again after a fresh zone entry or the NPC cooldown.
 
 - [ ] **RM13** With smart reminders enabled, open the AH while an item goal is short. The message reports the correct missing quantity.
 

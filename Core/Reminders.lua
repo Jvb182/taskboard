@@ -11,6 +11,7 @@ Reminders.MAIL_LEAVE_RADIUS = 50
 Reminders.stats = { shown = 0 }
 
 local lastShown = {} -- cardID .. context -> time
+local zoneInside = {} -- cardID -> destination matched by the last zone event
 local mailOpen, nearMailbox = false, false
 local mailVisitSeen = {}
 local show
@@ -45,16 +46,25 @@ function Reminders.ZoneMatches(want, zone, subzone)
     return false
 end
 
--- Returns the list of lines to show for a zone change.
-function Reminders:ForZone(zone, subzone, now)
-    local lines = {}
+-- A zone reminder is an arrival: leaving its matching zone or subzone rearms it.
+-- Several client zone events can fire on one arrival, so remember the match state.
+function Reminders:ForZone(zone, subzone)
+    local lines, seen = {}, {}
     for _, entry in ipairs(openCards()) do
         local where = entry.card.where
-        if where and where.zone and Reminders.ZoneMatches(where.zone, zone, subzone)
-            and ready(entry.card.id .. ":zone", now) then
-            lines[#lines + 1] = { card = entry.card, board = entry.board, text = DB:DisplayTitle(entry.card) }
+        local id = entry.card.id
+        seen[id] = true
+        local inside = where and where.zone and Reminders.ZoneMatches(where.zone, zone, subzone)
+        if inside then
+            if zoneInside[id] ~= where.zone then
+                lines[#lines + 1] = { card = entry.card, board = entry.board, text = DB:DisplayTitle(entry.card) }
+            end
+            zoneInside[id] = where.zone
+        else
+            zoneInside[id] = nil
         end
     end
+    for id in pairs(zoneInside) do if not seen[id] then zoneInside[id] = nil end end
     return lines
 end
 
@@ -209,10 +219,10 @@ end
 
 function Reminders:OnLogin()
     local function zoneChanged()
-        if not ns.db.settings.reminders then return end
+        if not ns.db.settings.reminders then zoneInside = {}; return end
         local zone = GetRealZoneText and GetRealZoneText() or ""
         local sub = GetSubZoneText and GetSubZoneText() or ""
-        show("Now in " .. zone, self:ForZone(zone, sub, Util.Now()))
+        show("Now in " .. zone, self:ForZone(zone, sub))
     end
     ns:RegisterEvent("ZONE_CHANGED_NEW_AREA", zoneChanged)
     ns:RegisterEvent("ZONE_CHANGED", zoneChanged)
@@ -238,5 +248,6 @@ end
 
 function Reminders:ResetCooldowns()
     lastShown = {}
+    zoneInside = {}
 end
 

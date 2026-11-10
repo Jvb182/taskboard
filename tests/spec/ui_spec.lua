@@ -791,6 +791,33 @@ describe("Tracker, toasts, log, options, minimap", function()
         T.no(tr.frame:IsShown(), "/tb tracker hides it")
     end)
 
+    it("shows saved reminder places in the on-screen tracker", function()
+        local _, ns = T.client()
+        local board = ns.DB:GetActiveBoard()
+        local card = ns.Commands:Add('train in @"Stormwind City" >doing')
+        ns.Tracker:Refresh()
+        local row = ns.Tracker:Internals().rows[1]
+        T.eq(card.title, "train in")
+        T.eq(card.where.zone, "Stormwind City")
+        T.eq(row.title:GetText(), "train in @Stormwind City")
+
+        ns.DB:UpdateCard(board, card, { where = { zone = "Goldshire" } })
+        ns.Tracker:Refresh()
+        T.eq(row.title:GetText(), "train in @Goldshire")
+        ns.DB:UpdateCard(board, card, { where = false })
+        ns.Tracker:Refresh()
+        T.eq(row.title:GetText(), "train in")
+
+        local mail = ns.Commands:Add("Check mail @mail >doing")
+        ns.Tracker:Refresh()
+        local found = false
+        for _, r in ipairs(ns.Tracker:Internals().rows) do
+            if r.card == mail then T.eq(r.title:GetText(), "Check mail @Mailbox"); found = true end
+        end
+        T.ok(found)
+        T.noErrors(ns)
+    end)
+
     it("tracker labels daily and weekly tasks beside priority without leaking the label", function()
         local _, ns = T.client()
         local board = ns.DB:GetActiveBoard()

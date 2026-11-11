@@ -20,7 +20,7 @@ The **Help** panel explains each feature with examples and has search. See [the 
 
 ## Install
 
-Until the first published release, build the install ZIP from this source checkout with `python tests/tools/package.py --curseforge`. When a release is available, download its single-folder `Taskboard-<version>-CurseForge.zip`. Extract it so this file exists:
+Install [Taskboard from CurseForge](https://www.curseforge.com/wow/addons/taskboard), or download the current `Taskboard-<version>-CurseForge.zip` and extract it so this file exists:
 
 ```text
 World of Warcraft/_forever_/Interface/AddOns/Taskboard/Taskboard.toc
@@ -76,6 +76,10 @@ Plain “Check mail,” “Check mailbox,” and similar tasks receive a mail re
 | `/tb log`, `/tb diag`, `/tb selftest` | Inspect diagnostics |
 
 You can report a bug using the steps in **Help → Settings & sharing → Reporting a bug**. Include the add-on version, what you did, what happened, and relevant `/tb diag` or `/tb log show` output.
+
+## Roadmap
+
+See the [roadmap](ROADMAP.md) for ideas being explored: automatic mail-task creation, map pings for task locations, and NPC-aware trainer reminders such as `/tb train in swords`. These are proposals that need WoW Forever client validation; they are not features of the current release.
 
 ## Development and testing
 

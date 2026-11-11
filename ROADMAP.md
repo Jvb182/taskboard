@@ -20,6 +20,14 @@ Offer optional map pings or markers for tasks with locations, so a player can se
 
 **Today:** `@location` tasks can trigger arrival reminders, and nearby tasks can pulse in the on-screen tracker. They do not create map pings.
 
+### NPC-aware reminders
+
+Understand task text such as `/tb train in swords` and connect it to the **weapon masters who actually teach swords**. Extend the same idea to other trainer and service errands only when Taskboard can identify the right NPC or a verified location. If more than one target matches, let the player choose; always allow a manual location override. A generic trainer should not trigger a swords reminder.
+
+**Before building:** verify what nearby-NPC and distance information WoW Forever exposes, and how to maintain accurate, localized trainer/weapon-skill data. Avoid false alerts from NPCs who cannot provide the requested service. Decide separately whether visiting or training can be detected for completion.
+
+**Today:** `@trainer` can remind when a trainer window opens, and `@location` can remind on zone arrival. Taskboard does not identify a specific nearby NPC from free-form task text.
+
 ## Help shape the next update
 
 [Open a GitHub issue](https://github.com/Jvb182/taskboard/issues/new) with the task you were trying to do, what you expected Taskboard to show, and whether you would want the new behavior on by default. Bug reports are welcome there too.

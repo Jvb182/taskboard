@@ -13,7 +13,7 @@ Add `Get 20 Peacebloom` and Taskboard tracks your bags as you gather: `0/20 → 
 - **Reminds you:** attach a zone with `@Goldshire` or a supported service with `@mail`, `@bank`, `@vendor`, `@ah`, or `@trainer`. Location suggestions appear as you type `@` in Quick Add and the editor. A location reminder alerts you on arrival; it does not complete the task.
 - **Keeps a compact tracker:** show in-progress and pinned cards, or include every open task. Nearby location tasks can pulse until you leave. The tracker can be hidden independently of the board.
 - **Repeats tasks:** daily or weekly cards reset at server reset. For repeating item goals, choose between collecting additional inventory during the period and tracking current stock.
-- **Fits your UI:** choose a preset or custom colors, adjust board and tracker opacity, and select separate sounds for status changes, completions, subtasks, and reminders. Settings, Help, and editor windows stay opaque.
+- **Fits your UI:** preview nine themes, edit background/card/text/border/accent colors, adjust board and tracker opacity independently, and select separate sounds for status changes, completions, subtasks, and reminders. Settings, Help, and editor windows stay opaque.
 - **Shares and exports:** offer a board to party, raid, or guild members who also use Taskboard, or copy a board as text for import elsewhere. Recipients confirm before importing.
 
 The **Help** panel explains each feature with examples and has search. See [the manual QA checklist](docs/TESTING.md) for in-game release checks.

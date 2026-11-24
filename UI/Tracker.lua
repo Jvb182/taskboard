@@ -102,6 +102,7 @@ end
 function Tracker:Create()
     if frame then return end
     frame = CreateFrame("Frame", "TaskboardTracker", UIParent, "BackdropTemplate")
+    frame.taskboardOpacityKey = "trackerOpacity"
     frame:EnableMouseWheel(true)
     frame:SetScript("OnMouseWheel", ns.Wrap("scroll tracker", function(_, delta)
         offset = math.max(0, offset - delta)

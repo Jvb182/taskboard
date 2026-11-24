@@ -25,7 +25,7 @@ DB.defaults = {
         reminders = true, smartReminders = true, includeBank = true, trackerShown = true,
         trackerLocked = false, trackerHideInCombat = false, trackerAllOpen = false, trackerLocationPulse = true, trackerMax = 8, onlyMine = false,
         syncAccept = "ask", debug = false, minimap = { angle = 200, hide = false },
-        theme = "midnight", accent = "sky", panelOpacity = 0.96,
+        theme = "midnight", accent = "sky", panelOpacity = 0.96, trackerOpacity = 0.96,
         nearbySounds = false, nearbySoundInterval = 30,
         soundEvents = { move = "click", complete = "quest", subtask = "click", reminder = "chime" },
     },
@@ -322,6 +322,11 @@ end
 function DB:Load(saved)
     local db = type(saved) == "table" and saved or {}
     conform(db, DB.defaults)
+    -- Existing accounts used one opacity for both surfaces. Keep that look on
+    -- first load, then let the two controls diverge.
+    if type(db.settings) == "table" and db.settings.trackerOpacity == nil then
+        db.settings.trackerOpacity = db.settings.panelOpacity
+    end
     local from = tonumber(db.schema) or DB.SCHEMA
     for v = from + 1, DB.SCHEMA do
         if migrations[v] then

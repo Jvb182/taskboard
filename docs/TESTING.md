@@ -17,10 +17,10 @@ The optional `tests/manual-addons/TaskboardWelcomePreview` helper opens the curr
 ## Appearance and sound
 
 1. Open `/tb options`. Try all nine theme choices, including Classic stone, Classic leather and Quest parchment, and accents while the board, tracker and a popup are visible. Confirm changes apply immediately and survive reload.
-2. Drag opacity from 35% to 100%. Check that board/tracker backgrounds fade and text remains readable over a bright outdoor scene and a dark dungeon. Settings, editor, Help, logs and the Board dropdown must remain opaque.
+2. Drag board and tracker opacity independently from 35% to 100%. Each surface should change on its own; text remains readable over a bright outdoor scene and a dark dungeon. Settings, editor, Help, logs and the Board dropdown must remain opaque.
 3. Preview every sound choice. Move cards between statuses, manually finish one, automatically complete an item goal, and check manual/automatic subtasks. Each event uses its selected sound; Off and the master switch silence it.
 4. Disable visual popups but leave sound on. Completions/reminders must still sound. Reordering within a column and daily/weekly resets must stay silent. Check sound levels with the game's own audio settings.
-5. Confirm Appearance and Sounds pages fit at your UI scale and all controls are reachable.
+5. Confirm every settings page fits at your UI scale and all controls are reachable. In Custom colors, change the Cards swatch, inspect the sample card and contrast warning, then cancel another color edit and confirm it was discarded.
 
 ## Editor and goals
 

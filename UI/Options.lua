@@ -6,7 +6,9 @@ local Options = ns:NewModule("Options")
 local frame
 local checks = {}
 local pages, themeButtons, accentButtons, soundButtons = {}, {}, {}, {}
-local opacity, opacityText
+local opacity, opacityText, trackerOpacity, trackerOpacityText
+local previewSwatches, customSwatches = {}, {}
+local previewPanel, previewCard, previewTitle, contrastLabel
 local nearbyInterval
 local selectedPage = "general"
 local tabs = {}
@@ -18,7 +20,7 @@ function Options:Page(name)
 end
 
 function Options:SetAppearance(key, value)
-    if key ~= "theme" and key ~= "accent" and key ~= "panelOpacity" then return end
+    if key ~= "theme" and key ~= "accent" and key ~= "panelOpacity" and key ~= "trackerOpacity" then return end
     ns.db.settings[key] = value
     if key == "accent" and ns.db.settings.theme == "custom" then
         for _, a in ipairs(Theme.ACCENTS) do
@@ -150,7 +152,7 @@ end
 function Options:Create()
     if frame then return end
     frame = CreateFrame("Frame", "TaskboardOptions", UIParent, "BackdropTemplate")
-    frame:SetSize(540, 570)
+    frame:SetSize(800, 660)
     frame:SetPoint("CENTER", UIParent, "CENTER", 0, 40)
     frame:SetFrameStrata("DIALOG")
     frame:SetToplevel(true)
@@ -164,79 +166,142 @@ function Options:Create()
     Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder, true)
     table.insert(UISpecialFrames, "TaskboardOptions")
     local title = W.Text(frame, "GameFontNormal")
-    title:SetPoint("TOPLEFT", 12, -10)
+    title:SetPoint("TOPLEFT", 18, -16)
     title:SetText("Taskboard options  |cff959ba8" .. ns.version .. "|r")
     local close = W.CloseButton(frame)
     close:SetPoint("TOPRIGHT", 2, 2)
-    for i, page in ipairs({ { "general", "General" }, { "style", "Appearance" }, { "sounds", "Sounds" } }) do
+    local nav = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    nav:SetPoint("TOPLEFT", 12, -54); nav:SetPoint("BOTTOMLEFT", 12, 46); nav:SetWidth(154)
+    Theme.Panel(nav, Theme.colors.panel, Theme.colors.panelBorder, true)
+    for i, page in ipairs({ { "general", "General" }, { "style", "Appearance" },
+        { "custom", "Custom colors" }, { "tracker", "Tracker" },
+        { "reminders", "Reminders" }, { "sounds", "Sounds" }, { "advanced", "Advanced" } }) do
         local key = page[1]
-        tabs[key] = W.Button(frame, page[2], 110, 22, function() Options:Page(key) end)
-        tabs[key]:SetPoint("TOPLEFT", 12 + (i - 1) * 116, -32)
+        tabs[key] = W.Button(nav, page[2], 134, 32, function() Options:Page(key) end)
+        tabs[key]:SetPoint("TOPLEFT", 10, -10 - (i - 1) * 38)
         pages[key] = CreateFrame("Frame", nil, frame)
-        pages[key]:SetPoint("TOPLEFT", 12, -68)
-        pages[key]:SetPoint("BOTTOMRIGHT", -12, 44)
+        pages[key]:SetPoint("TOPLEFT", 182, -62)
+        pages[key]:SetPoint("BOTTOMRIGHT", -18, 48)
     end
-    local generalScroll, generalContent = W.Scroll(pages.general)
-    generalScroll:SetPoint("TOPLEFT", 0, 0)
-    generalScroll:SetPoint("BOTTOMRIGHT", -20, 0)
-    generalContent:SetSize(490, #self.ITEMS * 26 + 215)
-    for i, item in ipairs(self.ITEMS) do
-        local c = W.Check(generalContent, item[2], function(checked) set(item[1], checked) end)
-        c:SetPoint("TOPLEFT", 0, -(i - 1) * 26)
-        checks[item[1]] = c
-    end
-
-    local mailHelp = W.Text(generalContent, "GameFontHighlightSmall")
-    mailHelp:SetPoint("TOPLEFT", 4, -#self.ITEMS * 26 - 8)
-    mailHelp:SetWidth(470); mailHelp:SetWordWrap(true)
-    mailHelp:SetText("Mailbox reminders\nMail, Mailbox, Check mail, Check mailbox, Open mail and Visit the mailbox automatically use the Mail reminder. You can change it or turn it Off in the task editor.\nOpen each mailbox once to teach Taskboard its location. On later visits, it checks every 3 seconds and reminds within about 35 yards; the nearby pulse ends beyond 50 yards. Unvisited mailboxes cannot remind in advance.\nWith automatic completion enabled, opening a mailbox completes these plain tasks only when they have no goals or subtasks.")
-
     local function label(parent, text, y)
         local fs = W.Text(parent, "GameFontNormal")
         fs:SetPoint("TOPLEFT", 0, y); fs:SetText(text)
         return fs
     end
-    local bindingHelp = label(generalContent, "Keyboard shortcuts\nSet your keys in WoW's Key Bindings > AddOns > Taskboard:\nOpen or close the board; Show or hide the tracker; Quick add a card.", -#self.ITEMS * 26 - 150)
-    bindingHelp:SetWidth(470); bindingHelp:SetWordWrap(true)
+    local headings = {
+        general = "General", tracker = "On-screen tracker", reminders = "Reminders & goals", advanced = "Sharing & diagnostics" }
+    for key, heading in pairs(headings) do label(pages[key], heading, 0) end
+    local groups = {
+        general = { "autoStart", "autoComplete", "progressMessages", "toasts", "sounds", "minimapShown" },
+        tracker = { "trackerShown", "trackerAllOpen", "trackerLocationPulse", "trackerHideInCombat" },
+        reminders = { "reminders", "smartReminders", "includeBank" },
+        advanced = { "acceptShares", "debug" },
+    }
+    local descriptions = {}
+    for _, item in ipairs(self.ITEMS) do descriptions[item[1]] = item[2] end
+    for group, keys in pairs(groups) do
+        for i, key in ipairs(keys) do
+            local c = W.Check(pages[group], descriptions[key], function(checked) set(key, checked) end)
+            c:SetPoint("TOPLEFT", 4, -34 - (i - 1) * 30)
+            checks[key] = c
+        end
+    end
+    local bindingHelp = label(pages.general, "Keyboard shortcuts\nSet keys in WoW's Key Bindings > AddOns > Taskboard:\nBoard toggle, tracker toggle, and Quick Add.", -250)
+    bindingHelp:SetWidth(550); bindingHelp:SetWordWrap(true)
+    local mailHelp = label(pages.reminders,
+        "Mailbox reminders\nCheck mail and similar tasks use the Mail reminder automatically. Open a mailbox once to teach Taskboard its location. On later visits it checks every 3 seconds and reminds within about 35 yards; the pulse ends beyond 50 yards. With automatic completion on, opening mail completes plain check-mail tasks without goals or subtasks.", -160)
+    mailHelp:SetWidth(550); mailHelp:SetWordWrap(true)
     local styleScroll, style = W.Scroll(pages.style)
     styleScroll:SetPoint("TOPLEFT", 0, 0); styleScroll:SetPoint("BOTTOMRIGHT", -20, 0)
-    style:SetSize(490, 480)
-    label(style, "Theme", 0)
+    style:SetSize(548, 690)
+    label(style, "Choose a theme", 0)
+    local intro = W.Text(style, "GameFontHighlightSmall")
+    intro:SetPoint("TOPLEFT", 0, -21)
+    intro:SetText("Preview the look, then choose a preset. Changes apply immediately.")
     for i, preset in ipairs(Theme.PRESETS) do
-        local b = W.Button(style, preset.name, 116, 26, function() Options:SetAppearance("theme", preset.id) end)
-        b:SetPoint("TOPLEFT", ((i - 1) % 4) * 122, -24 - math.floor((i - 1) / 4) * 34); themeButtons[preset.id] = b
+        local b = W.Button(style, preset.name, 172, 82, function()
+            Options:SetAppearance("theme", preset.id)
+            if preset.id == "custom" then Options:Page("custom") end
+        end)
+        b:SetPoint("TOPLEFT", ((i - 1) % 3) * 182, -48 - math.floor((i - 1) / 3) * 90)
+        b.label:ClearAllPoints(); b.label:SetPoint("BOTTOMLEFT", 9, 8)
+        themeButtons[preset.id] = b
+        local field = b:CreateTexture(nil, "ARTWORK")
+        field:SetPoint("TOPLEFT", 6, -6); field:SetPoint("BOTTOMRIGHT", -6, 28)
+        local color = preset.preview
+        field:SetColorTexture(color[1], color[2], color[3], 1)
+        local card = b:CreateTexture(nil, "OVERLAY")
+        card:SetPoint("TOPLEFT", 16, -17); card:SetSize(80, 13)
+        local light = preset.id == "quest_log" or preset.id == "classic_leather"
+        card:SetColorTexture(light and 0.24 or 0.75, light and 0.17 or 0.80, light and 0.09 or 0.88, 0.7)
+        previewSwatches[preset.id] = field
     end
-    label(style, "Accent color", -142)
+    label(style, "Accent color", -330)
     for i, accent in ipairs(Theme.ACCENTS) do
-        local b = W.Button(style, accent.name, 92, 26, function() Options:SetAppearance("accent", accent.id) end)
-        b:SetPoint("TOPLEFT", (i - 1) * 98, -166); accentButtons[accent.id] = b
+        local b = W.Button(style, accent.name, 100, 30, function() Options:SetAppearance("accent", accent.id) end)
+        b:SetPoint("TOPLEFT", (i - 1) * 110, -356); accentButtons[accent.id] = b
         local swatch = b:CreateTexture(nil, "ARTWORK")
-        swatch:SetPoint("BOTTOMLEFT", 3, 2); swatch:SetPoint("BOTTOMRIGHT", -3, 2); swatch:SetHeight(2)
+        swatch:SetPoint("BOTTOMLEFT", 3, 2); swatch:SetPoint("BOTTOMRIGHT", -3, 2); swatch:SetHeight(4)
         swatch:SetColorTexture(accent.color[1], accent.color[2], accent.color[3], 1)
     end
-    opacityText = label(style, "Panel opacity", -218)
+    opacityText = label(style, "Board opacity", -410)
     opacity = CreateFrame("Slider", nil, style, "BackdropTemplate")
-    opacity:SetPoint("TOPLEFT", 0, -246); opacity:SetSize(420, 18)
+    opacity:SetPoint("TOPLEFT", 0, -438); opacity:SetSize(510, 18)
     opacity:SetOrientation("HORIZONTAL"); opacity:SetMinMaxValues(0.35, 1); opacity:SetValue(0.96)
     opacity:SetThumbTexture(Theme.WHITE); opacity:GetThumbTexture():SetSize(16, 20)
     Theme.Panel(opacity, Theme.colors.input, Theme.colors.panelBorder)
     opacity:SetScript("OnValueChanged", ns.Wrap("panel opacity", function(_, value)
         if math.abs(value - ns.db.settings.panelOpacity) > 0.001 then Options:SetAppearance("panelOpacity", value) end
     end))
-    local help = label(style, "Quest parchment uses WoW's quest background with dark text.\nOpacity affects the board and tracker; dialogs stay solid.\nCustom colors use RGB sliders or a six-digit hex value.", -280)
-    help:SetWordWrap(true); help:SetWidth(480)
-    label(style, "Custom theme colors", -344)
-    for i, item in ipairs({ { "background", "Background" }, { "text", "Text" }, { "border", "Border" }, { "accent", "Accent" } }) do
-        local key = item[1]
-        local button = W.Button(style, item[2], 112, 26, function() Options:OpenColorPicker(key) end)
-        button:SetPoint("TOPLEFT", (i - 1) * 122, -370)
-    end
-    local reset = W.Button(style, "Reset appearance", 150, 24, function()
-        ns.db.settings.theme, ns.db.settings.accent, ns.db.settings.panelOpacity = "midnight", "sky", 0.96
+    trackerOpacityText = label(style, "Tracker opacity", -486)
+    trackerOpacity = CreateFrame("Slider", nil, style, "BackdropTemplate")
+    trackerOpacity:SetPoint("TOPLEFT", 0, -514); trackerOpacity:SetSize(510, 18)
+    trackerOpacity:SetOrientation("HORIZONTAL"); trackerOpacity:SetMinMaxValues(0.35, 1); trackerOpacity:SetValue(0.96)
+    trackerOpacity:SetThumbTexture(Theme.WHITE); trackerOpacity:GetThumbTexture():SetSize(16, 20)
+    Theme.Panel(trackerOpacity, Theme.colors.input, Theme.colors.panelBorder)
+    trackerOpacity:SetScript("OnValueChanged", ns.Wrap("tracker opacity", function(_, value)
+        if math.abs(value - ns.db.settings.trackerOpacity) > 0.001 then Options:SetAppearance("trackerOpacity", value) end
+    end))
+    local help = label(style, "Board and tracker opacity are independent. Settings, editors and Help stay solid.", -552)
+    help:SetWordWrap(true); help:SetWidth(540)
+    local customLink = W.Button(style, "Edit custom colors", 180, 26, function() Options:Page("custom") end)
+    customLink:SetPoint("TOPLEFT", 0, -594)
+    local reset = W.Button(style, "Reset appearance", 150, 26, function()
+        ns.db.settings.theme, ns.db.settings.accent, ns.db.settings.panelOpacity, ns.db.settings.trackerOpacity = "midnight", "sky", 0.96, 0.96
         ns.db.settings.customColors = nil
         Theme:Apply(); Options:Refresh()
     end)
-    reset:SetPoint("TOPLEFT", 0, -418)
+    reset:SetPoint("LEFT", customLink, "RIGHT", 12, 0)
+
+    label(pages.custom, "Custom color studio", 0)
+    local customHelp = W.Text(pages.custom, "GameFontHighlightSmall")
+    customHelp:SetPoint("TOPLEFT", 0, -25); customHelp:SetWidth(550); customHelp:SetWordWrap(true)
+    customHelp:SetText("Pick a color with RGB sliders or a six-digit hex value. Apply saves it and selects Custom; Cancel discards the draft.")
+    for i, item in ipairs({ { "background", "Background" }, { "card", "Cards" },
+        { "text", "Text" }, { "border", "Borders" }, { "accent", "Accent" } }) do
+        local key = item[1]
+        local button = W.Button(pages.custom, item[2], 160, 50, function() Options:OpenColorPicker(key) end)
+        button:SetPoint("TOPLEFT", ((i - 1) % 3) * 182, -92 - math.floor((i - 1) / 3) * 64)
+        button.label:ClearAllPoints(); button.label:SetPoint("LEFT", 42, 0)
+        local swatch = button:CreateTexture(nil, "ARTWORK")
+        swatch:SetPoint("LEFT", 9, 0); swatch:SetSize(24, 24)
+        customSwatches[key] = swatch
+    end
+    contrastLabel = label(pages.custom, "", -240)
+    contrastLabel:SetWidth(540); contrastLabel:SetWordWrap(true)
+    label(pages.custom, "Live preview", -290)
+    previewPanel = CreateFrame("Frame", nil, pages.custom, "BackdropTemplate")
+    previewPanel:SetPoint("TOPLEFT", 0, -320); previewPanel:SetSize(548, 178)
+    previewPanel:SetBackdrop(Theme.BACKDROP)
+    previewCard = CreateFrame("Frame", nil, previewPanel, "BackdropTemplate")
+    previewCard:SetPoint("TOPLEFT", 18, -36); previewCard:SetSize(300, 90)
+    previewCard:SetBackdrop(Theme.BACKDROP)
+    previewTitle = W.Text(previewCard, "GameFontHighlight")
+    previewTitle:SetPoint("TOPLEFT", 12, -12); previewTitle:SetText("Prepare for raid night")
+    local previewDetail = W.Text(previewCard, "GameFontHighlightSmall")
+    previewDetail:SetPoint("TOPLEFT", 12, -38); previewDetail:SetText("Gather supplies  4/10")
+    local previewNote = W.Text(previewPanel, "GameFontHighlightSmall")
+    previewNote:SetPoint("BOTTOMLEFT", 18, 14); previewNote:SetText("Example card and tracker colors update as you edit.")
 
     local soundHelp = label(pages.sounds, "Choose a sound for each event, or turn that event off.\nSounds work even when visual popups are disabled.\nVolume follows the game's sound settings.", 0)
     soundHelp:SetWordWrap(true); soundHelp:SetWidth(500)
@@ -292,7 +357,34 @@ function Options:Refresh()
     if nearbyInterval then nearbyInterval:SetLabel("Every " .. tostring(s.nearbySoundInterval) .. " sec") end
     for id, b in pairs(themeButtons) do b:SetActive(id == s.theme) end
     for id, b in pairs(accentButtons) do b:SetActive(id == s.accent) end
-    if opacity then opacity:SetValue(s.panelOpacity); opacityText:SetText(string.format("Panel opacity: %d%%", s.panelOpacity * 100)) end
+    if opacity then opacity:SetValue(s.panelOpacity); opacityText:SetText(string.format("Board opacity: %d%%", s.panelOpacity * 100)) end
+    if trackerOpacity then
+        trackerOpacity:SetValue(s.trackerOpacity)
+        trackerOpacityText:SetText(string.format("Tracker opacity: %d%%", s.trackerOpacity * 100))
+    end
+    local custom = Theme:CustomColors()
+    for key, swatch in pairs(customSwatches) do
+        local color = custom[key]
+        swatch:SetColorTexture(color[1], color[2], color[3], 1)
+    end
+    if previewSwatches.custom then
+        local color = custom.background
+        previewSwatches.custom:SetColorTexture(color[1], color[2], color[3], 1)
+    end
+    if previewPanel then
+        local c = Theme.colors
+        previewPanel:SetBackdropColor(c.window[1], c.window[2], c.window[3], 1)
+        previewPanel:SetBackdropBorderColor(unpack(c.windowBorder))
+        previewCard:SetBackdropColor(c.card[1], c.card[2], c.card[3], 1)
+        previewCard:SetBackdropBorderColor(unpack(c.cardBorder))
+        previewTitle:SetTextColor(unpack(c.text))
+        local ratio = math.min(Theme:ContrastRatio(custom.text, custom.background),
+            Theme:ContrastRatio(custom.text, custom.card))
+        contrastLabel:SetText(string.format("Custom text contrast: %.1f:1  %s",
+            ratio, ratio >= 4.5 and "Readable for normal text" or "Low contrast; adjust Text or Cards"))
+        contrastLabel:SetTextColor(ratio >= 4.5 and 0.35 or 1, ratio >= 4.5 and 0.85 or 0.55,
+            ratio >= 4.5 and 0.50 or 0.35)
+    end
     for kind, b in pairs(soundButtons) do
         local name = "Off"
         for _, choice in ipairs(ns.Toast.SOUND_CHOICES) do if choice[1] == s.soundEvents[kind] then name = choice[2] end end
@@ -337,7 +429,9 @@ function Options:OnLogin()
 end
 
 function Options:Internals()
-    return { frame = frame, checks = checks, pages = pages, opacity = opacity, themeButtons = themeButtons,
+    return { frame = frame, checks = checks, pages = pages, opacity = opacity, trackerOpacity = trackerOpacity,
+             customSwatches = customSwatches, previewPanel = previewPanel, contrastLabel = contrastLabel,
+             themeButtons = themeButtons,
              accentButtons = accentButtons, soundButtons = soundButtons }
 end
 

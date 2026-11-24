@@ -1,6 +1,18 @@
 local T, Mock = ...
 
 describe("Board layouts", function()
+    it("keeps the title, board controls and quick add in separate rows", function()
+        local _, ns = T.client(); ns.Board:Show()
+        local ui = ns.Board:Internals()
+        T.eq(ui.titleBar.title:GetParent(), ui.titleBar)
+        local boardPoint, _, _, _, boardY = ui.boardButton:GetPoint()
+        local addPoint, _, _, _, addY = ui.addBox:GetPoint()
+        local viewPoint, _, _, _, viewY = ui.viewport:GetPoint()
+        T.eq(boardPoint, "TOPLEFT"); T.eq(boardY, -40)
+        T.eq(addPoint, "TOPLEFT"); T.eq(addY, -72)
+        T.eq(viewPoint, "TOPLEFT"); T.eq(viewY, -108)
+        T.noErrors(ns)
+    end)
     it("shows all Appearance controls in the Options viewport", function()
         local _, ns = T.client(); ns.Options:Show(); ns.Options:Page("style")
         local options = ns.Options:Internals().frame

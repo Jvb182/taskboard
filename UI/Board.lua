@@ -8,7 +8,7 @@ Board.CARD_H = 44
 Board.BAR_H = 14
 Board.filter = { text = "", tag = nil }
 
-local frame, columnsHost, columnsViewport, horizontalScroll, footer, addBox, searchBox, boardButton, boardSettingsButton, mineCheck, tagButton
+local frame, columnsHost, columnsViewport, horizontalScroll, footer, addBox, searchBox, boardButton, boardSettingsButton, mineCheck, tagButton, titleBar
 local columnFrames = {}
 local cardPool, usedCards = {}, {}
 local dirty = true
@@ -309,6 +309,15 @@ function Board:Layout()
     if not frame or not frame:IsShown() then dirty = true return end
     if drag then dirty = true return end -- never recycle the frame holding an active drag
     dirty = false
+    if titleBar then
+        local parchment = Theme:IsParchment()
+        titleBar.fill:SetShown(parchment)
+        if parchment then
+            local leather = ns.db.settings.theme == "classic_leather"
+            titleBar.fill:SetColorTexture(leather and 0.12 or 0.16, leather and 0.085 or 0.11,
+                leather and 0.045 or 0.065, 1)
+        end
+    end
     local board = activeBoard()
     releaseCards()
     if not board then
@@ -324,7 +333,7 @@ function Board:Layout()
     local gap = 8
     local viewportW = math.max(1, frame:GetWidth() - 24)
     local hostW = math.max(viewportW, n * 140 + gap * (n - 1))
-    columnsHost:SetSize(hostW, math.max(10, frame:GetHeight() - 116))
+    columnsHost:SetSize(hostW, math.max(10, frame:GetHeight() - 156))
     local scrollRange = math.max(0, hostW - viewportW)
     horizontalScroll:SetMinMaxValues(0, scrollRange)
     horizontalScroll:SetValue(math.min(horizontalScroll:GetValue() or 0, scrollRange))
@@ -650,10 +659,13 @@ function Board:Create()
     Theme.Panel(frame, Theme.colors.window, Theme.colors.windowBorder)
     table.insert(UISpecialFrames, "TaskboardFrame")
 
-    local titleBar = CreateFrame("Frame", nil, frame)
+    titleBar = CreateFrame("Frame", nil, frame)
     titleBar:SetPoint("TOPLEFT", 0, 0)
     titleBar:SetPoint("TOPRIGHT", 0, 0)
-    titleBar:SetHeight(30)
+    titleBar:SetHeight(32)
+    titleBar.fill = titleBar:CreateTexture(nil, "BACKGROUND")
+    titleBar.fill:SetAllPoints()
+    titleBar.fill:SetColorTexture(0.16, 0.11, 0.065, 1)
     -- The drag strip must sit above the mouse-enabled window background;
     -- header buttons sit one level higher so they remain clickable.
     titleBar:SetFrameLevel(frame:GetFrameLevel() + 1)
@@ -662,12 +674,13 @@ function Board:Create()
     titleBar:SetScript("OnDragStart", function() frame:StartMoving() end)
     titleBar:SetScript("OnDragStop", function() frame:StopMovingOrSizing() savePosition() end)
 
-    local title = W.Text(frame, "GameFontNormalLarge")
+    local title = W.Text(titleBar, "GameFontNormalLarge")
+    titleBar.title = title
     title:SetPoint("TOPLEFT", 12, -8)
     Theme.Brand(title)
 
     boardButton = W.Button(frame, "Boards", 150, 20, function() Board:BoardSwitcher() end, "Switch between your character boards and received shared boards")
-    boardButton:SetPoint("LEFT", title, "RIGHT", 12, 0)
+    boardButton:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -40)
     boardButton.label:SetWidth(144)
     boardSettingsButton = W.Button(frame, "Board settings", 112, 20, function() Board:BoardMenu() end, "Change this board's layout, sharing, archive and data settings")
     boardSettingsButton:SetPoint("LEFT", boardButton, "RIGHT", 6, 0)
@@ -686,7 +699,7 @@ function Board:Create()
     end
 
     addBox = W.EditBox(frame, 300, 24, "Add a card: Get 20 Peacebloom #herbs !high   (shift-click items)", true)
-    addBox:SetPoint("TOPLEFT", 12, -36)
+    addBox:SetPoint("TOPLEFT", 12, -72)
     addBox:SetPoint("RIGHT", frame, "RIGHT", -310, 0)
     addBox:SetMaxLetters(400)
     addBox:SetScript("OnEnterPressed", ns.Wrap("quick add", function(self)
@@ -716,7 +729,7 @@ function Board:Create()
     mineCheck:SetPoint("LEFT", tagButton, "RIGHT", 4, 0)
 
     columnsViewport = CreateFrame("ScrollFrame", nil, frame)
-    columnsViewport:SetPoint("TOPLEFT", 12, -68)
+    columnsViewport:SetPoint("TOPLEFT", 12, -108)
     columnsViewport:SetPoint("BOTTOMRIGHT", -12, 48)
     columnsHost = CreateFrame("Frame", nil, columnsViewport)
     columnsHost:SetSize(796, 384)
@@ -803,6 +816,6 @@ end
 function Board:Internals()
     return { frame = frame, columns = columnFrames, cards = usedCards, addBox = addBox, searchBox = searchBox,
              boardButton = boardButton, boardSettingsButton = boardSettingsButton,
-             horizontalScroll = horizontalScroll, viewport = columnsViewport }
+             horizontalScroll = horizontalScroll, viewport = columnsViewport, titleBar = titleBar }
 end
 

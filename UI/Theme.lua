@@ -60,8 +60,8 @@ Theme.PRESETS = {
     { id = "violet", name = "Arcane", tint = { 0.035, -0.005, 0.055 }, preview = { 0.12, 0.07, 0.17 } },
     { id = "contrast", name = "High contrast", tint = { -0.04, -0.04, -0.04 }, preview = { 0.02, 0.02, 0.02 } },
     { id = "classic_stone", name = "Classic stone", tint = { 0.025, 0.015, 0.005 }, classic = true, preview = { 0.16, 0.17, 0.19 } },
-    { id = "classic_leather", name = "Classic leather", tint = { 0.085, 0.045, 0.005 }, classic = true, preview = { 0.55, 0.40, 0.23 } },
-    { id = "quest_log", name = "Quest parchment", tint = { 0, 0, 0 }, preview = { 0.88, 0.79, 0.60 } },
+    { id = "classic_leather", name = "Classic leather", tint = { 0.085, 0.045, 0.005 }, classic = true, preview = { 0.42, 0.31, 0.18 } },
+    { id = "quest_log", name = "Quest parchment", tint = { 0, 0, 0 }, preview = { 0.58, 0.47, 0.32 } },
     { id = "custom", name = "Custom", tint = { 0, 0, 0 }, preview = { 0.12, 0.23, 0.32 } },
 }
 Theme.ACCENTS = {
@@ -161,6 +161,11 @@ function Theme:Decorate(frame, bg, opaque)
     if frame.taskboardParchment then
         frame.taskboardParchment:SetShown(quest and frame.taskboardParchmentOK)
         frame.taskboardParchment:SetAlpha(opaque and 1 or self:PanelOpacity(frame))
+        if ns.db.settings.theme == "classic_leather" then
+            frame.taskboardParchment:SetVertexColor(0.68, 0.62, 0.55)
+        else
+            frame.taskboardParchment:SetVertexColor(0.82, 0.78, 0.72)
+        end
     end
 end
 
@@ -173,7 +178,12 @@ end
 
 function Theme.Brand(region, suffix)
     brands[region] = suffix or ""
-    region:SetText("|cff" .. Theme.HEX.accent .. "Task|rboard" .. (suffix or ""))
+    if Theme:IsParchment() then
+        region:SetTextColor(0.96, 0.88, 0.70)
+        region:SetText("|cffffd486Task|rboard" .. (suffix or ""))
+    else
+        region:SetText("|cff" .. Theme.HEX.accent .. "Task|rboard" .. (suffix or ""))
+    end
 end
 
 function Theme:Apply()
@@ -224,16 +234,19 @@ function Theme:Apply()
     end
     if preset.id == "custom" or self:IsParchment() then
         local palette = preset.id == "custom" and self:CustomColors() or preset.id == "classic_leather" and {
-            background = { 0.56, 0.43, 0.27 }, card = { 0.66, 0.51, 0.33 },
-            text = { 0.14, 0.09, 0.04 }, border = { 0.30, 0.20, 0.10 },
+            background = { 0.42, 0.31, 0.18 }, card = { 0.65, 0.52, 0.34 },
+            text = { 0.09, 0.06, 0.03 }, border = { 0.25, 0.17, 0.09 },
             accent = { accent.color[1] * 0.42, accent.color[2] * 0.42, accent.color[3] * 0.42 } } or {
-            background = { 0.88, 0.79, 0.60 }, text = { 0.18, 0.12, 0.06 },
-            border = { 0.44, 0.31, 0.16 }, accent = { accent.color[1] * 0.42, accent.color[2] * 0.42, accent.color[3] * 0.42 } }
+            background = { 0.58, 0.47, 0.32 }, card = { 0.72, 0.61, 0.45 },
+            text = { 0.11, 0.075, 0.04 }, border = { 0.29, 0.20, 0.11 },
+            accent = { accent.color[1] * 0.42, accent.color[2] * 0.42, accent.color[3] * 0.42 } }
         for key, color in pairs(self.colors) do
             if backgrounds[key] then
                 local amount = (key == "cardHover" or key == "buttonHover") and 0.16 or
                     (key == "window" or key == "panel") and 0 or 0.06
-                local source = (key == "card" or key == "cardHover" or key == "cardDone") and (palette.card or palette.background) or palette.background
+                local source = (key == "card" or key == "cardHover" or key == "cardDone" or
+                    key == "button" or key == "buttonHover" or key == "input") and
+                    (palette.card or palette.background) or palette.background
                 for i = 1, 3 do color[i] = source[i] * (1 - amount) + palette.text[i] * amount end
             elseif key:find("Border", 1, true) then
                 for i = 1, 3 do color[i] = palette.border[i] end

@@ -21,6 +21,7 @@ The optional `tests/manual-addons/TaskboardWelcomePreview` helper opens the curr
 3. Preview every sound choice. Move cards between statuses, manually finish one, automatically complete an item goal, and check manual/automatic subtasks. Each event uses its selected sound; Off and the master switch silence it.
 4. Disable visual popups but leave sound on. Completions/reminders must still sound. Reordering within a column and daily/weekly resets must stay silent. Check sound levels with the game's own audio settings.
 5. Confirm every settings page fits at your UI scale and all controls are reachable. In Custom colors, change the Cards swatch, inspect the sample card and contrast warning, then cancel another color edit and confirm it was discarded.
+6. On Quest parchment and Classic leather, check the header rows, card text, and column titles at the board's minimum width and over a bright outdoor scene. Board switcher, settings, Quick Add and search must remain separated.
 
 ## Editor and goals
 

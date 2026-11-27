@@ -28,7 +28,7 @@ World of Warcraft/_forever_/Interface/AddOns/Taskboard/Taskboard.toc
 
 Restart the game after installing. Open the board with `/tb` or its minimap button. You can assign shortcuts for the board, tracker, and Quick Add under **Key Bindings → AddOns → Taskboard**.
 
-If you are upgrading saved data from **Questboard**, use the optional `Taskboard-<version>-Legacy-Loader.zip` for one login. Close the game, back up SavedVariables, install Taskboard, and extract the loader into `Interface/AddOns/`. Enable **Taskboard** and **Taskboard - legacy data loader**. Taskboard copies the old boards and settings without running the old add-on code; the original save remains intact. After a reload and verification, remove or disable the loader. The CurseForge app does not install this optional file automatically. See [the release guide](docs/CURSEFORGE.md) for packaging and upload details.
+If you are upgrading saved data from **Questboard**, use the optional `Taskboard-<version>-Legacy-Loader.zip` for one login. Close the game, back up SavedVariables, install Taskboard, and extract the loader into `Interface/AddOns/`, replacing the old Questboard TOC and Bindings.xml. The loader's empty Bindings.xml prevents duplicate keybinding warnings while Taskboard keeps your existing binding IDs. Enable **Taskboard** and **Taskboard - legacy data loader**. Taskboard copies the old boards and settings without running the old add-on code; the original save remains intact. After a reload and verification, remove the old Questboard addon folder. The CurseForge app does not install this optional file automatically. See [the release guide](docs/CURSEFORGE.md) for packaging and upload details.
 
 ## Add tasks
 

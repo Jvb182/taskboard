@@ -165,7 +165,7 @@ These are release blockers if they fail. The detailed sections below cover their
 
 - [ ] **IN04** Repeat login/reload after upgrading. The upgrade does not run again, duplicate cards, or restore old values over new edits.
 
-- [ ] **IN05** In an isolated Questboard migration test, install the manual upgrade ZIP and enable Taskboard plus the legacy data loader. Existing data appears in Taskboard.
+- [ ] **IN05** In an isolated Questboard migration test, install the manual upgrade ZIP over the old Questboard folder and enable Taskboard plus the legacy data loader. Existing data appears in Taskboard with no duplicate keybinding warnings.
 
 - [ ] **IN06** Edit a migrated card, reload, and then disable the legacy loader. The edit persists, and Taskboard still loads normally.
 

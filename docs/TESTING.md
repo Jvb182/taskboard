@@ -10,7 +10,7 @@ Offline tests exercise Lua 5.1 and the API fixture for Forever 1.60.1 (70862), i
 4. Check `/tb`, the minimap button and all three key bindings. Reload with a populated board and verify cards, order, settings, position and recurring progress survive.
    Close and reopen the board several times with its binding, including after Quick Add and Search have had focus. Press Escape to leave a field before using a printable-key binding.
 5. Upgrade from an actual Questboard installation using the packaged legacy loader. Verify old boards/settings/logs appear in Taskboard, legacy bindings still work, and a second login does not overwrite new edits with the old save.
-6. Check the ZIP layouts: the default CurseForge ZIP contains only `Taskboard/`, and the optional Legacy Loader ZIP contains only `Questboard/Questboard.toc`. Neither includes `tests/manual-addons/`.
+6. Check the ZIP layouts: the default CurseForge ZIP contains only `Taskboard/`, and the optional Legacy Loader ZIP contains `Questboard/Questboard.toc` plus an empty `Questboard/Bindings.xml`. Neither includes `tests/manual-addons/`.
 
 The optional `tests/manual-addons/TaskboardWelcomePreview` helper opens the current welcome card on an existing board for copy/layout review. It adds a card and does not satisfy the isolated fresh-install check.
 

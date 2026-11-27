@@ -5,6 +5,7 @@ import re
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
+LOADER_FILES = ("Questboard.toc", "Bindings.xml")
 
 
 def main():
@@ -23,7 +24,8 @@ def main():
     output.parent.mkdir(exist_ok=True)
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
         if args.legacy_loader:
-            archive.write(ROOT / "compat/Questboard/Questboard.toc", "Questboard/Questboard.toc")
+            for name in LOADER_FILES:
+                archive.write(ROOT / "compat/Questboard" / name, "Questboard/" + name)
         else:
             for name in files:
                 path = (ROOT / name).resolve()
@@ -31,17 +33,18 @@ def main():
                     raise ValueError(f"Invalid or missing runtime file: {name}")
                 archive.write(path, "Taskboard/" + name)
             if not args.curseforge:
-                archive.write(ROOT / "compat/Questboard/Questboard.toc", "Questboard/Questboard.toc")
+                for name in LOADER_FILES:
+                    archive.write(ROOT / "compat/Questboard" / name, "Questboard/" + name)
     with zipfile.ZipFile(output) as archive:
         assert archive.testzip() is None
         if args.legacy_loader:
-            assert archive.namelist() == ["Questboard/Questboard.toc"]
+            assert archive.namelist() == ["Questboard/" + name for name in LOADER_FILES]
         else:
             assert "Taskboard/Taskboard.toc" in archive.namelist()
         if args.curseforge:
             assert {name.split("/")[0] for name in archive.namelist()} == {"Taskboard"}
         else:
-            assert "Questboard/Questboard.toc" in archive.namelist()
+            assert all("Questboard/" + name in archive.namelist() for name in LOADER_FILES)
     print(output)
 
 

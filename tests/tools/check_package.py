@@ -18,19 +18,21 @@ def check_zip(path, expected):
             source = ROOT / name
             if name.startswith("Taskboard/"):
                 source = ROOT / name.removeprefix("Taskboard/")
-            elif name == "Questboard/Questboard.toc":
-                source = ROOT / "compat/Questboard/Questboard.toc"
+            elif name.startswith("Questboard/"):
+                source = ROOT / "compat" / name
             assert archive.read(name) == source.read_bytes(), f"{path.name}: stale {name}"
 
 
 def main():
+    stub = (ROOT / "compat/Questboard/Bindings.xml").read_text(encoding="utf-8")
+    assert "<Bindings>" in stub and "<Binding " not in stub, "legacy loader must not declare keybindings"
     toc = (ROOT / "Taskboard.toc").read_text(encoding="utf-8")
     version = re.search(r"^## Version: ([\w.-]+)$", toc, re.MULTILINE).group(1)
     runtime = {"Taskboard/Taskboard.toc", "Taskboard/Bindings.xml",
                "Taskboard/README.md", "Taskboard/docs/TESTING.md"}
     runtime.update("Taskboard/" + line.strip().replace("\\", "/") for line in toc.splitlines()
                    if line.strip() and not line.startswith("#"))
-    loader = {"Questboard/Questboard.toc"}
+    loader = {"Questboard/Questboard.toc", "Questboard/Bindings.xml"}
     dist = ROOT / "dist"
     cf = dist / f"Taskboard-{version}-CurseForge.zip"
     check_zip(cf, runtime)
